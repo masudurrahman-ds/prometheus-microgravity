@@ -2,6 +2,9 @@ package org.crowncouncil.prometheus;
 
 import android.os.Bundle;
 import android.webkit.WebView;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.OnBackPressedCallback;
 import com.getcapacitor.BridgeActivity;
 import java.io.BufferedReader;
@@ -13,9 +16,23 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         installBackHandler();
+        installWindowInsets();
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 1200);
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 2600);
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 5200);
+    }
+
+    private void installWindowInsets() {
+        WebView webView = getBridge().getWebView();
+        if (webView == null) return;
+        ViewCompat.setOnApplyWindowInsetsListener(webView, (view, insets) -> {
+            Insets bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
+            );
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(webView);
     }
 
     private void installBackHandler() {
