@@ -45,6 +45,13 @@
     .pm-logic{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
     .pm-logic div{padding:7px;border-radius:9px;background:rgba(255,255,255,.035);font-size:9px;color:#aab2c8}
     .pm-logic b{display:block;color:#e6cb93;margin-bottom:2px}
+    .pm-3d{position:relative;background:#03060d;border-radius:13px;overflow:hidden}
+    .pm-3d canvas{display:block;width:100%;height:270px;touch-action:none}
+    .pm-3d-hud{position:absolute;left:10px;top:9px;right:10px;display:flex;justify-content:space-between;pointer-events:none;color:#aab2c8;font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+    .pm-3d-controls{display:flex;gap:6px;padding:8px;border-top:1px solid rgba(255,255,255,.07)}
+    .pm-3d-controls button{border:1px solid rgba(230,203,147,.28);background:rgba(230,203,147,.06);color:#e6cb93;border-radius:8px;padding:5px 8px;font-size:10px;cursor:pointer}
+    .pm-video-note{color:#737c96;font-size:9.5px;margin:7px 0 0}
+
 
     .pm-msg{border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:12px 13px;font:13px/1.58 IBM Plex Sans,system-ui}
     .pm-msg.ai{background:linear-gradient(180deg,rgba(230,203,147,.085),rgba(255,255,255,.022));border-color:rgba(230,203,147,.20)}
@@ -146,6 +153,67 @@
       if(rows.length) return visualShell("Scientific flame rendering","Geometry is illustrative; values are NASA-derived",flameSVG(rows),"flame");
     }
     return "";
+  }
+
+  function build3DResult(rows) {
+    const id="pm3d-"+Math.random().toString(36).slice(2,9);
+    const card=document.createElement("div");
+    card.className="pm-3d";
+    card.innerHTML='<div class="pm-3d-hud"><span>NASA DATA · 3D RESULT</span><span>Drag · rotate · scroll · zoom</span></div><canvas width="780" height="540"></canvas><div class="pm-3d-controls"><button data-rotate>Auto rotate</button><button data-video>Generate video</button><button data-reset>Reset</button></div><div class="pm-video-note">Rendered from loaded NASA-derived values. Geometry is a scientific visualization, not a NASA image or measurement.</div>';
+    const canvas=card.querySelector("canvas"), ctx=canvas.getContext("2d");
+    let yaw=-.35,pitch=-.18,zoom=1.0,running=true,raf=0,recording=false;
+    let lastX=0,lastY=0,drag=false;
+    const pts=[];
+    const max=Math.max(...rows.map(r=>Number(r.y)||0),1);
+    rows.forEach((r,idx)=>{
+      const burn=Number(r.y)||0, radius=20+52*(burn/max);
+      for(let i=0;i<44;i++){
+        const a=i/44*Math.PI*2+idx*.7, h=(i%11)/10*2-1;
+        pts.push({x:Math.cos(a)*radius*(.55+.45*Math.random()),y:h*radius,z:Math.sin(a)*radius*(.55+.45*Math.random()),g:idx});
+      }
+    });
+    function project(p) {
+      let x=p.x*Math.cos(yaw)-p.z*Math.sin(yaw), z=p.x*Math.sin(yaw)+p.z*Math.cos(yaw);
+      let y=p.y*Math.cos(pitch)-z*Math.sin(pitch); z=p.y*Math.sin(pitch)+z*Math.cos(pitch);
+      const d=260/(260+z), cx=canvas.width/2+x*d*zoom, cy=canvas.height/2-y*d*zoom;
+      return {x:cx,y:cy,s:Math.max(.7,5*d),z};
+    }
+    function frame(t) {
+      ctx.fillStyle="#03060d";ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.strokeStyle="rgba(168,220,255,.12)";ctx.lineWidth=1;
+      for(let i=-3;i<=3;i++){const y=canvas.height/2+i*55;ctx.beginPath();ctx.moveTo(80,y);ctx.lineTo(canvas.width-80,y);ctx.stroke();}
+      pts.forEach((p,i)=>{if(running&&!drag)p.z+=Math.sin(t/900+i)*.03;});
+      const pp=pts.map(project).sort((a,b)=>a.z-b.z);
+      pp.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,Math.PI*2);ctx.fillStyle="rgba(230,203,147,.82)";ctx.fill();});
+      ctx.fillStyle="#eef0f7";ctx.font="18px system-ui";ctx.fillText("NASA-derived experiment space",24,32);
+      ctx.fillStyle="#737c96";ctx.font="12px system-ui";ctx.fillText("Relative 3D representation · not a measured geometry",24,52);
+      if(running)raf=requestAnimationFrame(frame);
+    }
+    function start(){cancelAnimationFrame(raf);running=true;raf=requestAnimationFrame(frame);}
+    function stop(){running=false;cancelAnimationFrame(raf);frame(performance.now());}
+    canvas.addEventListener("pointerdown",e=>{drag=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);});
+    canvas.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-lastX)*.008;pitch+=(e.clientY-lastY)*.008;pitch=Math.max(-1.2,Math.min(1.2,pitch));lastX=e.clientX;lastY=e.clientY;frame(performance.now());});
+    canvas.addEventListener("pointerup",()=>{drag=false;});
+    canvas.addEventListener("wheel",e=>{e.preventDefault();zoom*=e.deltaY>0?.9:1.1;zoom=Math.max(.45,Math.min(2.4,zoom));frame(performance.now());},{passive:false});
+    card.querySelector("[data-rotate]").onclick=()=>{running=!running;running?start():stop();};
+    card.querySelector("[data-reset]").onclick=()=>{yaw=-.35;pitch=-.18;zoom=1;frame(performance.now());};
+    card.querySelector("[data-video]").onclick=()=>{
+      if(recording||!canvas.captureStream){return;}
+      recording=true; const stream=canvas.captureStream(30), chunks=[];
+      const mime=MediaRecorder.isTypeSupported("video/webm;codecs=vp9")?"video/webm;codecs=vp9":"video/webm";
+      const rec=new MediaRecorder(stream,{mimeType:mime}); rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+      rec.onstop=()=>{recording=false;const blob=new Blob(chunks,{type:mime});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="prometheus-nasa-3d-result.webm";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+      const old=running; running=true; rec.start(); setTimeout(()=>{rec.stop();running=old;},8000);
+    };
+    start(); return card;
+  }
+
+  function scientific3DVisual(q, rs) {
+    const low=q.toLowerCase();
+    if(!/3d|three.?d|spatial|volume|surface|model|visualize|visualise/.test(low)) return "";
+    const rows=rs.map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
+    if(rows.length<1) return "";
+    return build3DResult(rows).outerHTML;
   }
 
   function bindVisuals(root) {
@@ -292,6 +360,7 @@
 
     const low=q.toLowerCase(), ws=words(q), ids=new Set(), audit=["NASA-only corpus selected","External-knowledge fallback disabled"];
     const visual = scientificVisual(q, rs);
+    const visual3d = scientific3DVisual(q, rs);
     const explicit=findSourcesInQuestion(q); explicit.forEach(x=>ids.add(x));
 
     if(OUTSIDE.test(low) && !NASA_TERMS.has(ws[0])) {
@@ -394,11 +463,22 @@
     const ev=EVIDENCE[evidence]||EVIDENCE.UNKNOWN;
     const sourcesHtml=ids&&ids.length?sourceCards(ids):"";
     const visualHtml=visual||"";
-    el.innerHTML='<div class="pm-meta">'+esc(title)+pct+'</div><div class="pm-answer">'+text+visualHtml+'</div>'+
+    const visual3dHtml=visual3d||"";
+    el.innerHTML='<div class="pm-meta">'+esc(title)+pct+'</div><div class="pm-answer">'+text+visualHtml+visual3dHtml+'</div>'+
       (evidence?'<div class="pm-evidence"><b style="color:'+ev.color+'">'+ev.label+'</b> · '+(evidence==="OBSERVED"?"directly represented NASA measurement":evidence==="REPORTED"?"NASA investigation-level statement":evidence==="DERIVED"?"computed from loaded NASA values":evidence==="INFERRED"?"model/extrapolation, not direct observation":"not established by the loaded evidence")+
       sourcesHtml+"</div>":"")+
       (audit&&audit.length?'<div class="pm-audit">Audit trail · '+audit.map(esc).join(" → ")+"</div>":"");
-    body.appendChild(el); bindVisuals(el); body.scrollTop=body.scrollHeight;
+    body.appendChild(el);
+    bindVisuals(el);
+    // Rehydrate the interactive 3D component because HTML serialization cannot retain canvas state.
+    if(visual3d) {
+      const holder=el.querySelector(".pm-3d");
+      if(holder) {
+        const rows=records().map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
+        const fresh=build3DResult(rows); holder.replaceWith(fresh);
+      }
+    }
+    body.scrollTop=body.scrollHeight;
   }
 
   function ask(q) {
