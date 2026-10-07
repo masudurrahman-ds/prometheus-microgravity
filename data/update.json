@@ -1,0 +1,10 @@
+{
+  "app_version": "1.0.0",
+  "version_code": 1,
+  "dataset_version": "2026.10.07.2",
+  "dataset_url": "https://raw.githubusercontent.com/masudurrahman-ds/prometheus-microgravity/main/data/prometheus_nasa_psi.json",
+  "source_catalog_url": "https://www.nasa.gov/physical-sciences-informatics-psi/psi-investigations-by-research-area/",
+  "update_policy": "opt-in public-data refresh; APK updates remain user-confirmed",
+  "owner": "The Crown Council",
+  "copyright": "© 2026 The Crown Council"
+}
