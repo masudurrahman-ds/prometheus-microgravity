@@ -37,6 +37,15 @@
     #pm-ai-status i{width:6px;height:6px;border-radius:50%;background:#4fe3a0;box-shadow:0 0 9px #4fe3a0}
     #pm-ai-close{background:none;border:0;color:#aab2c8;font-size:22px;cursor:pointer}
     #pm-ai-body{padding:15px;overflow:auto;display:flex;flex-direction:column;gap:11px;flex:1}
+    .pm-visual{margin-top:11px;border:1px solid rgba(255,255,255,.10);border-radius:14px;overflow:hidden;background:rgba(0,0,0,.22)}
+    .pm-visual-head{padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#aab2c8;letter-spacing:.08em;text-transform:uppercase}
+    .pm-visual svg{display:block;width:100%;height:auto}
+    .pm-visual-actions{display:flex;gap:6px;padding:8px;border-top:1px solid rgba(255,255,255,.07)}
+    .pm-vbtn{border:1px solid rgba(230,203,147,.28);background:rgba(230,203,147,.06);color:#e6cb93;border-radius:8px;padding:5px 8px;font-size:10px;cursor:pointer}
+    .pm-logic{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+    .pm-logic div{padding:7px;border-radius:9px;background:rgba(255,255,255,.035);font-size:9px;color:#aab2c8}
+    .pm-logic b{display:block;color:#e6cb93;margin-bottom:2px}
+
     .pm-msg{border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:12px 13px;font:13px/1.58 IBM Plex Sans,system-ui}
     .pm-msg.ai{background:linear-gradient(180deg,rgba(230,203,147,.085),rgba(255,255,255,.022));border-color:rgba(230,203,147,.20)}
     .pm-msg.user{background:rgba(168,220,255,.07);align-self:flex-end;max-width:91%}
@@ -94,6 +103,63 @@
   document.body.appendChild(fab);
 
   const body = panel.querySelector("#pm-ai-body");
+
+  function visualShell(title, subtitle, inner, key) {
+    const id="pmv-"+Math.random().toString(36).slice(2,9);
+    return '<div class="pm-visual" id="'+id+'"><div class="pm-visual-head"><span>'+esc(title)+'</span><span>'+esc(subtitle||"NASA data")+'</span></div>'+inner+
+      '<div class="pm-visual-actions"><button class="pm-vbtn" data-export="'+id+'">Export image</button></div></div>';
+  }
+
+  function chartSVG(rows, xLabel, yLabel, title) {
+    const w=390,h=205,p={l:42,r:16,t:18,b:38};
+    const vals=rows.map(r=>Number(r.y)).filter(Number.isFinite);
+    if(!vals.length) return "";
+    const min=Math.min(...vals),max=Math.max(...vals),span=max-min||1;
+    const x=i=>p.l+(i/(Math.max(1,rows.length-1)))*(w-p.l-p.r);
+    const y=v=>p.t+(1-(v-min)/span)*(h-p.t-p.b);
+    const points=rows.map((r,i)=>x(i)+","+y(Number(r.y))).join(" ");
+    const circles=rows.map((r,i)=>'<circle cx="'+x(i)+'" cy="'+y(Number(r.y))+'" r="4" fill="#e6cb93"><title>'+esc(r.label)+': '+esc(r.y)+'</title></circle>').join("");
+    const labels=rows.map((r,i)=>'<text x="'+x(i)+'" y="'+(h-18)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(r.label)+'</text>').join("");
+    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+'"><line x1="'+p.l+'" y1="'+p.t+'" x2="'+p.l+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><line x1="'+p.l+'" y1="'+(h-p.b)+'" x2="'+(w-p.r)+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><polyline fill="none" stroke="#e6cb93" stroke-width="2.5" points="'+points+'"/>'+circles+labels+'<text x="'+p.l+'" y="12" fill="#eef0f7" font-size="10">'+esc(yLabel)+'</text><text x="'+(w/2)+'" y="'+(h-3)+'" fill="#737c96" font-size="9" text-anchor="middle">'+esc(xLabel)+'</text></svg>';
+  }
+
+  function flameSVG(rows) {
+    const w=390,h=235;
+    const max=Math.max(...rows.map(r=>Number(r.y)||0),1);
+    const flames=rows.map((r,i)=>{
+      const cx=78+i*118, burn=Number(r.y)||0, scale=.65+.7*(burn/max);
+      const rx=30*scale, ry=72*scale;
+      return '<g transform="translate('+cx+' 116)"><ellipse rx="'+(rx+7)+'" ry="'+(ry+7)+'" fill="rgba(168,220,255,.06)" stroke="rgba(168,220,255,.25)"/><path d="M0 '+ry+' C-'+rx+' '+(ry*.55)+' -'+(rx*.7)+' '+(ry*.1)+' -'+(rx*.15)+' -'+(ry*.35)+' C-'+(rx*.15)+' -'+(ry*.7)+' '+(rx*.55)+' -'+(ry*.72)+' 0 -'+ry+' C'+(rx*.65)+' -'+(ry*.72)+' '+rx*.15+' '+(ry*.05)+' 0 '+ry+'Z" fill="#e6cb93" opacity=".88"/><text y="'+(ry+22)+'" text-anchor="middle" fill="#eef0f7" font-size="10">'+esc(r.label)+'</text><text y="'+(ry+36)+'" text-anchor="middle" fill="#aab2c8" font-size="9">'+esc(r.y)+' s burn</text></g>';
+    }).join("");
+    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="NASA-derived flame comparison"><rect width="100%" height="100%" fill="#070b15"/><text x="16" y="22" fill="#e6cb93" font-size="11" letter-spacing="1.4">NASA OBSERVED · FLAME BEHAVIOUR</text>'+flames+'</svg>';
+  }
+
+  function scientificVisual(q, rs) {
+    const low=q.toLowerCase();
+    if(/graph|plot|chart|trend|correlat|relationship|compare|difference|burn time|flame/.test(low)) {
+      const s1=rs.find(e=>/s1/i.test(e.exp_id)), s2=rs.find(e=>/s2/i.test(e.exp_id));
+      const rows=[s1,s2].filter(Boolean).map(e=>({label:e.exp_id.replace("PSI98-",""),y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
+      if(rows.length>=2) return visualShell("Observed burn-time comparison","NASA PSI-98",chartSVG(rows,"Experiment","Burn time (s)","NASA observed burn time"),"burn");
+    }
+    if(/image|visual|flame|fire|render|picture|look like/.test(low)) {
+      const rows=rs.map(e=>({label:e.exp_id.replace("PSI98-",""),y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
+      if(rows.length) return visualShell("Scientific flame rendering","Geometry is illustrative; values are NASA-derived",flameSVG(rows),"flame");
+    }
+    return "";
+  }
+
+  function bindVisuals(root) {
+    (root||body).querySelectorAll("[data-export]").forEach(btn=>{
+      if(btn.dataset.bound) return; btn.dataset.bound="1";
+      btn.onclick=()=>{
+        const card=document.getElementById(btn.dataset.export), svg=card&&card.querySelector("svg");
+        if(!svg) return;
+        const blob=new Blob([new XMLSerializer().serializeToString(svg)],{type:"image/svg+xml"});
+        const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="prometheus-nasa-visual.svg"; a.click(); URL.revokeObjectURL(a.href);
+      };
+    });
+  }
+
   const input = panel.querySelector("#pm-ai-input");
 
   const ds = () => {
@@ -225,24 +291,30 @@
     };
 
     const low=q.toLowerCase(), ws=words(q), ids=new Set(), audit=["NASA-only corpus selected","External-knowledge fallback disabled"];
+    const visual = scientificVisual(q, rs);
     const explicit=findSourcesInQuestion(q); explicit.forEach(x=>ids.add(x));
 
     if(OUTSIDE.test(low) && !NASA_TERMS.has(ws[0])) {
       audit.push("Topic gate: outside NASA combustion scope","Abstention gate: PASS");
-      return {title:"AI · Scope boundary",text:"I can help with NASA microgravity combustion, spacecraft fire safety, the loaded NASA PSI investigations, experiment comparison, evidence gaps, and evidence-grounded mission scenarios. I will not invent an answer from general web knowledge for an unrelated topic. If you want, reframe the question around NASA combustion evidence.",evidence:"UNKNOWN · NASA-only mode",score:.99,ids:[...ids],audit};
+      return {title:"AI · Scope boundary",text:"I can help with NASA microgravity combustion, spacecraft fire safety, the loaded NASA PSI investigations, experiment comparison, evidence gaps, and evidence-grounded mission scenarios. I will not invent an answer from general web knowledge for an unrelated topic. If you want, reframe the question around NASA combustion evidence.",evidence:"UNKNOWN · NASA-only mode",score:.99,ids:[...ids],audit,visual};
+    }
+
+    if(/logic|logically|illogical|nonsense|impossible|contradiction|paradox/.test(low)) {
+      audit.push("Reasoning mode: logical-consistency analysis","Tone gate: calm","Evidence gate: separate facts from assumptions");
+      return {title:"AI · Logical reasoning mode",text:"I will separate the question into <b>known evidence</b>, <b>assumptions</b>, and <b>conclusions</b>. If a premise conflicts with the NASA corpus, I will point out the conflict without treating the question as foolish. If the question is intentionally impossible or contradictory, I will explain why and state what additional evidence would make it answerable.",evidence:"UNKNOWN until premises are grounded",score:.99,ids:[...new Set(rs.flatMap(srcIds))],audit,visual:visual||""};
     }
 
     if(/source|citation|doi|reference|where.*data|data source/.test(low)) {
       audit.push("Source retrieval: matched NASA PSI registry");
       const relevant=explicit.length?explicit:sources().slice(0,8).map(s=>s.source_id);
-      return {title:"AI · NASA source ledger",text:"PROMETHEUS is currently grounded in "+rs.length+" loaded experiment records and "+sources().length+" registered NASA PSI sources. Each source below is traceable to its NASA PSI investigation record and DOI.",evidence:"NASA PSI provenance is primary evidence · "+sources().length+" source records",score:.98,ids:relevant,audit};
+      return {title:"AI · NASA source ledger",text:"PROMETHEUS is currently grounded in "+rs.length+" loaded experiment records and "+sources().length+" registered NASA PSI sources. Each source below is traceable to its NASA PSI investigation record and DOI.",evidence:"NASA PSI provenance is primary evidence · "+sources().length+" source records",score:.98,ids:relevant,audit,visual};
     }
 
     if(/missing|gap|unknown|not know|insufficient|coverage/.test(low)) {
       const gaps=missingness().slice(0,5);
       const lines=gaps.map(g=>esc(g.key)+": "+g.n+"/"+g.total+" records report this variable").join("<br>");
       audit.push("Coverage analysis: variable-level missingness");
-      return {title:"AI · Evidence-gap analysis",text:"The strongest current limitation is incomplete measurement coverage. PROMETHEUS treats missing variables as unknown rather than assuming that an unreported quantity was zero, constant, or irrelevant.<br><br>"+lines,evidence:"UNKNOWN is an explicit result, not a failure",score:.97,ids:[...new Set(rs.flatMap(srcIds))],audit};
+      return {title:"AI · Evidence-gap analysis",text:"The strongest current limitation is incomplete measurement coverage. PROMETHEUS treats missing variables as unknown rather than assuming that an unreported quantity was zero, constant, or irrelevant.<br><br>"+lines,evidence:"UNKNOWN is an explicit result, not a failure",score:.97,ids:[...new Set(rs.flatMap(srcIds))],audit,visual};
     }
 
     if(/compare|difference|versus|vs\\.?/.test(low) || /\\bs1\\b/.test(low) || /\\bs2\\b/.test(low)) {
@@ -259,17 +331,17 @@
         if(am&&bm) extra="<br><br><b>Observed outcome:</b> "+formatNum(am.value)+" "+esc(am.unit||"")+
           " vs "+formatNum(bm.value)+" "+esc(bm.unit||"")+".";
         audit.push("Entity resolution: PSI98-S1 + PSI98-S2","Condition alignment: complete for reported shared variables","Causal gate: BLOCKED");
-        return {title:"AI · Controlled experiment comparison",text:"S1 and S2 are both NASA PSI-98 SIBAL-fabric records. The comparison below separates shared conditions from differences; it does not assume that an outcome difference proves causation.<br><br>"+rows+extra+"<br><br><b>Scientific interpretation:</b> the records can support a descriptive comparison, but this pair alone cannot isolate a causal effect unless the relevant confounders are controlled.",evidence:"NASA OBSERVED/REPORTED · causal claim withheld",score:.95,ids:[...ids],audit};
+        return {title:"AI · Controlled experiment comparison",text:"S1 and S2 are both NASA PSI-98 SIBAL-fabric records. The comparison below separates shared conditions from differences; it does not assume that an outcome difference proves causation.<br><br>"+rows+extra+"<br><br><b>Scientific interpretation:</b> the records can support a descriptive comparison, but this pair alone cannot isolate a causal effect unless the relevant confounders are controlled.",evidence:"NASA OBSERVED/REPORTED · causal claim withheld",score:.95,ids:[...ids],audit,visual};
       }
     }
 
     if(/oxygen|o2/.test(low)) {
       const rows=rs.map(e=>({e,v:rawval(e,"o2_fraction"),ev:evidenceForCondition(e,"o2_fraction")})).filter(r=>r.v!=null);
       rows.forEach(r=>srcIds(r.e).forEach(x=>ids.add(x)));
-      if(!rows.length) return {title:"AI · Oxygen evidence gap",text:"No loaded experiment record reports oxygen concentration in a directly usable form. I therefore cannot supply an oxygen value.",evidence:"UNKNOWN",score:.98,ids:[...ids],audit:["Variable retrieval: O2","Observation gate: no usable records","Answer gate: abstain"]};
+      if(!rows.length) return {title:"AI · Oxygen evidence gap",text:"No loaded experiment record reports oxygen concentration in a directly usable form. I therefore cannot supply an oxygen value.",evidence:"UNKNOWN",score:.98,ids:[...ids],audit:["Variable retrieval: O2","Observation gate: no usable records","Answer gate: abstain"],visual};
       const list=rows.slice(0,8).map(r=>esc(r.e.exp_id)+": "+esc(r.v)+" · "+EVIDENCE[r.ev].label).join("<br>");
       audit.push("Variable retrieval: o2_fraction","Reported values preserved verbatim");
-      return {title:"AI · Oxygen evidence",text:"NASA PSI reports the following oxygen values in the loaded corpus. I preserve NASA's reported wording instead of replacing a range with a made-up precise measurement:<br><br>"+list+"<br><br>These records are not, by themselves, enough to claim that oxygen concentration caused a specific flame outcome. PROMETHEUS would require comparable experiments spanning oxygen conditions and a measured outcome.",evidence:"NASA source-backed values · no causal extrapolation",score:.97,ids:[...ids],audit};
+      return {title:"AI · Oxygen evidence",text:"NASA PSI reports the following oxygen values in the loaded corpus. I preserve NASA's reported wording instead of replacing a range with a made-up precise measurement:<br><br>"+list+"<br><br>These records are not, by themselves, enough to claim that oxygen concentration caused a specific flame outcome. PROMETHEUS would require comparable experiments spanning oxygen conditions and a measured outcome.",evidence:"NASA source-backed values · no causal extrapolation",score:.97,ids:[...ids],audit,visual};
     }
 
     if(/pressure|pressur/.test(low)) {
@@ -278,7 +350,7 @@
       const context=sources().filter(s=>/pressure|atmosphere|atm/i.test((s.note||"")+" "+(s.title||"")));
       context.forEach(s=>ids.add(s.source_id));
       audit.push("Variable retrieval: pressure","Measurement-vs-metadata separation applied");
-      if(!rows.length) return {title:"AI · Pressure evidence gap",text:"The loaded measurement rows do not contain a pressure field. PROMETHEUS will not manufacture one from the investigation-level metadata. Some NASA PSI investigation context may describe pressure ranges, but that is not equivalent to a pressure measurement for these S1/S2 rows.",evidence:"UNKNOWN for loaded measurement rows",score:.99,ids:[...ids],audit};
+      if(!rows.length) return {title:"AI · Pressure evidence gap",text:"The loaded measurement rows do not contain a pressure field. PROMETHEUS will not manufacture one from the investigation-level metadata. Some NASA PSI investigation context may describe pressure ranges, but that is not equivalent to a pressure measurement for these S1/S2 rows.",evidence:"UNKNOWN for loaded measurement rows",score:.99,ids:[...ids],audit,visual};
       return {title:"AI · Pressure evidence",text:"The loaded corpus contains pressure-bearing records. They must be analyzed within their investigation and experimental context; a pressure range in a NASA investigation description is not automatically a measured value for every experiment.",evidence:"NASA REPORTED / NASA OBSERVED depending on record",score:.94,ids:[...ids],audit};
     }
 
@@ -286,11 +358,11 @@
       const pairs=numericPairs("o2_fraction","flow_velocity_mm_s");
       if(pairs.length<3) {
         audit.push("Statistical gate: n<3","Causal gate: BLOCKED");
-        return {title:"AI · Statistical abstention",text:"I do not have enough paired observations in the loaded corpus to support a meaningful correlation or causal statement for this request. A sophisticated system should report insufficient evidence rather than produce a visually convincing but scientifically weak number.",evidence:"UNKNOWN / INSUFFICIENT SAMPLE",score:.99,ids:[...new Set(rs.flatMap(srcIds))],audit};
+        return {title:"AI · Statistical abstention",text:"I do not have enough paired observations in the loaded corpus to support a meaningful correlation or causal statement for this request. A sophisticated system should report insufficient evidence rather than produce a visually convincing but scientifically weak number.",evidence:"UNKNOWN / INSUFFICIENT SAMPLE",score:.99,ids:[...new Set(rs.flatMap(srcIds))],audit,visual};
       }
       const r=spearman(pairs);
       audit.push("Statistical method: Spearman rank correlation","Causal gate: BLOCKED");
-      return {title:"AI · Association analysis",text:"For the requested relationship, the loaded records provide n="+pairs.length+" paired observations. Spearman's rho is "+formatNum(r)+". This is descriptive association only; it does not establish causation, especially when the corpus is small or confounded.",evidence:"DERIVED statistic from NASA-loaded observations",score:.86,ids:[...new Set(pairs.flatMap(p=>srcIds(p.e)))],audit};
+      return {title:"AI · Association analysis",text:"For the requested relationship, the loaded records provide n="+pairs.length+" paired observations. Spearman's rho is "+formatNum(r)+". This is descriptive association only; it does not establish causation, especially when the corpus is small or confounded.",evidence:"DERIVED statistic from NASA-loaded observations",score:.86,ids:[...new Set(pairs.flatMap(p=>srcIds(p.e)))],audit,visual};
     }
 
     if(/what if|scenario|mars|lunar|habitat|spacecraft|mission|safety/.test(low)) {
@@ -298,7 +370,7 @@
       retrieved.forEach(x=>srcIds(x.e).forEach(id=>ids.add(id)));
       const names=retrieved.length?retrieved.map(x=>x.e.exp_id).join(", "):"none";
       audit.push("Scenario retrieval: nearest textual evidence","Extrapolation gate: model-inferred/unknown","Safety gate: no unsupported recommendation");
-      return {title:"AI · Mission scenario reasoning",text:"I can map this scenario to the closest NASA-loaded evidence, but I will not present an extrapolation as a NASA observation. The strongest retrieved records are: <b>"+esc(names)+"</b>.<br><br>For spacecraft, lunar, or Mars questions, PROMETHEUS should distinguish measured microgravity evidence from any change in gravity, pressure, atmosphere, geometry, or fuel that falls outside the observed range. The safe output is therefore an evidence map plus explicit uncertainty—not a fabricated engineering guarantee.",evidence:"MODEL-INFERRED/UNKNOWN outside measured conditions",score:.90,ids:[...ids],audit};
+      return {title:"AI · Mission scenario reasoning",text:"I can map this scenario to the closest NASA-loaded evidence, but I will not present an extrapolation as a NASA observation. The strongest retrieved records are: <b>"+esc(names)+"</b>.<br><br>For spacecraft, lunar, or Mars questions, PROMETHEUS should distinguish measured microgravity evidence from any change in gravity, pressure, atmosphere, geometry, or fuel that falls outside the observed range. The safe output is therefore an evidence map plus explicit uncertainty—not a fabricated engineering guarantee.",evidence:"MODEL-INFERRED/UNKNOWN outside measured conditions",score:.90,ids:[...ids],audit,visual};
     }
 
     if(/flame|fire|combust|microgravity|freefall|fuel|ignition|extinction|spread|smoke|droplet/.test(low)) {
@@ -306,7 +378,7 @@
       hits.forEach(x=>srcIds(x.e).forEach(id=>ids.add(id)));
       const top=hits.length?hits.map(x=>"<b>"+esc(x.e.exp_id)+"</b> — "+esc(x.e.title||x.e.fuel||"NASA PSI record")).join("<br>"):"No matching loaded record.";
       audit.push("Semantic-lite retrieval: experiment text + metadata","Evidence synthesis: source-preserving");
-      return {title:"AI · NASA combustion synthesis",text:"I found the following NASA-loaded evidence records most relevant to the question:<br><br>"+top+"<br><br>PROMETHEUS can compare their reported conditions, observations, provenance, and missing variables. It will not silently import general combustion knowledge to fill gaps.",evidence:"NASA PSI corpus · retrieval confidence "+confidence(Math.min(.95,.55+(hits.length*.1)))+"%",score:.91,ids:[...ids],audit};
+      return {title:"AI · NASA combustion synthesis",text:"I found the following NASA-loaded evidence records most relevant to the question:<br><br>"+top+"<br><br>PROMETHEUS can compare their reported conditions, observations, provenance, and missing variables. It will not silently import general combustion knowledge to fill gaps.",evidence:"NASA PSI corpus · retrieval confidence "+confidence(Math.min(.95,.55+(hits.length*.1)))+"%",score:.91,ids:[...ids],audit,visual};
     }
 
     const hits=retrieve(q,5);
@@ -315,17 +387,18 @@
     return {title:"AI · Clarification with evidence boundary",text:"I can answer most questions that can be grounded in the loaded NASA PSI combustion corpus. Try asking for an experiment comparison, a variable such as O2 or pressure, a statistical association, a source/DOI, an evidence gap, or a spacecraft/lunar/Mars scenario. For unrelated topics, I will politely decline rather than invent an answer.",evidence:"NASA-only mode · no external knowledge fallback",score:.99,ids:[...ids],audit};
   }
 
-  function add(role,title,text,evidence,score,ids,audit) {
+  function add(role,title,text,evidence,score,ids,audit,visual) {
     const el=document.createElement("div");
     el.className="pm-msg "+role;
     const pct=score==null?"":'<span class="pm-confidence">'+confidence(score)+"% evidence fit</span>";
     const ev=EVIDENCE[evidence]||EVIDENCE.UNKNOWN;
     const sourcesHtml=ids&&ids.length?sourceCards(ids):"";
-    el.innerHTML='<div class="pm-meta">'+esc(title)+pct+'</div><div class="pm-answer">'+text+'</div>'+
+    const visualHtml=visual||"";
+    el.innerHTML='<div class="pm-meta">'+esc(title)+pct+'</div><div class="pm-answer">'+text+visualHtml+'</div>'+
       (evidence?'<div class="pm-evidence"><b style="color:'+ev.color+'">'+ev.label+'</b> · '+(evidence==="OBSERVED"?"directly represented NASA measurement":evidence==="REPORTED"?"NASA investigation-level statement":evidence==="DERIVED"?"computed from loaded NASA values":evidence==="INFERRED"?"model/extrapolation, not direct observation":"not established by the loaded evidence")+
       sourcesHtml+"</div>":"")+
       (audit&&audit.length?'<div class="pm-audit">Audit trail · '+audit.map(esc).join(" → ")+"</div>":"");
-    body.appendChild(el); body.scrollTop=body.scrollHeight;
+    body.appendChild(el); bindVisuals(el); body.scrollTop=body.scrollHeight;
   }
 
   function ask(q) {
@@ -335,7 +408,7 @@
     setTimeout(()=>{
       try {
         const a=answer(q);
-        add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[]);
+        add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[],a.visual||"");
       } catch(e) {
         add("ai","AI · Safe failure","The reasoning engine encountered an internal issue. I will not guess. Please retry the question or reload the dataset.","UNKNOWN",0,[],["Exception trapped","Answer gate: BLOCKED"]);
       } finally { input.disabled=false; input.focus(); }
