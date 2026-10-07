@@ -290,6 +290,7 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-delay:0s !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
 
 @keyframes float{from{transform:translateY(-3px)}to{transform:translateY(4px)}}
+.int-home{max-width:760px;margin:0 auto;padding-top:clamp(28px,7vh,78px);padding-bottom:100px;text-align:center}.int-orb{font-size:43px;color:var(--gold);margin-bottom:18px}.int-title{font-family:var(--serif);font-size:clamp(42px,10vw,76px);line-height:1.12;letter-spacing:.025em;overflow-wrap:anywhere;margin:14px 0}.int-intro{font-size:clamp(15px,3.5vw,18px);line-height:1.7;color:var(--dim);max-width:520px;margin:0 auto 30px}.int-ask{width:100%;background:linear-gradient(130deg,rgba(230,203,147,.15),rgba(168,220,255,.055));border:1px solid rgba(230,203,147,.4);border-radius:20px;color:var(--text);display:flex;gap:17px;align-items:center;padding:23px;text-align:left;cursor:pointer;min-height:100px}.int-ask-icon{font-size:29px;color:var(--gold)}.int-ask strong,.int-action strong{display:block;font-size:17px;font-weight:600}.int-ask small,.int-action small{display:block;color:var(--dim);font-size:13px;line-height:1.6;margin-top:5px}.int-chevron{margin-left:auto;font-size:24px;color:var(--gold)}.int-section-title{font-size:12px;letter-spacing:.2em;color:var(--gold);text-align:left;margin:38px 0 16px}.int-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.int-action{min-width:0;background:var(--glass);border:1px solid var(--line2);border-radius:16px;padding:20px 16px;display:flex;align-items:flex-start;gap:12px;color:var(--text);text-align:left;cursor:pointer;min-height:108px}.int-action-copy{min-width:0;flex:1}.int-action strong{font-size:15px}.int-mark{color:var(--gold);font-size:24px}.int-evidence{margin-top:34px;text-align:left;border-top:1px solid var(--line2);padding:25px 3px;color:var(--dim);line-height:1.65}.int-evidence strong{color:var(--text);font-size:12px;letter-spacing:.13em}.int-evidence p{margin:10px 0 16px}@media(max-width:540px){.int-home{padding-top:30px}.int-actions{grid-template-columns:1fr}.int-action{min-height:80px;padding:15px}.int-ask{padding:17px;min-height:92px}.int-title{font-size:clamp(40px,11vw,58px)}}
 </style>
 </head>
 <body>
@@ -1148,7 +1149,7 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
   const CONSIDERATIONS = JSON.parse(document.getElementById('considerations').textContent).considerations;
   const FUEL_COLORS = ['#8FD3FF', '#FFC46B', '#7DF2B8', '#E79BFF', '#FF8E7A', '#B6A3FF', '#C9D1E6', '#D6EA6A'];
   const REGIME_COLORS = {microgravity: '#8FD3FF', 'partial gravity': '#FFC46B', 'normal gravity': '#7DF2B8', hypergravity: '#E79BFF', unknown: '#C9D1E6'};
-  const TABS = [['universe', 'Universe', 'universe'], ['lab', 'Virtual lab', 'lab'], ['gaps', 'Gaps', 'gaps'], ['research', 'Research', 'research'], ['mission', 'Missions', 'mission'], ['data', 'Data', 'data']];
+  const TABS = [['landing', 'AI Home', 'research'], ['lab', 'Virtual lab', 'lab'], ['universe', 'Evidence', 'universe'], ['research', 'Research', 'research']];
 
   const S = {
     ds: null, tab: 'landing', sel: null, cmp: [], ax: 'flow_velocity_mm_s', ay: 'gravity_g', az: 'none', colorBy: 'fuel', auto: true, drawer: null,
@@ -1213,7 +1214,7 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
     });
     requestAnimationFrame(placeGlider);
     const chip = $('#chip'); chip.replaceChildren(); chip.className = 'chip-data' + (S.ds && S.ds.hasSynthetic ? ' syn' : '');
-    chip.append(h('i'), S.ds ? h('span', null, `${S.ds.experiments.length} experiments`, S.ds.hasSynthetic ? h('span', {class: 'long'}, ' · synthetic demo') : '') : h('span', null, 'no dataset'));
+    chip.append(h('i'), S.ds ? h('span', null, `${S.ds.experiments.length} evidence records`, S.ds.hasSynthetic ? h('span', {class: 'long'}, ' · synthetic demo') : '') : h('span', null, 'no dataset'));
     const slot = $('#ribbon-slot'); slot.replaceChildren();
     if (S.ds && S.ds.hasSynthetic) slot.append(h('div', {class: 'ribbon', role: 'status'}, h('b', null, 'Synthetic data'), 'Toy values for testing the software. Not NASA data.'));
     $('#tourbtn').disabled = !(S.ds && S.ds.experiments.length);
@@ -1232,7 +1233,7 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
   }
   function render() {
     dispose(); chrome(); stage.replaceChildren();
-    const V = {landing: viewLanding, universe: viewUniverse, lab: viewLab, gaps: viewGaps, research: viewResearch, mission: viewMission, data: viewData}[S.tab];
+    const V = {landing: viewIntelligenceHome, universe: viewUniverse, lab: viewLab, gaps: viewGaps, research: viewResearch, mission: viewMission, data: viewData}[S.tab];
     const needs = ['universe', 'lab', 'gaps', 'research', 'mission'].includes(S.tab);
     if (needs && (!S.ds || !S.ds.experiments.length)) stage.append(h('div', {class: 'page view-enter'}, needData())); else V(stage);
     renderTour();
@@ -1267,6 +1268,41 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
   const slideOf = (eyebrow, title, text, viz) => h('div', {class: 'glass hud'}, h('div', null, h('div', {class: 'eyebrow'}, eyebrow), h('h3', null, title), h('p', null, text)), h('div', {class: 'viz'}, viz));
 
   // ------------------------------------------------------------------ LANDING
+  function viewIntelligenceHome(root) {
+    const ds=S.ds, n=ds?.experiments?.length||0;
+    const launchAI=()=>{
+      const candidates=[...document.querySelectorAll('button')];
+      const ai=candidates.find(b=>/^(✦\\s*)?AI$|ask prometheus|prometheus ai/i.test((b.textContent||'').trim()) && !b.closest('#stage'));
+      if(ai) ai.click();
+      else {
+        const panel=document.querySelector('[id*="prometheus-ai"],[class*="prometheus-ai"]');
+        if(panel) panel.click();
+        else alert('PROMETHEUS AI is initializing. Please try again shortly.');
+      }
+    };
+    const action=(title,desc,tab,mark)=>h('button',{class:'int-action',type:'button',on:{click:()=>go(tab)}},
+      h('span',{class:'int-mark'},mark),h('span',{class:'int-action-copy'},h('strong',null,title),h('small',null,desc)),h('span',{class:'int-chevron'},'›'));
+    root.append(h('div',{class:'page view-enter int-home'},
+      h('div',{class:'int-orb','aria-hidden':'true'},'✦'),
+      h('div',{class:'eyebrow'},'NASA MICROGRAVITY COMBUSTION · SCIENTIFIC INTELLIGENCE'),
+      h('h1',{class:'int-title gold-text'},'PROMETHEUS'),
+      h('p',{class:'int-intro'},'Ask scientific questions. Explore evidence. Test scenarios. Every conclusion traceable to its source.'),
+      h('button',{class:'int-ask',type:'button',on:{click:launchAI}},
+        h('span',{class:'int-ask-icon'},'✦'),
+        h('span',null,h('strong',null,'Ask PROMETHEUS'),h('small',null,'What does NASA evidence tell us about fire in microgravity?')),
+        h('span',{class:'int-chevron'},'→')),
+      h('div',{class:'int-section-title'},'YOUR WORKSPACE'),
+      h('div',{class:'int-actions'},
+        action('Virtual Lab','Adjust conditions and evaluate evidence','lab','⚗'),
+        action('Evidence Universe','Explore relationships in 3D','universe','◎'),
+        action('Research Intelligence','Patterns, anomalies and comparisons','research','◇'),
+        action('Evidence Gaps','See what is not yet known','gaps','◌'),
+        action('Future Missions','Apply evidence to engineering questions','mission','✧'),
+        action('Sources & Datasets','NASA PSI provenance and citations','data','▤')),
+      h('div',{class:'int-evidence'},h('strong',null,'NASA EVIDENCE ENGINE'),h('p',null,n+' indexed records · '+(ds?Object.keys(ds.sources||{}).length:0)+' sources. AI findings are limited by the available data.'),h('button',{class:'btn sm',on:{click:()=>go('data')}},'View sources →'))
+    ));
+  }
+
   function viewLanding(root) {
     const ds = S.ds, ok = ds && ds.experiments.length, n = ok ? ds.experiments.length : 0;
     const orb = h('canvas', {'aria-label': 'A spherical microgravity flame surrounded by orbiting experiments', role: 'img'});
