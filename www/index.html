@@ -1361,7 +1361,7 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
       h('div',{class:'eyebrow'},'NASA INVESTIGATION CATALOG'),
       h('h3',{style:'font-family:var(--serif);font-size:30px;margin:5px 0 8px'},'Evidence behind the universe'),
       h('p',{class:'lead',style:'margin:0 0 16px;max-width:760px'},'The visualization plots records with compatible measured axes. Investigation-level sources remain visible here so metadata is not mistaken for a measurement.'),
-      h('div',{class:'evidence-source-grid'},Object.values(S.ds.sources||{}).map(src=>h('button',{class:'evidence-source-card',type:'button',on:{click:()=>openSource(src.source_id)}},
+      h('div',{class:'evidence-source-grid'},Object.values(S.ds.sources||{}).map(src=>h('button',{class:'evidence-source-card',type:'button',on:{click:()=>go('data')}},
         h('span',{class:'evidence-source-id'},src.source_id||'NASA PSI'),
         h('strong',null,src.title||src.name||'NASA PSI investigation'),
         h('small',null,src.metadata_only?'Investigation metadata · no fabricated measurement row':'NASA evidence record')))));
