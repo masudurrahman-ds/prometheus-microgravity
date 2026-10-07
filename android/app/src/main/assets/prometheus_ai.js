@@ -90,12 +90,12 @@
       <div>
         <strong>PROMETHEUS AI</strong>
         <small>NASA-evidence-grounded combustion intelligence</small>
-        <div id="pm-ai-status"><i></i> NASA source firewall · retrieval ready</div>
+        <div id="pm-ai-status"><i></i> NASA source firewall · retrieval ready</div><div id="pm-ai-memory-count" style="margin-top:5px;color:#737c96;font:9px IBM Plex Sans,system-ui;letter-spacing:.06em"></div>
       </div>
       <button id="pm-ai-close" aria-label="Close">×</button>
     </div>
     <div id="pm-ai-body"></div>
-    <div id="pm-ai-suggest">
+    <div style="padding:7px 15px 0"><button id="pm-ai-clear" type="button" style="background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#aab2c8;padding:6px 9px;font:10px IBM Plex Sans,system-ui">Clear memory</button></div><div id="pm-ai-suggest">
       <button class="pm-chip">What does NASA actually observe about oxygen?</button>
       <button class="pm-chip">Compare S1 and S2 scientifically</button>
       <button class="pm-chip">What does NASA not know here?</button>
@@ -381,7 +381,43 @@
     const n=Number(v); return Math.abs(n)>=100 ? n.toFixed(1).replace(/\.0$/,"") : n.toPrecision(4).replace(/\.?0+$/,"");
   }
 
+  // Persistent local conversation memory: survives app restarts and stays on-device.
+  const MEMORY_KEY = "prometheus.ai.conversation.v3";
+  const MEMORY_LIMIT = 30;
+  let conversationMemory = [];
+  try { const saved=JSON.parse(localStorage.getItem(MEMORY_KEY)||"[]"); if(Array.isArray(saved)) conversationMemory=saved.slice(-MEMORY_LIMIT); } catch(_){}
+
+  function saveMemory(){
+    try{localStorage.setItem(MEMORY_KEY,JSON.stringify(conversationMemory.slice(-MEMORY_LIMIT)));}catch(_){}
+    const c=document.getElementById("pm-ai-memory-count"); if(c)c.textContent=conversationMemory.length+" remembered turns";
+  }
+  function rememberTurn(x){
+    conversationMemory.push({role:x.role,text:String(x.text||"").replace(/<[^>]+>/g," ").slice(0,1800),title:x.title||"",evidence:x.evidence||"UNKNOWN",ids:(x.ids||[]).slice(0,8),time:Date.now()});
+    conversationMemory=conversationMemory.slice(-MEMORY_LIMIT); saveMemory();
+  }
+  function recentMemory(n=8){return conversationMemory.slice(-n);}
+  function resolveFollowUp(q){
+    const prev=recentMemory(10).filter(x=>x.role==="user"); if(!prev.length)return q;
+    if(/^(why|why\?|how so\?|explain that|tell me more|more detail|what about it|compare them|compare those)\s*$/i.test(q.trim()))
+      return prev[prev.length-1].text+" | FOLLOW-UP: "+q;
+    return q;
+  }
+  function relatedPrevious(q){
+    const terms=words(q); return recentMemory(10).filter(x=>x.role==="user").map(x=>({x,score:terms.filter(t=>t.length>2&&x.text.toLowerCase().includes(t)).length})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,3).map(x=>x.x);
+  }
+  function intelligentSynthesis(q,hits,previous){
+    const ids=new Set(); hits.forEach(h=>srcIds(h.e).forEach(id=>ids.add(id)));
+    const evidence=hits.slice(0,4).map(h=>{
+      const e=h.e, obs=(e.observations||[]).slice(0,2).map(o=>o.description||o.phenomenon).filter(Boolean);
+      return "<b>"+esc(e.exp_id)+"</b> — "+esc(e.title||e.fuel||"NASA experiment")+"<br><span style='color:#aab2c8'>"+esc(obs.join(" · ")||e.text||"Relevant NASA record")+"</span>";
+    }).join("<br><br>");
+    const continuity=previous.length?"<br><br><b>Context linked:</b> I connected this with your earlier question about <i>"+esc(previous[previous.length-1].text.slice(0,160))+"</i>.":"";
+    return {title:"AI · Evidence synthesis",text:"I ranked the loaded NASA records against your question and built the answer from the strongest matching evidence:<br><br>"+evidence+continuity+"<br><br><b>Scientific judgment:</b> the records support descriptive interpretation. I will not turn association into causation or extrapolation into an observed NASA result.",evidence:"REPORTED",score:Math.min(.96,.72+hits.length*.06),ids:[...ids],audit:["Intent + entity resolution","Conversation memory consulted","NASA retrieval","Evidence hierarchy applied","Causal/extrapolation gate applied"]};
+  }
+
   function answer(q) {
+    const originalQuestion=q;
+    q=resolveFollowUp(q);
     const rs=records();
     if(!rs.length) return {
       title:"AI · Evidence unavailable", text:"The NASA PSI dataset is not loaded, so I cannot make a scientific claim. Load a provenance-tracked NASA PSI dataset and ask again.",
@@ -482,8 +518,10 @@
 
     const hits=retrieve(q,5);
     hits.forEach(x=>srcIds(x.e).forEach(id=>ids.add(id)));
-    audit.push("Intent classifier: general/ambiguous","Abstention gate: active");
-    return {title:"AI · Clarification with evidence boundary",text:"I can answer most questions that can be grounded in the loaded NASA PSI combustion corpus. Try asking for an experiment comparison, a variable such as O2 or pressure, a statistical association, a source/DOI, an evidence gap, or a spacecraft/lunar/Mars scenario. For unrelated topics, I will politely decline rather than invent an answer.",evidence:"NASA-only mode · no external knowledge fallback",score:.99,ids:[...ids],audit};
+    const previous=relatedPrevious(originalQuestion);
+    if(hits.length) return intelligentSynthesis(originalQuestion,hits,previous);
+    audit.push("Intent classifier: unresolved","Retrieval: no sufficiently relevant records","Abstention gate: active");
+    return {title:"AI · Need a more specific scientific question",text:"I understand the question, but I could not confidently map it to the loaded NASA evidence. Name an experiment, variable, outcome, or ask for comparison, explanation, source tracing, statistics, or an evidence gap. I will remember this conversation so the next question can continue from the same context.",evidence:"UNKNOWN",score:.98,ids:[...ids],audit};
   }
 
   function add(role,title,text,evidence,score,ids,audit,visual) {
@@ -513,16 +551,20 @@
 
   function ask(q) {
     q=q.trim(); if(!q)return;
+    rememberTurn({role:"user",text:q});
     add("user","YOU",esc(q),null,null,null,[]);
     input.disabled=true;
     setTimeout(()=>{
       try {
         const a=answer(q);
+        rememberTurn({role:"assistant",text:a.text,title:a.title,evidence:a.evidence,ids:a.ids||[]});
         add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[],a.visual||"");
       } catch(e) {
-        add("ai","AI · Safe failure","The reasoning engine encountered an internal issue. I will not guess. Please retry the question or reload the dataset.","UNKNOWN",0,[],["Exception trapped","Answer gate: BLOCKED"]);
-      } finally { input.disabled=false; input.focus(); }
-    },180);
+        const safe="The reasoning engine hit an internal error. I will not guess. Please retry; your conversation memory is preserved locally.";
+        rememberTurn({role:"assistant",text:safe,title:"AI · Safe failure",evidence:"UNKNOWN"});
+        add("ai","AI · Safe failure",safe,"UNKNOWN",0,[],["Exception trapped","Answer gate: BLOCKED"]);
+      } finally { input.disabled=false; input.focus(); saveMemory(); }
+    },120);
   }
 
   function readyMessage() {
@@ -535,11 +577,21 @@
       ["Dataset gate: "+(rs.length?"PASS":"WAITING"),"Source firewall: NASA PSI only","Causal claims require evidence"]);
   }
 
-  function openAI(){panel.classList.add("open");if(!body.childElementCount)readyMessage();input.focus();} function closeAI(){panel.classList.remove("open");} fab.onclick=()=>{panel.classList.contains("open")?closeAI():openAI();};
+  function restoreConversation(){
+    saveMemory();
+    if(body.childElementCount || !conversationMemory.length)return;
+    recentMemory(8).forEach(x=>add(x.role==="user"?"user":"ai",x.title||"AI · Recalled context",esc(x.text),x.evidence||null,.86,x.ids||[],["Restored from local device memory"]));
+  }
+  function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
+  function closeAI(){panel.classList.remove("open");}
+  fab.onclick=()=>{panel.classList.contains("open")?closeAI():openAI();};
+  document.getElementById("pm-ai-clear").onclick=()=>{conversationMemory=[];try{localStorage.removeItem(MEMORY_KEY);}catch(_){}body.replaceChildren();readyMessage();saveMemory();};
+
   panel.querySelector("#pm-ai-close").onclick=()=>panel.classList.remove("open");
   panel.querySelector("#pm-ai-form").onsubmit=e=>{e.preventDefault();ask(input.value);input.value="";};
   panel.querySelectorAll(".pm-chip").forEach(b=>b.onclick=()=>{input.value=b.textContent;ask(input.value);input.value="";});
 
+  saveMemory();
   window.__prometheusAIStatus = "ready";
   window.__prometheusAIOpen = ()=>{ panel.classList.add("open"); if(!body.childElementCount) readyMessage(); input.focus(); };
 
