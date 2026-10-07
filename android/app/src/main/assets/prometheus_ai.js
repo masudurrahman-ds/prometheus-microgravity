@@ -534,7 +534,7 @@
       ["Dataset gate: "+(rs.length?"PASS":"WAITING"),"Source firewall: NASA PSI only","Causal claims require evidence"]);
   }
 
-  fab.onclick=()=>{panel.classList.toggle("open");if(panel.classList.contains("open")&&!body.childElementCount)readyMessage();if(panel.classList.contains("open"))input.focus();};
+  function openAI(){panel.classList.add("open");if(!body.childElementCount)readyMessage();input.focus();} function closeAI(){panel.classList.remove("open");} fab.onclick=()=>{panel.classList.contains("open")?closeAI():openAI();};
   panel.querySelector("#pm-ai-close").onclick=()=>panel.classList.remove("open");
   panel.querySelector("#pm-ai-form").onsubmit=e=>{e.preventDefault();ask(input.value);input.value="";};
   panel.querySelectorAll(".pm-chip").forEach(b=>b.onclick=()=>{input.value=b.textContent;ask(input.value);input.value="";});
