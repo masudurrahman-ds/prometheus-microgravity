@@ -1,0 +1,118 @@
+{
+  "dataset_name": "PROMETHEUS NASA PSI Seed Dataset",
+  "schema_version": "1.0.0",
+  "measurements": [
+    {
+      "id": "PSI-98-S1",
+      "investigation": "SAFFIRE-I",
+      "status": "NASA PSI experimental-table measurement",
+      "material": "SIBAL Fabric",
+      "sample_thickness_cm": 0.37,
+      "sample_length_cm": 40.6,
+      "sample_width_cm": 94.0,
+      "air_flow_cm_s": 20.0,
+      "oxygen_percent_min": 21.5,
+      "oxygen_percent_max": 21.7,
+      "ignition_power_W": 182,
+      "ignition_time_s": 8,
+      "burn_time_s": 420,
+      "flow_direction": "Concurrent",
+      "camera_1": "S1C1",
+      "camera_2": "S1C2",
+      "source": {
+        "repository": "NASA Physical Sciences Informatics",
+        "doi": "10.60555/0t15-1z43",
+        "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-98",
+        "license": "CC0-1.0",
+        "table": "Experimental Table"
+      }
+    },
+    {
+      "id": "PSI-98-S2",
+      "investigation": "SAFFIRE-I",
+      "status": "NASA PSI experimental-table measurement",
+      "material": "SIBAL Fabric",
+      "sample_thickness_cm": 0.37,
+      "sample_length_cm": 40.6,
+      "sample_width_cm": 94.0,
+      "air_flow_cm_s": 20.0,
+      "oxygen_percent_approx": 21.5,
+      "ignition_power_W": 182,
+      "ignition_time_s": 8,
+      "burn_time_s": 70,
+      "flow_direction": "Opposed",
+      "camera_1": "S2C1",
+      "camera_2": "S2C2",
+      "source": {
+        "repository": "NASA Physical Sciences Informatics",
+        "doi": "10.60555/0t15-1z43",
+        "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-98",
+        "license": "CC0-1.0",
+        "table": "Experimental Table"
+      }
+    }
+  ],
+  "investigations": [
+    {
+      "id": "PSI-25",
+      "name": "BASS-II",
+      "doi": "10.60555/4qc4-de67",
+      "license": "CC0-1.0",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-25",
+      "metadata_only": true,
+      "facts": {
+        "platform": "International Space Station",
+        "forced_flow_max_cm_s": 40,
+        "oxygen_control": "oxygen varied below 21% by adding nitrogen"
+      }
+    },
+    {
+      "id": "PSI-69",
+      "name": "FLEX",
+      "doi": "10.60555/mbq8-0451",
+      "license": "CC0-1.0",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-69",
+      "metadata_only": true,
+      "facts": {
+        "platform": "International Space Station",
+        "pressure_range_atm": [
+          0.5,
+          1.5
+        ],
+        "typical_small_droplet_diameter_mm": 3,
+        "suppressants": [
+          "CO2",
+          "He",
+          "SF6"
+        ]
+      }
+    },
+    {
+      "id": "PSI-107",
+      "name": "SPICE",
+      "doi": "10.60555/9kbh-e962",
+      "license": "CC0-1.0",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-107",
+      "metadata_only": true,
+      "facts": {
+        "platform": "International Space Station",
+        "fuels": [
+          "methane",
+          "ethylene",
+          "propane",
+          "propylene"
+        ],
+        "burner_diameters_mm": [
+          0.41,
+          0.76,
+          1.6
+        ],
+        "coflow_velocity_range_cm_s": [
+          5.4,
+          65
+        ],
+        "flames_studied": 526
+      }
+    }
+  ]
+}
