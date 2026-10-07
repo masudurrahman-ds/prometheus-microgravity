@@ -91,7 +91,7 @@
       <div>
         <strong>PROMETHEUS AI</strong>
         <small>NASA-evidence-grounded combustion intelligence</small>
-        <div id="pm-ai-status"><i></i> NASA source firewall · retrieval ready</div><div id="pm-ai-memory-count" style="margin-top:5px;color:#737c96;font:9px IBM Plex Sans,system-ui;letter-spacing:.06em"></div>
+        <div id="pm-ai-status"><i></i> NASA source firewall · local evidence ready</div><button id="pm-ai-cloud" type="button" style="margin-top:8px;background:transparent;border:1px solid rgba(230,203,147,.3);border-radius:9px;color:#e6cb93;padding:6px 9px;font:10px IBM Plex Sans,system-ui">Enable Cloud AI</button><div id="pm-ai-memory-count" style="margin-top:5px;color:#737c96;font:9px IBM Plex Sans,system-ui;letter-spacing:.06em"></div>
       </div>
       <button id="pm-ai-close" aria-label="Close">×</button>
     </div>
@@ -112,6 +112,24 @@
   document.body.appendChild(fab);
 
   const body = panel.querySelector("#pm-ai-body");
+  const CLOUD_ENDPOINT_KEY = "prometheus_cloud_ai_endpoint";
+  const CLOUD_CONSENT_KEY = "prometheus_cloud_ai_consent";
+  const cloudButton = panel.querySelector("#pm-ai-cloud");
+  const cloudEndpoint = () => { try { return localStorage.getItem(CLOUD_ENDPOINT_KEY) || window.__PROMETHEUS_AI_ENDPOINT || ""; } catch (_) { return window.__PROMETHEUS_AI_ENDPOINT || ""; } };
+  const cloudEnabled = () => { try { return localStorage.getItem(CLOUD_CONSENT_KEY) === "yes" && !!cloudEndpoint(); } catch (_) { return !!cloudEndpoint(); } };
+  function updateCloudButton(){ cloudButton.textContent = cloudEnabled() ? "Cloud AI enabled · tap to disable" : "Enable Cloud AI"; }
+  cloudButton.onclick = () => {
+    if (cloudEnabled()) {
+      try { localStorage.removeItem(CLOUD_CONSENT_KEY); } catch (_) {}
+      updateCloudButton(); UI.toast("Cloud AI disabled · local mode remains available");
+      return;
+    }
+    const endpoint = window.prompt("Enter your PROMETHEUS AI server endpoint (for example https://your-domain/api/ask). Your question will leave this device only after you enable Cloud AI.");
+    if (!endpoint) return;
+    try { localStorage.setItem(CLOUD_ENDPOINT_KEY, endpoint.replace(/\\/+$/, "")); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
+    updateCloudButton(); UI.toast("Cloud AI enabled with explicit consent");
+  };
+  updateCloudButton();
 
   function visualShell(title, subtitle, inner, key) {
     const id="pmv-"+Math.random().toString(36).slice(2,9);
@@ -550,13 +568,40 @@
     body.scrollTop=body.scrollHeight;
   }
 
+  async function askCloud(q) {
+    const endpoint = cloudEndpoint();
+    if (!endpoint || !cloudEnabled()) return false;
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {"content-type":"application/json"},
+        body: JSON.stringify({question:q})
+      });
+      if (!res.ok) throw new Error("Cloud AI HTTP "+res.status);
+      const payload = await res.json();
+      const a = payload.answer || {};
+      const sources = Array.isArray(a.sources) ? a.sources : [];
+      const ids = sources.map(s => s.source_id).filter(Boolean);
+      const evidenceState = a.claims && a.claims.length ? a.claims[0].evidence_state : "REPORTED";
+      const sourceText = sources.length ? "<br><br><b>Cloud citation ledger:</b> " + sources.map(s => esc((s.source_id||"NASA") + " — " + (s.title||"source"))).join("<br>") : "";
+      const text = esc(a.answer || "The cloud agent returned no answer.").replace(/\\n/g,"<br>") + sourceText;
+      rememberTurn({role:"assistant",text,title:"AI · Cloud evidence synthesis",evidence:evidenceState,ids});
+      add("ai","AI · Cloud evidence synthesis",text,evidenceState,.98,ids,["Explicit cloud-AI consent","NASA evidence retrieval on server","Structured scientific response","store:false"]);
+      return true;
+    } catch (error) {
+      UI.toast("Cloud AI unavailable · using local evidence engine");
+      return false;
+    }
+  }
+
   function ask(q) {
     q=q.trim(); if(!q)return;
     rememberTurn({role:"user",text:q});
     add("user","YOU",esc(q),null,null,null,[]);
     input.disabled=true;
-    setTimeout(()=>{
+    (async()=>{
       try {
+        if(await askCloud(q)){ input.disabled=false; input.focus(); saveMemory(); return; }
         const a=answer(q);
         rememberTurn({role:"assistant",text:a.text,title:a.title,evidence:a.evidence,ids:a.ids||[]});
         add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[],a.visual||"",a.visual3d||"");
@@ -565,7 +610,7 @@
         rememberTurn({role:"assistant",text:safe,title:"AI · Safe failure",evidence:"UNKNOWN"});
         add("ai","AI · Safe failure",safe,"UNKNOWN",0,[],["Exception trapped","Answer gate: BLOCKED"]);
       } finally { input.disabled=false; input.focus(); saveMemory(); }
-    },120);
+    })();
   }
 
   function readyMessage() {
