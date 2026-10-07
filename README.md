@@ -1,40 +1,92 @@
 # PROMETHEUS
 
-**AI-powered scientific intelligence for microgravity combustion and spacecraft fire safety.**
+**Scientific intelligence for microgravity combustion and spacecraft fire safety.**
 
-PROMETHEUS is a research-oriented prototype for NASA Space Apps Challenge 2026. It combines a provenance-tracked NASA Physical Sciences Informatics (PSI) seed corpus with an interactive evidence explorer for comparing combustion experiments, inspecting uncertainty, identifying evidence gaps, and connecting observations to future mission questions.
+PROMETHEUS is a research-oriented NASA Space Apps Challenge 2026 project by **The Crown Council**. The system is being developed as an evidence-grounded scientific agent: NASA evidence is retrieved and structured, deterministic analysis tools are invoked, an LLM can reason over the evidence, and a validation layer checks claims, uncertainty, causality, and citations before an answer is presented.
+
+## Core principle
+
+> **PROMETHEUS does not ask users to trust the AI. It shows them why the AI reached its conclusion.**
+
+NASA is the source of the scientific evidence. PROMETHEUS is the computational analysis and interface layer. PROMETHEUS does not imply NASA endorsement.
 
 ## Evidence discipline
 
-The current corpus is deliberately small. It contains two row-level measurements from NASA PSI's SAFFIRE-I Experimental Table (PSI-98), plus metadata-only context for BASS-II, FLEX, and SPICE.
+Every scientific claim is assigned an evidence state:
 
-PROMETHEUS distinguishes:
+- **NASA OBSERVED** — directly represented measurement/observation
+- **NASA REPORTED** — explicitly reported NASA statement or metadata
+- **DERIVED** — reproducible calculation from sourced values
+- **MODEL-INFERRED** — model/analysis interpretation
+- **ANALOGICAL** — reasoning transferred from related evidence
+- **UNKNOWN** — unsupported or unreported
 
-- **Observed** — directly represented NASA PSI measurement
-- **NASA metadata** — fact reported on an investigation page
-- **Derived** — calculated by PROMETHEUS
-- **Proxy** — visualization-only value, not a NASA measurement
-- **Unknown** — not reported or not inferable
+The system must never present derived, inferred, analogical, proxy, or synthetic values as NASA observations.
 
-No proxy or model-derived quantity should be presented as NASA-observed evidence.
+## Repository structure
 
-## Project structure
+```
+prometheus-microgravity/
+├── android/                 # Capacitor Android application
+├── ios/                     # iOS integration
+├── www/                     # PROMETHEUS application UI
+├── ai/                      # scientific agent, retrieval, tools, validators
+├── ingestion/               # NASA/source ingestion and normalization
+├── analysis/                # deterministic scientific analysis
+├── data/
+│   ├── schema/              # versioned evidence schemas
+│   ├── provenance/          # source-to-record mappings
+│   └── manifests/           # versioned dataset manifests
+├── docs/                    # architecture, AI, science, privacy and security
+├── tests/                   # scientific, AI, provenance and privacy tests
+├── scripts/                 # reproducibility and maintenance scripts
+├── .github/workflows/       # CI/build automation
+├── CITATION.cff             # software citation metadata
+└── NOTICE                   # ownership, NASA attribution and credits
+```
 
-- `www/` — self-contained PROMETHEUS web application
-- `android/` — Capacitor Android wrapper
-- `data/` — NASA PSI seed data and provenance documentation
-- `docs/` — demonstration and research notes
-- `.github/workflows/` — Android debug-build workflow
+## Scientific architecture
 
-## NASA sources
+```
+NASA PSI / NTRS
+      ↓
+Source ingestion + provenance
+      ↓
+Evidence graph / structured experiments
+      ↓
+Scientific analysis tools
+      ↓
+LLM Scientific Agent
+      ↓
+Claim + causal + uncertainty validation
+      ↓
+Citation / Evidence Ledger
+      ↓
+Auditable scientific answer
+```
 
-Primary investigation records and persistent identifiers are documented in [data/NASA_SOURCES.md](data/NASA_SOURCES.md) and [data/PROMETHEUS_NASA_CITATIONS.md](data/PROMETHEUS_NASA_CITATIONS.md).
+## Current evidence corpus
 
-NASA PSI requires users to cite publicly available NASA-funded data collections using their persistent identifiers. PROMETHEUS retains those identifiers with the seed records.
+The application contains a provenance-tracked NASA PSI seed corpus and an expanded source catalogue. Investigation catalogue entries are deliberately distinguished from directly ingested measurements; listing a NASA investigation does **not** imply that all of its raw files have been reconstructed.
+
+Primary source identifiers and citation metadata are maintained under `data/` and `docs/NASA_SOURCES.md`.
+
+## Trust and privacy
+
+PROMETHEUS follows data minimization:
+
+- local conversation memory stays on-device;
+- user-selected research files are processed only after selection;
+- core research does not require location, contacts, microphone, camera, SMS, or call-log access;
+- optional cloud AI requires explicit disclosure and affirmative acknowledgement;
+- public dataset refreshes are provenance-checked;
+- APK installation/update remains user-controlled.
+
+See `docs/PRIVACY.md`, `docs/USER_AGREEMENT.md`, and `docs/AI_SAFETY.md`.
 
 ## Build
 
-Requires Node.js 20+, Android Studio/Android SDK, and a Java 21 environment.
+Requires Node.js, Android Studio/Android SDK, and the project Java/Gradle toolchain.
 
 ```bash
 npm ci
@@ -43,8 +95,16 @@ cd android
 ./gradlew assembleDebug
 ```
 
-A GitHub Actions workflow builds a debug APK on pushes to `main`.
+GitHub Actions builds the Android debug application on pushes to `main`.
 
-## Scientific scope
+## Research limitations
 
-PROMETHEUS is a prototype and does not certify spacecraft fire safety, predict mission outcomes, or replace experimental validation. Its purpose is to make heterogeneous combustion evidence easier to inspect, compare, and reason about while preserving provenance and uncertainty.
+PROMETHEUS is research software and does not certify spacecraft fire safety, predict mission outcomes, or replace experimental validation. The full NASA PSI corpus is larger and more heterogeneous than the currently structured evidence snapshot. Small samples, missing variables, source heterogeneity, retrieval errors, and model uncertainty are explicitly treated as limitations.
+
+## Credits
+
+**Software:** © 2026 The Crown Council
+
+**Scientific data:** NASA Physical Sciences Informatics and other original NASA sources as individually cited.
+
+NASA data and documentation remain subject to their original source attribution and applicable licenses. NASA is not an endorser of PROMETHEUS or The Crown Council.
