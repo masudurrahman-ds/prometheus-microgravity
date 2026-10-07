@@ -524,7 +524,7 @@
     return {title:"AI · Need a more specific scientific question",text:"I understand the question, but I could not confidently map it to the loaded NASA evidence. Name an experiment, variable, outcome, or ask for comparison, explanation, source tracing, statistics, or an evidence gap. I will remember this conversation so the next question can continue from the same context.",evidence:"UNKNOWN",score:.98,ids:[...ids],audit};
   }
 
-  function add(role,title,text,evidence,score,ids,audit,visual) {
+  function add(role,title,text,evidence,score,ids,audit,visual,visual3d) {
     const el=document.createElement("div");
     el.className="pm-msg "+role;
     const pct=score==null?"":'<span class="pm-confidence">'+confidence(score)+"% evidence fit</span>";
@@ -558,7 +558,7 @@
       try {
         const a=answer(q);
         rememberTurn({role:"assistant",text:a.text,title:a.title,evidence:a.evidence,ids:a.ids||[]});
-        add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[],a.visual||"");
+        add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[],a.visual||"",a.visual3d||"");
       } catch(e) {
         const safe="The reasoning engine hit an internal error. I will not guess. Please retry; your conversation memory is preserved locally.";
         rememberTurn({role:"assistant",text:safe,title:"AI · Safe failure",evidence:"UNKNOWN"});
