@@ -1,0 +1,19 @@
+{
+  "name": "prometheus-microgravity",
+  "version": "1.0.0",
+  "description": "PROMETHEUS Android wrapper for a microgravity combustion evidence explorer",
+  "scripts": {
+    "sync": "cap sync android",
+    "build:debug": "cap sync android && cd android && ./gradlew assembleDebug",
+    "build:release": "cap sync android && cd android && ./gradlew bundleRelease"
+  },
+  "keywords": ["microgravity", "combustion", "NASA", "Space Apps", "PROMETHEUS"],
+  "author": "The Crown Council",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
+  },
+  "private": true
+}
