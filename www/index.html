@@ -1271,14 +1271,9 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
   function viewIntelligenceHome(root) {
     const ds=S.ds, n=ds?.experiments?.length||0;
     const launchAI=()=>{
-      const candidates=[...document.querySelectorAll('button')];
-      const ai=candidates.find(b=>/^(✦\\s*)?AI$|ask prometheus|prometheus ai/i.test((b.textContent||'').trim()) && !b.closest('#stage'));
+      const ai=document.getElementById('pm-ai-fab');
       if(ai) ai.click();
-      else {
-        const panel=document.querySelector('[id*="prometheus-ai"],[class*="prometheus-ai"]');
-        if(panel) panel.click();
-        else alert('PROMETHEUS AI is initializing. Please try again shortly.');
-      }
+      else alert('PROMETHEUS AI is initializing. Please try again shortly.');
     };
     const action=(title,desc,tab,mark)=>h('button',{class:'int-action',type:'button',on:{click:()=>go(tab)}},
       h('span',{class:'int-mark'},mark),h('span',{class:'int-action-copy'},h('strong',null,title),h('small',null,desc)),h('span',{class:'int-chevron'},'›'));
