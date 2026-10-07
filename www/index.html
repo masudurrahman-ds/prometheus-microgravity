@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PROMETHEUS – NASA microgravity combustion intelligence</title>
+<meta name="description" content="Explore, compare and interrogate microgravity combustion experiments in an interactive 3D universe, with every conclusion traceable to evidence.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* FLARE - "Observatory" design language: deep space, champagne hairlines, glass, restrained motion */
+:root{
+  --bg:#04060C; --bg2:#080D1A;
+  --glass:rgba(13,19,37,.60); --glass2:rgba(22,30,56,.66); --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.17);
+  --text:#EEF0F7; --dim:#AAB2C8; --faint:#737C96;
+  --gold:#E6CB93; --gold-d:#B99A5B; --ice:#A8DCFF; --sel:#A8DCFF;
+  --obs:#4FE3A0; --mod:#6FB1FF; --ana:#FFB067; --unk:#FF6B7A;
+  --shadow:0 34px 70px -34px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.06);
+  --serif:'Cormorant Garamond','Cormorant',Georgia,'Times New Roman',serif;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --ease:cubic-bezier(.22,.8,.24,1); --top:68px;
+  color-scheme:dark;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F4F0E6; --bg2:#EBE5D6; --glass:rgba(255,255,255,.74); --glass2:rgba(255,255,255,.86);
+    --line:rgba(28,30,50,.10); --line2:rgba(28,30,50,.20); --text:#151829; --dim:#4C556F; --faint:#7A829B;
+    --gold:#8C6A22; --gold-d:#6F531A; --sel:#3557D8;
+    --obs:#0F7A4E; --mod:#1D5FC4; --ana:#B0620A; --unk:#C22F3C;
+    --shadow:0 24px 50px -30px rgba(40,34,10,.35), inset 0 1px 0 rgba(255,255,255,.7); color-scheme:light;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#04060C; --bg2:#080D1A; --glass:rgba(13,19,37,.60); --glass2:rgba(22,30,56,.66); --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.17);
+  --text:#EEF0F7; --dim:#AAB2C8; --faint:#737C96; --gold:#E6CB93; --gold-d:#B99A5B; --sel:#A8DCFF;
+  --obs:#4FE3A0; --mod:#6FB1FF; --ana:#FFB067; --unk:#FF6B7A; --shadow:0 34px 70px -34px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.06); color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#F4F0E6; --bg2:#EBE5D6; --glass:rgba(255,255,255,.74); --glass2:rgba(255,255,255,.86);
+  --line:rgba(28,30,50,.10); --line2:rgba(28,30,50,.20); --text:#151829; --dim:#4C556F; --faint:#7A829B;
+  --gold:#8C6A22; --gold-d:#6F531A; --sel:#3557D8; --obs:#0F7A4E; --mod:#1D5FC4; --ana:#B0620A; --unk:#C22F3C;
+  --shadow:0 24px 50px -30px rgba(40,34,10,.35), inset 0 1px 0 rgba(255,255,255,.7); color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:calc(var(--top) + env(safe-area-inset-top,0px));scroll-behavior:smooth}
+body{margin:0;min-height:100%;color:var(--text);font:14.5px/1.55 var(--sans);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(1200px 720px at 82% -12%,rgba(96,104,224,.22),transparent 62%),radial-gradient(900px 620px at 6% 108%,rgba(230,203,147,.11),transparent 62%),var(--bg);background-attachment:fixed;overflow-x:hidden}
+:root[data-theme="light"] body,:root:not([data-theme="dark"]) body{}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body{background:radial-gradient(1100px 700px at 85% -10%,rgba(140,106,34,.13),transparent 60%),radial-gradient(900px 600px at 0% 110%,rgba(53,87,216,.08),transparent 60%),var(--bg);background-attachment:fixed}}
+:root[data-theme="light"] body{background:radial-gradient(1100px 700px at 85% -10%,rgba(140,106,34,.13),transparent 60%),radial-gradient(900px 600px at 0% 110%,rgba(53,87,216,.08),transparent 60%),var(--bg);background-attachment:fixed}
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+:root[data-theme="light"] #stars{opacity:.0} @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) #stars{opacity:0}}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sel);outline-offset:3px;border-radius:8px}
+h1,h2,h3{margin:0;font-family:var(--serif);font-weight:500;letter-spacing:.01em}
+h2{font-size:clamp(30px,4vw,44px);line-height:1.05} h3{font-size:22px;line-height:1.15} h4{margin:0;font:600 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+p{margin:0} a{color:var(--gold)}
+.eyebrow{font:500 11px var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+.dim{color:var(--dim)} .faint{color:var(--faint)} .small{font-size:12.5px}
+.gold-text{background:linear-gradient(180deg,#fff 0%,var(--gold) 62%,var(--gold-d) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+:root[data-theme="light"] .gold-text{background:linear-gradient(180deg,#3b2a05,var(--gold));-webkit-background-clip:text;background-clip:text}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .gold-text{background:linear-gradient(180deg,#3b2a05,var(--gold));-webkit-background-clip:text;background-clip:text}}
+.hair{height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent);opacity:.55;border:0;margin:0}
+
+/* ---------- shell ---------- */
+#root{position:relative;z-index:1;min-height:100vh}
+.top{position:fixed;left:0;right:0;top:0;z-index:40;padding-top:env(safe-area-inset-top,0px);
+  background:linear-gradient(180deg,var(--glass),transparent 140%);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid var(--line)}
+.top-in{height:var(--top);max-width:1400px;margin:0 auto;padding:0 22px;display:flex;align-items:center;gap:22px}
+.brand{display:flex;align-items:center;gap:11px;cursor:pointer;background:none;border:0;padding:0}
+.brand .word{font-family:var(--serif);font-size:27px;letter-spacing:.2em;font-weight:500;padding-left:.1em}
+.brand svg{flex:none;filter:drop-shadow(0 0 10px rgba(230,203,147,.55))}
+.nav{display:flex;gap:4px;margin:0 auto;padding:4px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03);position:relative}
+.nav button{position:relative;z-index:1;background:none;border:0;cursor:pointer;color:var(--dim);padding:7px 15px;border-radius:999px;font-size:13px;letter-spacing:.02em;display:flex;align-items:center;gap:8px;transition:color .25s}
+.nav button:hover{color:var(--text)}
+.nav button[aria-current="page"]{color:var(--text)}
+.nav .glider{position:absolute;z-index:0;top:4px;bottom:4px;border-radius:999px;background:linear-gradient(180deg,rgba(230,203,147,.22),rgba(230,203,147,.08));box-shadow:0 0 0 1px rgba(230,203,147,.4),0 8px 24px -10px rgba(230,203,147,.5);transition:left .5s var(--ease),width .5s var(--ease)}
+.nav svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.top-r{display:flex;align-items:center;gap:10px;margin-left:auto}
+.chip-data{display:flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--dim);white-space:nowrap}
+.chip-data i{width:7px;height:7px;border-radius:50%;background:var(--obs);box-shadow:0 0 10px var(--obs)}
+.chip-data.syn i{background:var(--unk);box-shadow:0 0 10px var(--unk)}
+.ribbon{position:fixed;z-index:39;left:50%;top:calc(var(--top) + env(safe-area-inset-top,0px) + 8px);transform:translateX(-50%);max-width:min(720px,calc(100vw - 24px));padding:6px 16px;border-radius:999px;font-size:12px;letter-spacing:.02em;text-align:center;
+  background:rgba(255,107,122,.13);border:1px solid rgba(255,107,122,.5);backdrop-filter:blur(10px);color:var(--text)}
+.ribbon b{color:var(--unk);letter-spacing:.14em;text-transform:uppercase;font-size:11px;margin-right:8px}
+.page{position:relative;max-width:1240px;margin:0 auto;padding:calc(var(--top) + 46px) 28px 120px}
+.page.wide{max-width:none;padding:calc(var(--top) + 16px) 16px 40px;transition:padding-right .8s var(--ease)}
+@media (min-width:981px){.page.wide.with-drawer{padding-right:424px}}
+.page.rib{padding-top:calc(var(--top) + 70px)} .page.wide.rib{padding-top:calc(var(--top) + 52px)}
+.view-enter{animation:viewIn .7s var(--ease) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(18px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+.stagger>*{animation:viewIn .75s var(--ease) both;animation-delay:calc(var(--i,0)*70ms)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:26px}
+.head .lead{max-width:60ch;color:var(--dim);margin-top:10px;font-size:15.5px}
+.stack{display:flex;flex-direction:column;gap:14px} .stack.s8{gap:8px} .stack.s24{gap:24px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* ---------- glass, HUD corners ---------- */
+.glass{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--glass);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);
+  border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px}
+.hud::before,.hud::after{content:"";position:absolute;width:14px;height:14px;pointer-events:none;opacity:.8}
+.hud::before{left:10px;top:10px;border-left:1px solid var(--gold);border-top:1px solid var(--gold)}
+.hud::after{right:10px;bottom:10px;border-right:1px solid var(--gold);border-bottom:1px solid var(--gold)}
+.lift{transition:transform .5s var(--ease),border-color .3s,box-shadow .5s var(--ease)} .lift:hover{transform:translateY(-3px);border-color:rgba(230,203,147,.45)}
+
+/* ---------- controls ---------- */
+.btn{position:relative;cursor:pointer;background:rgba(255,255,255,.045);border:1px solid var(--line2);padding:9px 18px;border-radius:999px;color:var(--text);font-size:13px;letter-spacing:.02em;transition:transform .25s var(--ease),border-color .25s,background .25s,box-shadow .35s}
+.btn:hover{border-color:var(--gold);background:rgba(230,203,147,.10);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn.gold{background:linear-gradient(180deg,#F3DEAE,#D2B26E 60%,#B99A5B);border-color:#F3DEAE;color:#1a1305;font-weight:600;box-shadow:0 10px 30px -10px rgba(230,203,147,.65)}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2.5px;margin-right:1px}
+.btn.gold:hover{box-shadow:0 14px 40px -8px rgba(230,203,147,.85);filter:brightness(1.05)}
+:root[data-theme="light"] .btn.gold{color:#241a05} 
+.btn.ghost{background:transparent} .btn.sm{padding:5px 12px;font-size:12px} .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
+.iconbtn{width:38px;height:38px;padding:0;display:grid;place-items:center;border-radius:50%}
+.iconbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.lbl{font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+select,input[type=number],input[type=text],input[type=search]{background:rgba(255,255,255,.04);border:1px solid var(--line2);border-radius:12px;padding:9px 12px;min-width:0;transition:border-color .2s,box-shadow .2s;color:var(--text)}
+select option{color:#111;background:#fff}
+select:focus,input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(230,203,147,.16);outline:none}
+.row input[type=number]{flex:1 1 auto;min-width:0} .row select{flex:none}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;cursor:pointer;padding:0;border:0}
+input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:3px;background:linear-gradient(90deg,var(--gold) var(--p,50%),var(--line2) var(--p,50%))}
+input[type=range]::-moz-range-track{height:3px;border-radius:3px;background:var(--line2)} input[type=range]::-moz-range-progress{height:3px;background:var(--gold)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;margin-top:-7.5px;background:radial-gradient(circle at 35% 30%,#fff,var(--gold));border:0;box-shadow:0 0 0 4px rgba(230,203,147,.18),0 4px 14px rgba(0,0,0,.5);transition:box-shadow .2s}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);border:0}
+input[type=range]:active::-webkit-slider-thumb{box-shadow:0 0 0 8px rgba(230,203,147,.2),0 4px 14px rgba(0,0,0,.5)}
+.seg{display:inline-flex;padding:3px;border:1px solid var(--line2);border-radius:999px;background:rgba(255,255,255,.03);gap:2px}
+.seg button{background:none;border:0;color:var(--dim);cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12.5px;transition:all .25s}
+.seg button[aria-pressed="true"]{background:rgba(230,203,147,.16);color:var(--text);box-shadow:inset 0 0 0 1px rgba(230,203,147,.45)}
+.switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--dim)}
+.switch input{appearance:none;width:34px;height:19px;border-radius:99px;background:var(--line2);position:relative;cursor:pointer;transition:background .25s;padding:0;border:0}
+.switch input::after{content:"";position:absolute;left:3px;top:3px;width:13px;height:13px;border-radius:50%;background:#fff;transition:transform .3s var(--ease)}
+.switch input:checked{background:var(--gold)} .switch input:checked::after{transform:translateX(15px)}
+
+/* ---------- evidence ---------- */
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid currentColor;border-radius:999px;padding:2px 11px 2px 9px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;background:rgba(255,255,255,.03)}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
+.ev-OBSERVED{color:var(--obs)} .ev-MODEL_INFERRED{color:var(--mod)} .ev-ANALOGICAL{color:var(--ana)} .ev-UNKNOWN{color:var(--unk)}
+.finding{border-left:2px solid currentColor;padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:6px;animation:viewIn .6s var(--ease) both;animation-delay:calc(var(--i,0)*80ms)}
+.finding .txt{color:var(--text)} .finding .ftop{display:flex;gap:10px;align-items:center;flex-wrap:wrap} .finding .ftop strong{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--text)}
+.tag{display:inline-block;border:1px solid var(--line2);border-radius:8px;padding:1px 8px;font-size:11.5px;color:var(--dim);margin:0 5px 5px 0}
+.tag.warn{border-color:var(--ana);color:var(--ana)} .tag.gold{border-color:var(--gold-d);color:var(--gold)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font:500 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);text-align:left}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top} .tblwrap{overflow-x:auto} .num{text-align:right}
+tbody tr{transition:background .2s} tbody tr:hover{background:rgba(255,255,255,.035)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:13px;margin:0} .kv dt{color:var(--dim)} .kv dd{margin:0;text-align:right}
+.bar{height:5px;background:var(--line);border-radius:5px;overflow:hidden} .bar>div{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--gold-d),var(--gold));transform-origin:left;animation:grow 1s var(--ease) both}
+@keyframes grow{from{transform:scaleX(0)}}
+
+/* ---------- landing ---------- */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:center;min-height:calc(100vh - var(--top) - 150px)}
+.hero h1{font-size:clamp(58px,10vw,138px);line-height:.88;letter-spacing:.08em;font-weight:500;margin:18px 0 22px -.04em}
+.hero .sub{font-family:var(--serif);font-size:clamp(20px,2.3vw,29px);line-height:1.25;color:var(--dim);max-width:24ch}
+.hero .sub em{color:var(--text);font-style:italic}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px}
+.orb-wrap{position:relative;aspect-ratio:1;width:min(100%,640px);justify-self:center}
+.orb-wrap canvas{position:absolute;inset:0;width:100%;height:100%}
+.orb-cap{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
+.carousel{margin-top:14px;position:relative}
+.car-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.car-view{overflow:hidden;border-radius:22px;touch-action:pan-y;cursor:grab} .car-view:active{cursor:grabbing}
+.car-track{display:flex;transition:transform .8s var(--ease);will-change:transform}
+.slide{flex:0 0 100%;padding:2px}
+.slide .glass{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center;min-height:270px;padding:34px 40px}
+.slide h3{font-size:clamp(28px,3.4vw,40px);margin:10px 0 12px} .slide p{color:var(--dim);max-width:46ch}
+.slide .viz{height:210px;display:grid;place-items:center;position:relative}
+.dots{display:flex;gap:8px} .dots button{width:8px;height:8px;border-radius:99px;border:0;background:var(--line2);cursor:pointer;padding:0;transition:all .5s var(--ease)}
+.dots button[aria-current="true"]{width:30px;background:var(--gold);box-shadow:0 0 14px rgba(230,203,147,.6)}
+.car-prog{height:1px;background:var(--line);margin-top:16px;position:relative;overflow:hidden}
+.car-prog i{position:absolute;inset:0;background:var(--gold);transform-origin:left;transform:scaleX(0)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.stat{padding:18px 20px} .stat b{display:block;font-family:var(--serif);font-size:38px;font-weight:500;line-height:1;color:var(--text)} .stat span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+
+/* ---------- universe / viewport ---------- */
+.viewport{--text:#EEF0F7;--dim:#AAB2C8;--faint:#737C96;--gold:#E6CB93;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.17);--sel:#A8DCFF;--obs:#4FE3A0;--mod:#6FB1FF;--ana:#FFB067;--unk:#FF6B7A;color:var(--text);
+  position:relative;border-radius:24px;overflow:hidden;border:1px solid var(--line2);box-shadow:0 40px 80px -40px #000,0 0 0 1px rgba(230,203,147,.12) inset;
+  background:radial-gradient(900px 500px at 70% 10%,rgba(90,96,210,.35),transparent 60%),radial-gradient(700px 500px at 10% 100%,rgba(230,203,147,.12),transparent 60%),#03050B}
+.viewport canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:grab} .viewport canvas.grabbing{cursor:grabbing} .viewport canvas.pointing{cursor:pointer}
+.viewport.tall{height:min(78vh,760px);min-height:460px} .viewport.mini{min-height:420px}
+.vp-ui{position:absolute;pointer-events:none;inset:0} .vp-ui>*{pointer-events:auto}
+.vp-tl{position:absolute;left:16px;top:16px;display:flex;flex-direction:column;gap:10px;max-width:calc(100% - 32px)}
+.vp-tr{position:absolute;right:16px;top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:60%}
+.vp-bl{position:absolute;left:16px;bottom:14px;display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--dim);max-width:70%}
+.vp-br{position:absolute;right:18px;bottom:14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);text-align:right}
+.vp-glass{background:rgba(8,12,26,.62);backdrop-filter:blur(14px);border:1px solid var(--line2);border-radius:14px;padding:10px 12px}
+.vp-glass select{background:rgba(255,255,255,.05);color:var(--text);padding:6px 9px;border-radius:9px;font-size:12.5px;border:1px solid var(--line2)}
+.vp-glass select option{color:#111}
+.vp-glass .field{gap:3px} .vp-glass .lbl{font-size:10px}
+.axes-row{display:flex;gap:10px;flex-wrap:wrap}
+.axes-toggle{display:none}
+.leg{display:inline-flex;align-items:center;gap:7px} .leg i{width:9px;height:9px;border-radius:50%;box-shadow:0 0 10px currentColor;background:currentColor}
+.tip{position:absolute;z-index:5;pointer-events:none;padding:9px 12px;border-radius:12px;background:rgba(8,12,26,.9);border:1px solid rgba(230,203,147,.45);font-size:12px;line-height:1.45;transform:translate(14px,-50%);opacity:0;transition:opacity .15s;min-width:150px;box-shadow:0 12px 30px rgba(0,0,0,.6)}
+.tip.on{opacity:1} .tip b{font-family:var(--serif);font-size:17px;font-weight:600;color:#fff;display:block} .tip span{color:#AAB2C8}
+.lab-grid{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:20px;align-items:stretch}
+.lab-grid .viewport{min-height:420px}
+.sliderrow{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center}
+.sliderrow .val{font-family:var(--serif);font-size:22px;color:var(--text);text-align:right;min-width:5.6em}
+.sliderrow input[type=range]{grid-column:1/-1}
+.presets{display:flex;gap:7px;flex-wrap:wrap}
+.orbchip{display:inline-flex;align-items:center;gap:8px}
+.orbchip i{width:14px;height:14px;border-radius:50%;display:inline-block}
+
+/* ---------- drawer ---------- */
+.drawer{position:fixed;z-index:35;right:16px;top:calc(var(--top) + 60px);bottom:16px;width:min(390px,calc(100vw - 32px));transform:translateX(calc(100% + 30px));opacity:0;transition:transform .7s var(--ease),opacity .5s;overflow:auto;padding:22px;border-radius:22px}
+.drawer.open{transform:none;opacity:1}
+.drawer h3{font-size:30px} .drawer .xbtn{position:absolute;right:14px;top:14px}
+.drawer .sec{margin-top:22px}
+.list{max-height:340px;overflow:auto;margin:8px -8px 0;padding:0 8px}
+.list button{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;background:none;border:0;border-bottom:1px solid var(--line);color:var(--text);padding:9px 6px;cursor:pointer;text-align:left;transition:background .2s;border-radius:8px}
+.list button:hover{background:rgba(255,255,255,.05)}
+
+/* ---------- gaps heat ---------- */
+.heat{display:grid;gap:5px}
+.heat .cell{aspect-ratio:1.35;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:22px;transition:transform .35s var(--ease),border-color .3s;animation:viewIn .6s var(--ease) both;animation-delay:calc(var(--i,0)*18ms)}
+.heat .cell:hover{transform:scale(1.05);border-color:var(--gold);z-index:2}
+.heat .cell.empty{background:repeating-linear-gradient(135deg,transparent 0 7px,var(--line) 7px 8px);color:var(--faint);font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.notice{border-left:2px solid var(--ana);padding:8px 14px;color:var(--dim);font-size:13px;background:rgba(255,176,103,.06);border-radius:0 12px 12px 0}
+.skel{height:14px;border-radius:8px;background:linear-gradient(90deg,var(--line),rgba(255,255,255,.16),var(--line));background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.drop{border:1px dashed var(--line2);border-radius:20px;padding:34px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;transition:all .3s var(--ease)}
+.drop.over{border-color:var(--gold);background:rgba(230,203,147,.07);transform:scale(1.01)}
+
+/* ---------- tour, dialog, toast ---------- */
+#tour{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));width:min(780px,calc(100vw - 24px));z-index:60}
+#tour .glass{border-color:rgba(230,203,147,.55);animation:viewIn .6s var(--ease) both;padding:20px 24px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02)),var(--glass2)}
+#tour h3{font-size:30px;margin:6px 0 8px}
+.tour-dots{display:flex;gap:5px} .tour-dots i{height:3px;width:22px;border-radius:3px;background:var(--line2);transition:background .4s,width .5s var(--ease)} .tour-dots i.on{background:var(--gold);width:38px}
+dialog{background:var(--glass2);backdrop-filter:blur(24px);color:var(--text);border:1px solid var(--line2);border-radius:22px;padding:22px;width:min(780px,92vw);box-shadow:0 50px 100px -30px #000}
+dialog::backdrop{background:rgba(2,4,10,.72);backdrop-filter:blur(4px)}
+dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--text);border:1px solid var(--line2);border-radius:12px;padding:12px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;z-index:80;padding:10px 18px;border-radius:999px;background:var(--glass2);border:1px solid var(--gold-d);backdrop-filter:blur(16px);font-size:13px;transition:all .5s var(--ease)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- mobile ---------- */
+.tabbar{display:none}
+@media (max-width:980px){
+  .hero{grid-template-columns:1fr;min-height:0;gap:6px} .orb-wrap{width:min(64vw,300px);margin:2px auto 50px;order:-1}
+  .orb-cap{bottom:-32px;font-size:10px}
+  .stats{grid-template-columns:repeat(2,1fr)} .slide .glass{grid-template-columns:1fr;padding:24px} .slide .viz{height:150px}
+  .lab-grid{grid-template-columns:1fr} .lab-grid .viewport{min-height:320px;order:-1}
+  .nav{display:none} .top-in{padding:0 12px;gap:7px}
+  .brand .word{font-size:19px;letter-spacing:.14em}
+  .chip-data{padding:4px 9px;gap:6px;font-size:11px} .chip-data span.long{display:none}
+  #tourbtn .longlabel{display:none} #tourbtn{padding:8px;border-radius:50%}
+  #tourbtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6}
+  .top-r{gap:6px}
+  .tabbar{display:flex;position:fixed;z-index:45;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding:5px;border-radius:22px;background:var(--glass2);backdrop-filter:blur(22px);border:1px solid var(--line2);box-shadow:0 20px 40px -14px #000}
+  .tabbar button{flex:1;background:none;border:0;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border-radius:16px;font-size:10px;letter-spacing:.06em;transition:all .3s}
+  .tabbar button svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar button[aria-current="page"]{color:var(--gold);background:rgba(230,203,147,.12)}
+  .page{padding:calc(var(--top) + 30px) 16px 120px} .page.wide{padding:calc(var(--top) + 12px) 10px 110px}
+  .drawer{top:auto;bottom:86px;height:58vh;right:10px;left:10px;width:auto;transform:translateY(120%)} .drawer.open{transform:none}
+  #tour{bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+  .viewport.tall{height:min(84vh,680px);min-height:460px}
+  .vp-tl{max-width:calc(100% - 32px)}
+  .vp-tl .axes-row{position:absolute;left:0;top:38px;width:min(88vw,340px);grid-template-columns:1fr 1fr;gap:10px;display:none}
+  .vp-tl .axes-row.open{display:grid}
+  .axes-toggle{display:inline-flex}
+  .vp-tr{max-width:none;left:16px;right:16px;top:auto;bottom:54px;gap:6px;justify-content:space-between;flex-wrap:nowrap;
+    background:rgba(8,12,26,.6);backdrop-filter:blur(14px);border:1px solid var(--line2);border-radius:16px;padding:6px}
+  .vp-tr .seg{display:none}
+  .vp-tr .switch{padding:8px;border-radius:50%} .vp-tr .switch span.longlabel,.vp-tr button span.longlabel{display:none}
+  .vp-tr .btn{padding:8px;border-radius:50%}
+  .vp-bl{bottom:116px;max-width:100%;font-size:11px;gap:10px} .vp-br{display:none}
+}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-delay:0s !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+
+@keyframes float{from{transform:translateY(-3px)}to{transform:translateY(4px)}}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div id="root"></div>
+<div id="nasa-corpus-badge" style="position:fixed;z-index:60;top:54px;left:12px;padding:5px 10px;border:1px solid rgba(127,214,255,.28);border-radius:999px;background:rgba(5,12,25,.78);backdrop-filter:blur(10px);font:600 10px/1.2 system-ui;letter-spacing:.08em;color:#9edfff;text-transform:uppercase;pointer-events:none">NASA PSI · VERIFIED SEED CORPUS</div>
+<dialog id="modal"></dialog>
+<script type="application/json" id="considerations">{"_note": "Prompts for engineers, NOT findings. Every entry is unreviewed until a combustion/fire-safety SME signs it off (see docs/VALIDATION.md). Edit freely.", "review_status": "UNREVIEWED", "considerations": {"flame_spread_rate": "Does spread-rate evidence at comparable conditions bear on assumed detection-to-suppression time budgets?", "flame_temperature": "Does the reported flame temperature range bear on material-damage or hot-surface assumptions for nearby hardware?", "flame_size": "Does the reported flame size at comparable conditions bear on sensor placement or clearance assumptions?", "burning_rate": "Does the burning rate bear on how fast oxygen is consumed or heat/products are released in a closed volume?", "ignition_delay": "Does the ignition delay bear on how early an ignition source could be detected?", "morphology": "Does the observed flame appearance differ from terrestrial flames in ways that could affect optical detection?", "extinction": "Does the extinction behaviour bear on which atmospheres or pressures the habitat/vehicle should consider?", "stability": "Does flame oscillation or instability bear on the reliability of flame-based detection signatures?", "soot": "Does soot/smoke production at comparable conditions bear on smoke-detector assumptions?"}}</script>
+<script type="application/json" id="fixture">{"schema_version":"1","dataset_id":"prometheus-nasa-psi-seed-2026-10-06","title":"PROMETHEUS — NASA PSI Combustion Seed Corpus","description":"A small, provenance-preserving seed corpus built from NASA Physical Sciences Informatics investigation metadata and experimental-table entries. It is not a substitute for the full PSI download; missing values remain missing.","sources":[{"source_id":"PSI-98","title":"NASA PSI-98 — Spacecraft Fire Safety Experiment-I (SAFFIRE-I)","citation":"NASA Physical Sciences Informatics, PSI-98 Version 4, Spacecraft Fire Safety Experiment-I (SAFFIRE-I). DOI: 10.60555/0t15-1z43.","url":"https://psi.nasa.gov/physci/repo/data/investigations/PSI-98","doi":"10.60555/0t15-1z43","license":"CC0-1.0","note":"NASA experimental table values. O2 midpoint and microgravity proxy are explicitly documented as canonicalization aids; the source reports an O2 range and low-g regime."},{"source_id":"PSI-69","title":"NASA PSI-69 — Flame Extinguishment Experiment (FLEX)","citation":"NASA Physical Sciences Informatics, PSI-69 Version 5, Flame Extinguishment Experiment (FLEX). DOI: 10.60555/mbq8-0451.","url":"https://psi.nasa.gov/physci/repo/data/investigations/PSI-69","doi":"10.60555/mbq8-0451","license":"CC0-1.0","note":"NASA investigation metadata. Documents LOI studies, droplet burning/extinction, 0.5–1.5 atm test pressure range and ~3 mm droplets."},{"source_id":"PSI-25","title":"NASA PSI-25 — Burning and Suppression of Solids-II (BASS-II)","citation":"NASA Physical Sciences Informatics, PSI-25 Version 4, Burning and Suppression of Solids-II (BASS-II). DOI: 10.60555/4qc4-de67.","url":"https://psi.nasa.gov/physci/repo/data/investigations/PSI-25","doi":"10.60555/4qc4-de67","license":"CC0-1.0","note":"NASA investigation metadata. Documents ignition, flame growth, flame spread and extinction limits for solid fuels in microgravity."},{"source_id":"PSI-107","title":"NASA PSI-107 — Smoke Point In Co-flow Experiment (SPICE)","citation":"NASA Physical Sciences Informatics, PSI-107 Version 4, Smoke Point In Co-flow Experiment (SPICE). DOI: 10.60555/9kbh-e962.","url":"https://psi.nasa.gov/physci/repo/data/investigations/PSI-107","doi":"10.60555/9kbh-e962","license":"CC0-1.0","note":"NASA investigation metadata. Documents 526 flames, methane/ethylene/propane/propylene fuels, 0.41/0.76/1.6 mm burners and 5.4–65 cm/s co-flow velocities."},{"source_id":"PSI-62","title":"NASA PSI-62 — Concurrent Flame Spread Modeling in Microgravity","citation":"NASA Physical Sciences Informatics, PSI-62 Version 1, Concurrent Flame Spread Modeling using Flamelet Generated Manifolds in Microgravity with Comparison to BASS Experiments using Two-Color Tomography. DOI: 10.60555/e9xp-ex83.","url":"https://psi.nasa.gov/physci/repo/data/investigations/PSI-62","doi":"10.60555/e9xp-ex83","license":"CC0-1.0","note":"NASA PSI ground investigation using BASS/BASS-II imagery and modeling; included to connect experiment evidence with validated modeling research."}],"experiments":[{"exp_id":"PSI98-S1","title":"SAFFIRE-I S1 — concurrent flow","platform":"ISS / Cygnus free-flight","fuel":"SIBAL Fabric","fuel_source":"PSI-98","source_ids":["PSI-98"],"conditions":{"o2_fraction":{"value":"21.5–21.7%","unit":"%","canonical_value":0.216,"canonical_unit":"fraction","source_id":"PSI-98","locator":"Experimental Table · S1","canonical_note":"midpoint of NASA-reported range used only for canonical plotting"},"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-98","locator":"Project Type: Microgravity Investigation","canonical_note":"1e-6 g is a visualization proxy for the reported microgravity regime; not a measured value"},"flow_velocity_mm_s":{"value":"20","unit":"cm/s","canonical_value":200,"canonical_unit":"mm/s","source_id":"PSI-98","locator":"Experimental Table · S1"}},"observations":[{"phenomenon":"morphology","description":"Large-scale flame on SIBAL fabric; flame images were captured by two cameras.","source_id":"PSI-98","locator":"Experimental Table / Approach"},{"phenomenon":"extinction","description":"Investigation targets low-g flammability limits and flame behavior in reduced gravity.","source_id":"PSI-98","locator":"Objectives / Hypothesis"},{"phenomenon":"soot","description":"Smoke/flame behavior is part of the spacecraft fire-safety investigation.","source_id":"PSI-98","locator":"Research area: Spacecraft Fire, Smoke Distribution"}],"text":"NASA PSI-98 experimental-table record. Sample S1; SIBAL fabric 0.37 cm thick, 40.6 cm long, 94 cm wide; air flow 20 cm/s; O2 21.5–21.7%; ignition power 182 W; ignition time 8 s; burn time 420 s; flow direction Concurrent. Canonical O2 is a midpoint only; gravity is a visualization proxy for the reported microgravity regime."},{"exp_id":"PSI98-S2","title":"SAFFIRE-I S2 — opposed flow","platform":"ISS / Cygnus free-flight","fuel":"SIBAL Fabric","fuel_source":"PSI-98","source_ids":["PSI-98"],"conditions":{"o2_fraction":{"value":"~21.5%","unit":"%","canonical_value":0.215,"canonical_unit":"fraction","source_id":"PSI-98","locator":"Experimental Table · S2","canonical_note":"midpoint of NASA-reported range used only for canonical plotting"},"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-98","locator":"Project Type: Microgravity Investigation","canonical_note":"1e-6 g is a visualization proxy for the reported microgravity regime; not a measured value"},"flow_velocity_mm_s":{"value":"20","unit":"cm/s","canonical_value":200,"canonical_unit":"mm/s","source_id":"PSI-98","locator":"Experimental Table · S2"}},"observations":[{"phenomenon":"morphology","description":"Large-scale flame on SIBAL fabric; flame images were captured by two cameras.","source_id":"PSI-98","locator":"Experimental Table / Approach"},{"phenomenon":"extinction","description":"Investigation targets low-g flammability limits and flame behavior in reduced gravity.","source_id":"PSI-98","locator":"Objectives / Hypothesis"},{"phenomenon":"soot","description":"Smoke/flame behavior is part of the spacecraft fire-safety investigation.","source_id":"PSI-98","locator":"Research area: Spacecraft Fire, Smoke Distribution"}],"text":"NASA PSI-98 experimental-table record. Sample S2; SIBAL fabric 0.37 cm thick, 40.6 cm long, 94 cm wide; air flow 20 cm/s; O2 ~21.5%; ignition power 182 W; ignition time 8 s; burn time 70 s; flow direction Opposed. Canonical O2 is a midpoint only; gravity is a visualization proxy for the reported microgravity regime."},{"exp_id":"PSI107-MET-low","title":"SPICE — Methane / low co-flow configuration (documented)","platform":"ISS Microgravity Science Glovebox","fuel":"methane","fuel_source":"PSI-107","source_ids":["PSI-107"],"conditions":{"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-107","locator":"Project Type: Microgravity Investigation","canonical_note":"visualization proxy for the reported microgravity regime"},"flow_velocity_mm_s":{"value":"5.4","unit":"cm/s","canonical_value":54.0,"canonical_unit":"mm/s","source_id":"PSI-107","locator":"Approach · co-flow velocity range"}},"observations":[{"phenomenon":"soot","description":"SPICE studies smoke-point / sooting propensity for methane under non-buoyant jet diffusion flame conditions.","source_id":"PSI-107","locator":"Objectives / Approach"},{"phenomenon":"morphology","description":"Luminous flame length and smoke point were recorded using still and video cameras.","source_id":"PSI-107","locator":"Approach"}],"text":"NASA PSI-107 documents methane among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."},{"exp_id":"PSI107-MET-high","title":"SPICE — Methane / high co-flow configuration (documented)","platform":"ISS Microgravity Science Glovebox","fuel":"methane","fuel_source":"PSI-107","source_ids":["PSI-107"],"conditions":{"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-107","locator":"Project Type: Microgravity Investigation","canonical_note":"visualization proxy for the reported microgravity regime"},"flow_velocity_mm_s":{"value":"65","unit":"cm/s","canonical_value":650.0,"canonical_unit":"mm/s","source_id":"PSI-107","locator":"Approach · co-flow velocity range"}},"observations":[{"phenomenon":"soot","description":"SPICE studies smoke-point / sooting propensity for methane under non-buoyant jet diffusion flame conditions.","source_id":"PSI-107","locator":"Objectives / Approach"},{"phenomenon":"morphology","description":"Luminous flame length and smoke point were recorded using still and video cameras.","source_id":"PSI-107","locator":"Approach"}],"text":"NASA PSI-107 documents methane among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."},{"exp_id":"PSI107-ETH-low","title":"SPICE — Ethylene / low co-flow configuration (documented)","platform":"ISS Microgravity Science Glovebox","fuel":"ethylene","fuel_source":"PSI-107","source_ids":["PSI-107"],"conditions":{"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-107","locator":"Project Type: Microgravity Investigation","canonical_note":"visualization proxy for the reported microgravity regime"},"flow_velocity_mm_s":{"value":"5.4","unit":"cm/s","canonical_value":54.0,"canonical_unit":"mm/s","source_id":"PSI-107","locator":"Approach · co-flow velocity range"}},"observations":[{"phenomenon":"soot","description":"SPICE studies smoke-point / sooting propensity for ethylene under non-buoyant jet diffusion flame conditions.","source_id":"PSI-107","locator":"Objectives / Approach"},{"phenomenon":"morphology","description":"Luminous flame length and smoke point were recorded using still and video cameras.","source_id":"PSI-107","locator":"Approach"}],"text":"NASA PSI-107 documents ethylene among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."},{"exp_id":"PSI107-ETH-high","title":"SPICE — Ethylene / high co-flow configuration (documented)","platform":"ISS Microgravity Science Glovebox","fuel":"ethylene","fuel_source":"PSI-107","source_ids":["PSI-107"],"conditions":{"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-107","locator":"Project Type: Microgravity Investigation","canonical_note":"visualization proxy for the reported microgravity regime"},"flow_velocity_mm_s":{"value":"65","unit":"cm/s","canonical_value":650.0,"canonical_unit":"mm/s","source_id":"PSI-107","locator":"Approach · co-flow velocity range"}},"observations":[{"phenomenon":"soot","description":"SPICE studies smoke-point / sooting propensity for ethylene under non-buoyant jet diffusion flame conditions.","source_id":"PSI-107","locator":"Objectives / Approach"},{"phenomenon":"morphology","description":"Luminous flame length and smoke point were recorded using still and video cameras.","source_id":"PSI-107","locator":"Approach"}],"text":"NASA PSI-107 documents ethylene among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."},{"exp_id":"PSI107-PRO-low","title":"SPICE — Propane / low co-flow configuration (documented)","platform":"ISS Microgravity Science Glovebox","fuel":"propane","fuel_source":"PSI-107","source_ids":["PSI-107"],"conditions":{"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-107","locator":"Project Type: Microgravity Investigation","canonical_note":"visualization proxy for the reported microgravity regime"},"flow_velocity_mm_s":{"value":"5.4","unit":"cm/s","canonical_value":54.0,"canonical_unit":"mm/s","source_id":"PSI-107","locator":"Approach · co-flow velocity range"}},"observations":[{"phenomenon":"soot","description":"SPICE studies smoke-point / sooting propensity for propane under non-buoyant jet diffusion flame conditions.","source_id":"PSI-107","locator":"Objectives / Approach"},{"phenomenon":"morphology","description":"Luminous flame length and smoke point were recorded using still and video cameras.","source_id":"PSI-107","locator":"Approach"}],"text":"NASA PSI-107 documents propane among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."},{"exp_id":"PSI107-PRO-high","title":"SPICE — Propane / high co-flow configuration (documented)","platform":"ISS Microgravity Science Glovebox","fuel":"propane","fuel_source":"PSI-107","source_ids":["PSI-107"],"conditions":{"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-107","locator":"Project Type: Microgravity Investigation","canonical_note":"visualization proxy for the reported microgravity regime"},"flow_velocity_mm_s":{"value":"65","unit":"cm/s","canonical_value":650.0,"canonical_unit":"mm/s","source_id":"PSI-107","locator":"Approach · co-flow velocity range"}},"observations":[{"phenomenon":"soot","description":"SPICE studies smoke-point / sooting propensity for propane under non-buoyant jet diffusion flame conditions.","source_id":"PSI-107","locator":"Objectives / Approach"},{"phenomenon":"morphology","description":"Luminous flame length and smoke point were recorded using still and video cameras.","source_id":"PSI-107","locator":"Approach"}],"text":"NASA PSI-107 documents propane among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."},{"exp_id":"PSI107-PRO-low","title":"SPICE — Propylene / low co-flow configuration (documented)","platform":"ISS Microgravity Science Glovebox","fuel":"propylene","fuel_source":"PSI-107","source_ids":["PSI-107"],"conditions":{"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-107","locator":"Project Type: Microgravity Investigation","canonical_note":"visualization proxy for the reported microgravity regime"},"flow_velocity_mm_s":{"value":"5.4","unit":"cm/s","canonical_value":54.0,"canonical_unit":"mm/s","source_id":"PSI-107","locator":"Approach · co-flow velocity range"}},"observations":[{"phenomenon":"soot","description":"SPICE studies smoke-point / sooting propensity for propylene under non-buoyant jet diffusion flame conditions.","source_id":"PSI-107","locator":"Objectives / Approach"},{"phenomenon":"morphology","description":"Luminous flame length and smoke point were recorded using still and video cameras.","source_id":"PSI-107","locator":"Approach"}],"text":"NASA PSI-107 documents propylene among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."},{"exp_id":"PSI107-PRO-high","title":"SPICE — Propylene / high co-flow configuration (documented)","platform":"ISS Microgravity Science Glovebox","fuel":"propylene","fuel_source":"PSI-107","source_ids":["PSI-107"],"conditions":{"gravity_g":{"value":"microgravity","unit":"regime","canonical_value":1e-06,"canonical_unit":"regime","source_id":"PSI-107","locator":"Project Type: Microgravity Investigation","canonical_note":"visualization proxy for the reported microgravity regime"},"flow_velocity_mm_s":{"value":"65","unit":"cm/s","canonical_value":650.0,"canonical_unit":"mm/s","source_id":"PSI-107","locator":"Approach · co-flow velocity range"}},"observations":[{"phenomenon":"soot","description":"SPICE studies smoke-point / sooting propensity for propylene under non-buoyant jet diffusion flame conditions.","source_id":"PSI-107","locator":"Objectives / Approach"},{"phenomenon":"morphology","description":"Luminous flame length and smoke point were recorded using still and video cameras.","source_id":"PSI-107","locator":"Approach"}],"text":"NASA PSI-107 documents propylene among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."},{"exp_id":"PSI-25-META","title":"BASS-II — Burning and Suppression of Solids-II","platform":"NASA PSI","fuel":null,"source_ids":["PSI-25"],"conditions":{},"observations":[{"phenomenon":"flame_spread_rate","description":"NASA documents ignition, flame growth, flame spread and extinction limits for solid fuels in microgravity.","source_id":"PSI-25","locator":"Investigation Objectives / Approach"}],"text":"NASA documents ignition, flame growth, flame spread and extinction limits for solid fuels in microgravity."},{"exp_id":"PSI-62-META","title":"Concurrent Flame Spread Modeling","platform":"NASA PSI","fuel":null,"source_ids":["PSI-62"],"conditions":{},"observations":[{"phenomenon":"flame_spread_rate","description":"NASA PSI documents modeling and two-color tomography comparisons against BASS/BASS-II experiments.","source_id":"PSI-62","locator":"Investigation Objectives / Approach"}],"text":"NASA PSI documents modeling and two-color tomography comparisons against BASS/BASS-II experiments."}]}</script>
+<script>
+/* FLARE core (browser + node). Mirrors the Python reference implementation in ../flare/*.py.
+ * Parity is checked by scripts/parity_check.py. No DOM access in this file. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.FLARE = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  // ------------------------------------------------------------------ ontology
+  const VARS = {
+    o2_fraction:        {label: 'Oxygen (mole fraction)', short: 'O₂', unit: 'fraction', scale: 'linear', weight: 1, min: 0, max: 1},
+    pressure_kpa:       {label: 'Pressure (absolute)', short: 'Pressure', unit: 'kPa', scale: 'log', weight: 1, min: 1e-6, max: 1e6},
+    gravity_g:          {label: 'Gravity level (Earth g)', short: 'Gravity', unit: 'g', scale: 'log', weight: 1, min: 0, max: 100, floor: 1e-6},
+    temperature_k:      {label: 'Ambient temperature', short: 'Temperature', unit: 'K', scale: 'linear', weight: 1, min: 1, max: 1e4},
+    flow_velocity_mm_s: {label: 'Forced-flow velocity', short: 'Flow', unit: 'mm/s', scale: 'linear', weight: 1, min: 0, max: 1e6},
+  };
+  const PHEN = {
+    flame_temperature: {label: 'Flame temperature', unit: 'K', numeric: true},
+    flame_size:        {label: 'Flame size / length', unit: 'mm', numeric: true},
+    flame_spread_rate: {label: 'Flame spread rate', unit: 'mm/s', numeric: true},
+    burning_rate:      {label: 'Burning / mass-loss rate', unit: 'mg/s', numeric: true},
+    ignition_delay:    {label: 'Ignition delay', unit: 's', numeric: true},
+    morphology:        {label: 'Flame morphology', numeric: false},
+    extinction:        {label: 'Extinction behaviour', numeric: false},
+    stability:         {label: 'Flame stability / oscillation', numeric: false},
+    soot:              {label: 'Soot formation', numeric: false},
+  };
+  const VAR_KEYS = Object.keys(VARS);
+  const NUM_PHEN = Object.keys(PHEN).filter(k => PHEN[k].numeric);
+  const STD_G = 9.80665, LUNAR_G = 1.625 / STD_G, MARS_G = 3.721 / STD_G;
+
+  const EVIDENCE = {
+    OBSERVED:       {symbol: '●', label: 'Observed',       meaning: 'Direct evidence from a recorded experiment'},
+    MODEL_INFERRED: {symbol: '●', label: 'Model-inferred', meaning: 'Derived from a fitted model inside its validated domain'},
+    ANALOGICAL:     {symbol: '●', label: 'Analogical',     meaning: 'Based on similar but not identical experiments'},
+    UNKNOWN:        {symbol: '●', label: 'Unknown',        meaning: 'Insufficient evidence to say'},
+  };
+
+  // ------------------------------------------------------------------ units (subset used by the UI)
+  const P_KPA = {pa: 1e-3, kpa: 1, mpa: 1e3, bar: 100, mbar: 0.1, atm: 101.325, psi: 6.894757293168361, psia: 6.894757293168361, torr: 101.325 / 760};
+  const V_MM_S = {'mm/s': 1, 'cm/s': 10, 'm/s': 1000};
+  const G_G = {g: 1, 'µg': 1e-6, ug: 1e-6, 'm/s²': 1 / STD_G, 'm/s2': 1 / STD_G, 'milli-g': 1e-3};
+  class UnitError extends Error {}
+  function convert(value, unit, dim) {
+    if (typeof value !== 'number' || !isFinite(value)) throw new UnitError('value must be a finite number');
+    const u = String(unit || '').trim().toLowerCase().replace(/\s+/g, '');
+    if (u === 'psig' || u === 'barg') throw new UnitError('gauge pressure is ambiguous; use absolute pressure');
+    if (u === 'mg') throw new UnitError("'mg' is ambiguous (milligram vs milli-g)");
+    let out;
+    if (dim === 'pressure') { if (!(u in P_KPA)) throw new UnitError('unknown pressure unit ' + unit); out = value * P_KPA[u]; }
+    else if (dim === 'velocity') { if (!(u in V_MM_S)) throw new UnitError('unknown velocity unit ' + unit); out = value * V_MM_S[u]; }
+    else if (dim === 'gravity') { const k = String(unit).trim().toLowerCase(); if (!(k in G_G)) throw new UnitError('unknown gravity unit ' + unit); out = value * G_G[k]; }
+    else if (dim === 'temperature') {
+      if (u === 'k') out = value; else if (u === 'c' || u === '°c') out = value + 273.15; else if (u === 'f' || u === '°f') out = (value - 32) * 5 / 9 + 273.15;
+      else throw new UnitError('unknown temperature unit ' + unit);
+      if (out < 0) throw new UnitError('below absolute zero');
+    } else if (dim === 'fraction') {
+      if (u === '%' || u === 'percent') out = value / 100; else if (u === 'fraction' || u === '') out = value; else throw new UnitError('unknown fraction unit ' + unit);
+      if (out < 0 || out > 1) throw new UnitError('mole fraction out of range - is the value a percentage?');
+    } else throw new UnitError('unknown dimension');
+    return out;
+  }
+  const VAR_DIM = {o2_fraction: 'fraction', pressure_kpa: 'pressure', gravity_g: 'gravity', temperature_k: 'temperature', flow_velocity_mm_s: 'velocity'};
+
+  function gravityRegime(g) {
+    if (g == null) return 'unknown';
+    if (g <= 1e-3) return 'microgravity';
+    if (g < 0.9) return 'partial gravity';
+    if (g <= 1.1) return 'normal gravity';
+    return 'hypergravity';
+  }
+
+  // ------------------------------------------------------------------ dataset
+  class DatasetError extends Error {}
+  function loadDataset(json) {
+    if (!json || json.schema_version !== '1') throw new DatasetError('Unsupported or missing schema_version (expected "1").');
+    const sources = {};
+    (json.sources || []).forEach(s => { sources[s.source_id] = s; });
+    const problems = [];
+    const exps = [];
+    (json.experiments || []).forEach(e => {
+      const errs = [];
+      const conds = {};
+      Object.entries(e.conditions || {}).forEach(([k, m]) => {
+        if (!VARS[k]) { errs.push('unknown condition ' + k); return; }
+        if (m == null) return;
+        if (typeof m.canonical_value !== 'number') { errs.push(k + ': canonical_value missing (run `flare normalize` / export from FLARE)'); return; }
+        if (!sources[m.source_id]) errs.push(k + ' cites unknown source ' + m.source_id);
+        const v = m.canonical_value;
+        if (!(v >= VARS[k].min && v <= VARS[k].max)) errs.push(k + ' outside physical range');
+        conds[k] = m;
+      });
+      (e.observations || []).forEach(o => {
+        if (!PHEN[o.phenomenon]) errs.push('unknown phenomenon ' + o.phenomenon);
+        if (!sources[o.source_id]) errs.push('observation cites unknown source ' + o.source_id);
+      });
+      if (e.fuel && !e.fuel_source) errs.push('fuel without source');
+      if (errs.length) { problems.push({exp_id: e.exp_id, errors: errs}); return; }
+      exps.push({
+        exp_id: e.exp_id, title: e.title || '', platform: e.platform || 'unknown', fuel: e.fuel || null,
+        fuel_source: e.fuel_source || null, conditions: conds, observations: e.observations || [],
+        source_ids: e.source_ids || [], text: e.text || '', synthetic: !!e.synthetic,
+      });
+    });
+    return {sources, experiments: exps, problems, raw: json, hasSynthetic: exps.some(e => e.synthetic)};
+  }
+  const cond = (e, v) => (e.conditions[v] ? e.conditions[v].canonical_value : null);
+  function numObs(e, ph) {
+    for (const o of e.observations) if (o.phenomenon === ph && o.measurement) return o.measurement.canonical_value;
+    return null;
+  }
+  const obsOf = (e, ph) => e.observations.filter(o => o.phenomenon === ph);
+  const conditionsOf = e => { const c = {}; VAR_KEYS.forEach(v => { c[v] = cond(e, v); }); return c; };
+
+  // ------------------------------------------------------------------ similarity
+  function toScale(v, x) {
+    const m = VARS[v];
+    return m.scale === 'log' ? Math.log10(Math.max(x, m.floor || 1e-9)) : x;
+  }
+  function fitScaler(exps, extra) {
+    const vals = {};
+    exps.forEach(e => VAR_KEYS.forEach(v => { const x = cond(e, v); if (x != null) (vals[v] = vals[v] || []).push(toScale(v, x)); }));
+    (extra || []).forEach(q => Object.entries(q).forEach(([v, x]) => { if (x != null && VARS[v]) (vals[v] = vals[v] || []).push(toScale(v, x)); }));
+    const lo = {}, hi = {};
+    Object.entries(vals).forEach(([v, xs]) => { lo[v] = Math.min(...xs); hi[v] = Math.max(...xs); });
+    return {lo, hi, unit(v, x) { const l = lo[v], h = hi[v]; if (l == null || h == null || h === l) return 0; return (toScale(v, x) - l) / (h - l); }};
+  }
+  const normFuel = f => (f == null ? null : String(f).trim().toLowerCase());
+  function compare(a, aFuel, b, bFuel, sc, useFuel = true) {
+    let num = 0, den = 0, basis = 0; const diffs = {}, missing = [];
+    for (const v of VAR_KEYS) {
+      const x = a[v], y = b[v];
+      if (x == null && y == null) continue;
+      if (x == null || y == null) { missing.push(v); continue; }
+      const du = Math.abs(sc.unit(v, x) - sc.unit(v, y));
+      num += VARS[v].weight * du; den += VARS[v].weight; basis++;
+      diffs[v] = {a: x, b: y, scaled_diff: du};
+    }
+    if (useFuel && aFuel && bFuel) {
+      const fd = normFuel(aFuel) === normFuel(bFuel) ? 0 : 1;
+      num += fd; den += 1; basis++; diffs.fuel = {a: aFuel, b: bFuel, scaled_diff: fd};
+    } else if (useFuel && (aFuel || bFuel)) missing.push('fuel');
+    return {distance: den === 0 ? null : num / den, basis, diffs, missing};
+  }
+  function nearest(query, qFuel, exps, k, minBasis) {
+    const sc = fitScaler(exps, [query]);
+    const out = [];
+    exps.forEach(e => {
+      const c = compare(query, qFuel, conditionsOf(e), e.fuel, sc);
+      if (c.distance == null || c.basis < minBasis) return;
+      out.push({e, c});
+    });
+    out.sort((p, q) => (p.c.distance - q.c.distance) || (p.e.exp_id < q.e.exp_id ? -1 : p.e.exp_id > q.e.exp_id ? 1 : 0));
+    return out.slice(0, k);
+  }
+
+  // ------------------------------------------------------------------ evidence rules
+  const ANALOGY_MAX = 0.25;
+  const TOL = {
+    o2_fraction: {abs: 0.01}, pressure_kpa: {rel: 0.05}, gravity_g: {factor: 2}, temperature_k: {abs: 10},
+    flow_velocity_mm_s: {abs: 5, rel: 0.10},
+  };
+  function within(v, q, x) {
+    const t = TOL[v] || {};
+    if (t.factor) {
+      const fl = VARS[v].floor || 1e-9;
+      return Math.abs(Math.log10(Math.max(q, fl)) - Math.log10(Math.max(x, fl))) <= Math.log10(t.factor) + 1e-12;
+    }
+    let ok = false;
+    if (t.abs != null && Math.abs(q - x) <= t.abs + 1e-12) ok = true;
+    if (t.rel != null && Math.abs(q - x) <= t.rel * Math.max(Math.abs(q), Math.abs(x)) + 1e-12) ok = true;
+    return ok;
+  }
+  function ordinalConfidence(level, nSupport, agree, r2, n) {
+    if (level === 'OBSERVED') { if (agree === false) return 'Low (experiments disagree)'; if (nSupport >= 2 && agree === true) return 'High'; return 'Medium'; }
+    if (level === 'MODEL_INFERRED') return (r2 != null && n != null && r2 >= 0.8 && n >= 20) ? 'Medium' : 'Low';
+    if (level === 'ANALOGICAL') return 'Low';
+    return 'None';
+  }
+
+  // ------------------------------------------------------------------ ridge model with LOO-CV
+  const MIN_N = 12, MIN_R2 = 0.5, MIN_COV = 0.8, LAMBDA = 1e-3, MAX_NEAREST = 0.20, KNEE = 0.10, SLOPE = 6.0;
+  function inverse(a) {
+    const n = a.length;
+    const m = a.map((r, i) => r.concat(Array.from({length: n}, (_, j) => (i === j ? 1 : 0))));
+    for (let c = 0; c < n; c++) {
+      let piv = c;
+      for (let r = c + 1; r < n; r++) if (Math.abs(m[r][c]) > Math.abs(m[piv][c])) piv = r;
+      if (Math.abs(m[piv][c]) < 1e-12) return null;
+      [m[c], m[piv]] = [m[piv], m[c]];
+      const p = m[c][c]; m[c] = m[c].map(x => x / p);
+      for (let r = 0; r < n; r++) if (r !== c) { const f = m[r][c]; if (f) m[r] = m[r].map((x, i) => x - f * m[c][i]); }
+    }
+    return m.map(r => r.slice(n));
+  }
+  function fitModel(exps, ph, fuel) {
+    if (!PHEN[ph] || !PHEN[ph].numeric) return null;
+    let rows = exps.filter(e => numObs(e, ph) != null && (fuel == null || normFuel(e.fuel) === normFuel(fuel)));
+    let n = rows.length;
+    if (n < MIN_N) return null;
+    const feats = [];
+    VAR_KEYS.forEach(v => {
+      const have = rows.filter(e => cond(e, v) != null);
+      if (have.length / n < MIN_COV) return;
+      const xs = have.map(e => toScale(v, cond(e, v)));
+      if (Math.max(...xs) - Math.min(...xs) < 1e-12) return;
+      feats.push(v);
+    });
+    if (!feats.length || feats.length >= Math.floor(n / 3)) return null;
+    rows = rows.filter(e => feats.every(v => cond(e, v) != null));
+    n = rows.length;
+    if (n < MIN_N) return null;
+    const X = rows.map(e => feats.map(v => toScale(v, cond(e, v))));
+    const y = rows.map(e => numObs(e, ph));
+    const cols = feats.map((_, j) => X.map(r => r[j]));
+    const means = cols.map(c => c.reduce((a, b) => a + b, 0) / n);
+    const stds = cols.map((c, j) => Math.sqrt(c.reduce((a, b) => a + (b - means[j]) ** 2, 0) / n) || 1);
+    const Z = X.map(r => r.map((x, j) => (x - means[j]) / stds[j]));
+    const p = feats.length + 1;
+    const A = Array.from({length: p}, () => Array(p).fill(0)), b = Array(p).fill(0);
+    Z.forEach((zi, r) => { const xi = [1].concat(zi); for (let i = 0; i < p; i++) { b[i] += xi[i] * y[r]; for (let j = 0; j < p; j++) A[i][j] += xi[i] * xi[j]; } });
+    for (let i = 1; i < p; i++) A[i][i] += LAMBDA;
+    const inv = inverse(A); if (!inv) return null;
+    const beta = Array.from({length: p}, (_, i) => inv[i].reduce((s, v, j) => s + v * b[j], 0));
+    let press = 0;
+    for (let r = 0; r < n; r++) {
+      const xi = [1].concat(Z[r]);
+      const pred = beta.reduce((s, bi, j) => s + bi * xi[j], 0);
+      let h = 0; for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) h += xi[i] * inv[i][j] * xi[j];
+      if (h >= 1 - 1e-9) return null;
+      press += ((y[r] - pred) / (1 - h)) ** 2;
+    }
+    const ybar = y.reduce((a, c) => a + c, 0) / n;
+    const sst = y.reduce((a, c) => a + (c - ybar) ** 2, 0);
+    const r2 = sst > 0 ? 1 - press / sst : -Infinity;
+    const domain = {}; feats.forEach((v, j) => { domain[v] = [Math.min(...cols[j]), Math.max(...cols[j])]; });
+    const res = {ph, fuel, feats, beta, means, stds, n, r2, rmse: Math.sqrt(press / n), unit: PHEN[ph].unit, domain, train: X,
+      ids: rows.map(e => e.exp_id), usable: r2 >= MIN_R2, reason: r2 >= MIN_R2 ? '' : `LOO-CV R² = ${r2.toFixed(2)} < ${MIN_R2}: model not predictive enough to be used`};
+    res.predict = c => { let s = beta[0]; for (let j = 0; j < feats.length; j++) { if (c[feats[j]] == null) return null; s += beta[j + 1] * (toScale(feats[j], c[feats[j]]) - means[j]) / stds[j]; } return s; };
+    res.nearestDistance = c => {
+      const pts = feats.map(f => toScale(f, c[f])), spans = feats.map(f => Math.max(domain[f][1] - domain[f][0], 1e-12));
+      return Math.min(...X.map(tp => Math.sqrt(pts.reduce((s, a, j) => s + ((a - tp[j]) / spans[j]) ** 2, 0) / pts.length)));
+    };
+    res.errorScale = c => res.rmse * (1 + SLOPE * Math.max(0, res.nearestDistance(c) - KNEE));
+    res.inDomain = c => {
+      for (const f of feats) {
+        if (c[f] == null) return [false, 'query does not specify ' + f];
+        const x = toScale(f, c[f]);
+        if (x < domain[f][0] - 1e-12 || x > domain[f][1] + 1e-12) return [false, f + ' outside the training range (extrapolation)'];
+      }
+      if (res.nearestDistance(c) > MAX_NEAREST) return [false, 'query is far from every training experiment (joint extrapolation)'];
+      return [true, ''];
+    };
+    return res;
+  }
+
+  // ------------------------------------------------------------------ virtual experiment
+  class QueryError extends Error {}
+  function makeQuery(fuel, conditions, phenomena) {
+    Object.entries(conditions).forEach(([v, x]) => {
+      if (!VARS[v]) throw new QueryError('unknown variable ' + v);
+      if (!(x >= VARS[v].min && x <= VARS[v].max)) throw new QueryError(`${VARS[v].label} = ${x} is outside the physical range`);
+    });
+    (phenomena || []).forEach(p => { if (!PHEN[p]) throw new QueryError('unknown phenomenon ' + p); });
+    if (!fuel && !Object.keys(conditions).length) throw new QueryError('Specify a fuel or at least one condition.');
+    return {fuel: fuel || null, conditions, phenomena: phenomena && phenomena.length ? phenomena : null};
+  }
+  function rangeText(vs) {
+    const nums = vs.filter(v => v.value != null).map(v => v.value);
+    const unit = (vs.find(v => v.unit) || {}).unit || '';
+    if (!nums.length) return [...new Set(vs.map(v => v.description).filter(Boolean))].sort().join('; ');
+    const lo = Math.min(...nums), hi = Math.max(...nums);
+    const f = x => Number(x.toPrecision(4)).toString();
+    return lo === hi ? `${f(lo)} ${unit}` : `${f(lo)} to ${f(hi)} ${unit}`;
+  }
+  function valsOf(e, ph) {
+    return obsOf(e, ph).map(o => ({exp_id: e.exp_id, description: o.description || '', value: o.measurement ? o.measurement.canonical_value : null,
+      unit: o.measurement ? o.measurement.canonical_unit : null, source_id: o.source_id, locator: o.locator || null}));
+  }
+  function runLab(ds, q, k = 5) {
+    const exps = ds.experiments, warnings = [], unknowns = [];
+    if (!exps.length) return {query: q, neighbors: [], findings: [], unknowns: ['The dataset is empty - nothing can be said.'], warnings: ['No experiments loaded.'], sources: [], summary: 'UNKNOWN', n: 0};
+    if (ds.hasSynthetic) warnings.push('Dataset contains SYNTHETIC test data - results are not NASA evidence.');
+    const qFuel = q.fuel; const nspec = Object.keys(q.conditions).length + (qFuel ? 1 : 0);
+    const minBasis = Math.min(2, Math.max(1, nspec));
+    const neigh = nearest(q.conditions, qFuel, exps, k, minBasis);
+    const isMatch = e => {
+      if (qFuel && (!e.fuel || normFuel(e.fuel) !== normFuel(qFuel))) return false;
+      return Object.entries(q.conditions).every(([v, val]) => { const x = cond(e, v); return x != null && within(v, val, x); });
+    };
+    const matches = exps.filter(isMatch);
+    const near = nearest(q.conditions, qFuel, exps, exps.length, minBasis).filter(t => t.c.distance != null && t.c.distance <= ANALOGY_MAX).map(t => t.e);
+    let phenList = q.phenomena || [...new Set(matches.concat(near).flatMap(e => e.observations.map(o => o.phenomenon)))].sort();
+    if (!phenList.length) unknowns.push(`No experiment in the dataset is similar enough to this scenario (distance <= ${ANALOGY_MAX}) to say anything about its behaviour.`);
+    const findings = [], used = new Set(), models = {};
+    phenList.forEach(ph => {
+      const label = PHEN[ph].label;
+      const mObs = matches.flatMap(e => valsOf(e, ph));
+      if (mObs.length) {
+        const ids = [...new Set(mObs.map(v => v.exp_id))].sort();
+        const nums = mObs.filter(v => v.value != null).map(v => v.value);
+        let agree = null;
+        if (nums.length >= 2) { const mean = nums.reduce((a, b) => a + b, 0) / nums.length; agree = mean ? (Math.max(...nums) - Math.min(...nums)) <= 0.25 * Math.abs(mean) : false; }
+        const srcs = new Set(mObs.map(v => v.source_id));
+        const conf = ordinalConfidence('OBSERVED', ids.length > 1 ? srcs.size : 1, agree);
+        const reasons = [`${ids.length} experiment(s) match all specified conditions within tolerance`];
+        if (agree === false) reasons.push('reported values differ by more than 25% - see individual entries');
+        findings.push({phenomenon: ph, label, level: 'OBSERVED', statement: `Observed in ${ids.join(', ')}: ${rangeText(mObs)}.`, confidence: conf, values: mObs, reasons, model: null});
+        mObs.forEach(v => used.add(v.source_id));
+        return;
+      }
+      let fr = null;
+      if (qFuel && PHEN[ph].numeric) { if (!(ph in models)) models[ph] = fitModel(exps, ph, qFuel); fr = models[ph]; }
+      if (fr && fr.usable) {
+        const [ok, why] = fr.inDomain(q.conditions);
+        if (ok) {
+          const pred = fr.predict(q.conditions), scale = fr.errorScale(q.conditions), dist = fr.nearestDistance(q.conditions);
+          findings.push({phenomenon: ph, label, level: 'MODEL_INFERRED',
+            statement: `Model estimate ${Number(pred.toPrecision(4))} with approximate error scale ±${Number(scale.toPrecision(2))} ${fr.unit} (n=${fr.n}; nearest training experiment at distance ${dist.toFixed(2)}).`,
+            confidence: ordinalConfidence('MODEL_INFERRED', fr.n, null, fr.r2, fr.n), values: [],
+            reasons: ['ridge-linear model inside its training domain', `leave-one-out R² = ${fr.r2.toFixed(2)}`, 'error scale is a heuristic (LOO-CV RMSE inflated with distance to data)'],
+            model: {features: fr.feats, n: fr.n, r2_cv: fr.r2, rmse_cv: fr.rmse, error_scale: scale, nearest_training_distance: dist, prediction: pred, unit: fr.unit, training_ids: fr.ids}});
+          exps.forEach(e => { if (fr.ids.includes(e.exp_id)) valsOf(e, ph).forEach(v => used.add(v.source_id)); });
+          return;
+        }
+        unknowns.push(`${label}: model available but not applicable - ${why}.`);
+      } else if (fr && !fr.usable) unknowns.push(`${label}: a model was fitted but rejected - ${fr.reason}.`);
+      const aObs = near.flatMap(e => valsOf(e, ph));
+      if (aObs.length) {
+        const ids = [...new Set(aObs.map(v => v.exp_id))].sort();
+        findings.push({phenomenon: ph, label, level: 'ANALOGICAL', statement: `No experiment matches all conditions. Similar experiments (${ids.join(', ')}) report: ${rangeText(aObs)}.`,
+          confidence: ordinalConfidence('ANALOGICAL', ids.length, null), values: aObs, reasons: ["based on experiments whose conditions differ from the query - see 'differences'"], model: null});
+        aObs.forEach(v => used.add(v.source_id));
+      } else findings.push({phenomenon: ph, label, level: 'UNKNOWN', statement: 'Insufficient evidence in this dataset.', confidence: 'None', values: [], reasons: [], model: null});
+    });
+    const rng = {};
+    VAR_KEYS.forEach(v => { const xs = exps.map(e => cond(e, v)).filter(x => x != null); if (xs.length) rng[v] = [Math.min(...xs), Math.max(...xs)]; });
+    Object.entries(q.conditions).forEach(([v, val]) => {
+      const m = VARS[v], r = rng[v];
+      if (!r) unknowns.push(`No experiment in the dataset reports ${m.label}.`);
+      else if (!(val >= r[0] - 1e-12 && val <= r[1] + 1e-12)) unknowns.push(`${m.label} = ${Number(val.toPrecision(4))} ${m.unit} lies outside the range explored in this dataset (${Number(r[0].toPrecision(4))}-${Number(r[1].toPrecision(4))} ${m.unit}) - extrapolation.`);
+      if (neigh.length && !neigh.some(t => cond(t.e, v) != null)) unknowns.push(`None of the ${neigh.length} closest experiments report ${m.label}.`);
+    });
+    if (qFuel && !exps.some(e => normFuel(e.fuel) === normFuel(qFuel))) unknowns.push(`Fuel '${qFuel}' does not appear in the dataset.`);
+    const unspec = VAR_KEYS.filter(v => !(v in q.conditions)).map(v => VARS[v].label);
+    if (unspec.length) warnings.push('Not specified in the query (results may depend on them): ' + unspec.join(', ') + '.');
+    if (!matches.length) warnings.push('No experiment matches every specified condition within tolerance.');
+    if ('gravity_g' in q.conditions) {
+      const qr = gravityRegime(q.conditions.gravity_g);
+      neigh.forEach(t => { const g = cond(t.e, 'gravity_g'); if (g != null && gravityRegime(g) !== qr) warnings.push(`${t.e.exp_id} was run in a different gravity regime (${gravityRegime(g)}) than the query (${qr}).`); });
+    }
+    const relevant = new Set(matches.concat(near).map(e => e.exp_id));
+    exps.forEach(e => { if (relevant.has(e.exp_id)) e.source_ids.forEach(s => used.add(s)); });
+    const sources = [...used].sort().filter(s => ds.sources[s]).map(s => ({source_id: s, citation: cite(ds.sources[s]), url: ds.sources[s].url || null, doi: ds.sources[s].doi || null}));
+    const neighbors = neigh.map(t => ({exp_id: t.e.exp_id, title: t.e.title, platform: t.e.platform, fuel: t.e.fuel, distance: t.c.distance, basis: t.c.basis, is_match: matches.includes(t.e),
+      conditions: Object.fromEntries(VAR_KEYS.filter(v => cond(t.e, v) != null).map(v => [v, cond(t.e, v)])),
+      differences: Object.fromEntries(Object.entries(t.c.diffs).filter(([, d]) => d.scaled_diff > 1e-9).map(([v, d]) => [v, {query: d.a, experiment: d.b}])),
+      not_reported: t.c.missing, source_ids: t.e.source_ids}));
+    const order = ['OBSERVED', 'MODEL_INFERRED', 'ANALOGICAL'];
+    const summary = order.find(l => findings.some(f => f.level === l)) || 'UNKNOWN';
+    return {query: q, neighbors, findings, unknowns, warnings, sources, summary, n: exps.length};
+  }
+  function cite(s) { if (s.citation) return s.citation; const p = [s.title]; if (s.doi) p.push('doi:' + s.doi); else if (s.url) p.push(s.url); return p.join('. '); }
+
+  // ------------------------------------------------------------------ statistics & analysis
+  const median = xs => { const s = xs.slice().sort((a, b) => a - b), n = s.length; return n % 2 ? s[(n - 1) / 2] : 0.5 * (s[n / 2 - 1] + s[n / 2]); };
+  function rank(xs) {
+    const order = xs.map((_, i) => i).sort((a, b) => xs[a] - xs[b]); const r = Array(xs.length).fill(0);
+    let i = 0; while (i < order.length) { let j = i; while (j + 1 < order.length && xs[order[j + 1]] === xs[order[i]]) j++; const rr = (i + j) / 2 + 1; for (let t = i; t <= j; t++) r[order[t]] = rr; i = j + 1; }
+    return r;
+  }
+  function pearson(xs, ys) {
+    const n = xs.length; if (n < 3) return null;
+    const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+    let sxx = 0, syy = 0, sxy = 0; for (let i = 0; i < n; i++) { sxx += (xs[i] - mx) ** 2; syy += (ys[i] - my) ** 2; sxy += (xs[i] - mx) * (ys[i] - my); }
+    if (sxx === 0 || syy === 0) return null; return sxy / Math.sqrt(sxx * syy);
+  }
+  const spearman = (x, y) => pearson(rank(x), rank(y));
+  function mulberry32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function permP(xs, ys, nPerm = 1000, seed = 1) {
+    const obs = spearman(xs, ys); if (obs == null) return null;
+    const rnd = mulberry32(seed), rx = rank(xs), ry = rank(ys); let hits = 0;
+    for (let p = 0; p < nPerm; p++) { for (let i = ry.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [ry[i], ry[j]] = [ry[j], ry[i]]; } const r = pearson(rx, ry); if (r != null && Math.abs(r) >= Math.abs(obs) - 1e-12) hits++; }
+    return (hits + 1) / (nPerm + 1);
+  }
+  function bh(p) {
+    const m = p.length, order = p.map((_, i) => i).sort((a, b) => p[a] - p[b]), q = Array(m).fill(0); let prev = 1;
+    for (let r = m; r >= 1; r--) { const i = order[r - 1]; prev = Math.min(prev, p[i] * m / r); q[i] = prev; } return q;
+  }
+  function associations(ds, minN = 8, nPerm = 1000) {
+    const cols = {};
+    VAR_KEYS.forEach(v => { cols[v] = {}; ds.experiments.forEach(e => { const x = cond(e, v); if (x != null) cols[v][e.exp_id] = toScale(v, x); }); });
+    NUM_PHEN.forEach(p => { cols['obs:' + p] = {}; ds.experiments.forEach(e => { const x = numObs(e, p); if (x != null) cols['obs:' + p][e.exp_id] = x; }); });
+    const names = Object.keys(cols), rows = [];
+    for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) {
+      const a = names[i], b = names[j], ao = a.startsWith('obs:'), bo = b.startsWith('obs:');
+      const kind = ao !== bo ? 'condition-outcome' : ao ? 'outcome-outcome' : 'condition-condition';
+      const ids = Object.keys(cols[a]).filter(k => k in cols[b]).sort();
+      if (ids.length < minN) continue;
+      const xs = ids.map(k => cols[a][k]), ys = ids.map(k => cols[b][k]), rho = spearman(xs, ys);
+      if (rho == null) continue;
+      rows.push({a, b, kind, n: ids.length, rho, p: permP(xs, ys, nPerm), exp_ids: ids});
+    }
+    const qs = rows.length ? bh(rows.map(r => r.p)) : [];
+    rows.forEach((r, i) => { r.q = qs[i]; r.limitation = r.kind === 'condition-condition' ? 'Design correlation: reflects how the campaign varied conditions, not physics.' : 'Rank association only; other variables and fuel are not controlled for.'; });
+    rows.sort((x, y) => (x.q - y.q) || (Math.abs(y.rho) - Math.abs(x.rho)));
+    return rows;
+  }
+  function knnAll(exps, k, minBasis = 2) {
+    const sc = fitScaler(exps), conds = exps.map(conditionsOf);
+    return exps.map((ei, i) => {
+      const cand = [];
+      exps.forEach((ej, j) => { if (i === j) return; const c = compare(conds[i], ei.fuel, conds[j], ej.fuel, sc); if (c.distance != null && c.basis >= minBasis) cand.push([c.distance, j]); });
+      cand.sort((a, b) => a[0] - b[0] || a[1] - b[1]); return cand.slice(0, k).map(([d, j]) => [j, d]);
+    });
+  }
+  function anomalies(ds, ph, k = 4, zCut = 3.5, minN = 8) {
+    const pool = ds.experiments.filter(e => numObs(e, ph) != null);
+    if (pool.length < minN) return {ph, n: pool.length, flagged: [], note: `only ${pool.length} experiments report this outcome (need >= ${minN})`};
+    const knn = knnAll(pool, k), res = [];
+    pool.forEach((e, i) => { const nn = knn[i]; if (nn.length < 2) return; const pred = median(nn.map(([j]) => numObs(pool[j], ph))); res.push({e, y: numObs(e, ph), pred, far: nn[nn.length - 1][1], ids: nn.map(([j]) => pool[j].exp_id)}); });
+    if (res.length < minN) return {ph, n: res.length, flagged: [], note: 'too few comparable experiments'};
+    const r = res.map(t => t.y - t.pred), med = median(r), mad = median(r.map(x => Math.abs(x - med))) || 1e-12, flagged = [];
+    res.forEach((t, i) => { const z = (r[i] - med) / (1.4826 * mad); if (Math.abs(z) >= zCut) flagged.push({exp_id: t.e.exp_id, observed: t.y, neighbour_estimate: t.pred, robust_z: z, neighbours: t.ids, unit: PHEN[ph].unit}); });
+    flagged.sort((a, b) => Math.abs(b.robust_z) - Math.abs(a.robust_z));
+    return {ph, n: res.length, flagged, limitation: 'An anomaly may reflect an unrecorded condition, a different apparatus or an error in the source - it is a pointer for review, not a finding.'};
+  }
+  function distanceMatrix(exps, minBasis = 2) {
+    const sc = fitScaler(exps), conds = exps.map(conditionsOf), n = exps.length, m = Array.from({length: n}, () => Array(n).fill(0));
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { const c = compare(conds[i], exps[i].fuel, conds[j], exps[j].fuel, sc); m[i][j] = m[j][i] = (c.distance != null && c.basis >= minBasis) ? c.distance : null; }
+    return m;
+  }
+  function contradictions(ds, ph, eps = 0.05, relDiff = 0.5) {
+    const exps = ds.experiments.filter(e => numObs(e, ph) != null), dm = distanceMatrix(exps), out = [];
+    for (let i = 0; i < exps.length; i++) for (let j = i + 1; j < exps.length; j++) {
+      const d = dm[i][j]; if (d == null || d > eps) continue;
+      const a = numObs(exps[i], ph), b = numObs(exps[j], ph), den = Math.max(Math.abs(a), Math.abs(b));
+      if (den === 0 || Math.abs(a - b) / den < relDiff) continue;
+      const ci = Object.keys(exps[i].conditions), cj = Object.keys(exps[j].conditions), sym = ci.filter(x => !cj.includes(x)).concat(cj.filter(x => !ci.includes(x))).sort();
+      const why = [];
+      if (exps[i].platform !== exps[j].platform) why.push('different platform');
+      if (JSON.stringify([...exps[i].source_ids].sort()) !== JSON.stringify([...exps[j].source_ids].sort())) why.push('different source');
+      if (sym.length) why.push('conditions reported for only one experiment: ' + sym.join(', '));
+      why.push('unrecorded variable (e.g. sample geometry, ignition method)');
+      out.push({a: exps[i].exp_id, b: exps[j].exp_id, distance: d, value_a: a, value_b: b, unit: PHEN[ph].unit, relative_difference: Math.abs(a - b) / den, possible_explanations: why});
+    }
+    out.sort((x, y) => y.relative_difference - x.relative_difference); return out;
+  }
+  function gaps(ds, vx, vy, bins = 5) {
+    const exps = ds.experiments.filter(e => cond(e, vx) != null && cond(e, vy) != null);
+    const res = {x: vx, y: vy, bins, n: exps.length, cells: [], neverVaried: [], ranges: {}};
+    VAR_KEYS.forEach(v => { const xs = ds.experiments.map(e => cond(e, v)).filter(x => x != null); if (xs.length) { const u = new Set(xs.map(x => Math.round(x * 1e9) / 1e9)).size; res.ranges[v] = [Math.min(...xs), Math.max(...xs), u]; if (u === 1 && xs.length > 1) res.neverVaried.push(v); } });
+    if (exps.length < 2) { res.note = 'too few experiments report both variables'; return res; }
+    const sx = exps.map(e => toScale(vx, cond(e, vx))), sy = exps.map(e => toScale(vy, cond(e, vy)));
+    const lox = Math.min(...sx), hix = Math.max(...sx), loy = Math.min(...sy), hiy = Math.max(...sy);
+    const bin = (x, lo, hi) => hi === lo ? 0 : Math.min(bins - 1, Math.floor((x - lo) / (hi - lo) * bins));
+    const counts = Array.from({length: bins}, () => Array(bins).fill(0)), ids = Array.from({length: bins}, () => Array.from({length: bins}, () => []));
+    exps.forEach((e, i) => { const bx = bin(sx[i], lox, hix), by = bin(sy[i], loy, hiy); counts[by][bx]++; ids[by][bx].push(e.exp_id); });
+    const edge = (lo, hi, b, v) => { const a = lo + (hi - lo) * b / bins, c = lo + (hi - lo) * (b + 1) / bins; return VARS[v].scale === 'log' ? [10 ** a, 10 ** c] : [a, c]; };
+    for (let by = 0; by < bins; by++) for (let bx = 0; bx < bins; bx++) res.cells.push({bx, by, count: counts[by][bx], exp_ids: ids[by][bx], x_range: edge(lox, hix, bx, vx), y_range: edge(loy, hiy, by, vy)});
+    res.emptyCells = res.cells.filter(c => c.count === 0).length;
+    res.note = 'Empty cells lie INSIDE the explored range. Regions outside the range are unexplored altogether. Absence of data is not evidence of absence of a phenomenon.';
+    return res;
+  }
+  function cluster(ds, threshold = 0.15) {
+    const exps = ds.experiments, dm = distanceMatrix(exps), n = exps.length;
+    const usable = []; for (let i = 0; i < n; i++) if (dm[i].some((d, j) => j !== i && d != null)) usable.push(i);
+    let cl = usable.map(i => [i]);
+    const avg = (c1, c2) => { const d = []; c1.forEach(i => c2.forEach(j => { if (dm[i][j] != null) d.push(dm[i][j]); })); return d.length ? d.reduce((a, b) => a + b, 0) / d.length : null; };
+    for (;;) {
+      let best = null, pair = null;
+      for (let a = 0; a < cl.length; a++) for (let b = a + 1; b < cl.length; b++) { const d = avg(cl[a], cl[b]); if (d != null && (best == null || d < best)) { best = d; pair = [a, b]; } }
+      if (best == null || best > threshold) break;
+      cl[pair[0]] = cl[pair[0]].concat(cl[pair[1]]); cl.splice(pair[1], 1);
+    }
+    cl.sort((a, b) => b.length - a.length || a[0] - b[0]);
+    return {threshold, clusters: cl.map(c => c.map(i => exps[i].exp_id)), notComparable: exps.filter((_, i) => !usable.includes(i)).map(e => e.exp_id)};
+  }
+  function hypotheses(ds) {
+    const out = [];
+    associations(ds).forEach(r => {
+      if (r.kind !== 'condition-outcome' || r.q > 0.10 || Math.abs(r.rho) < 0.6) return;
+      const c = r.a.startsWith('obs:') ? r.b : r.a, o = r.a.startsWith('obs:') ? r.a : r.b;
+      out.push({kind: 'association', statement: `In this dataset, ${PHEN[o.slice(4)].label.toLowerCase()} tends to ${r.rho > 0 ? 'increase' : 'decrease'} as ${VARS[c].label.toLowerCase()} increases (Spearman rho=${r.rho.toFixed(2)}, n=${r.n}, BH-q=${r.q.toFixed(3)}).`,
+        evidence: r.exp_ids, limitations: [r.limitation, 'Fuel and other conditions are not controlled for.', 'No physical mechanism has been tested.'], status: 'UNVALIDATED HYPOTHESIS - requires review by a domain expert'});
+    });
+    NUM_PHEN.forEach(ph => contradictions(ds, ph).slice(0, 3).forEach(c => out.push({kind: 'contradiction',
+      statement: `${c.a} and ${c.b} have near-identical recorded conditions but differ in ${PHEN[ph].label.toLowerCase()} (${Number(c.value_a.toPrecision(4))} vs ${Number(c.value_b.toPrecision(4))} ${c.unit}). An unrecorded variable may matter.`,
+      evidence: [c.a, c.b], limitations: c.possible_explanations, status: 'UNVALIDATED HYPOTHESIS - requires review by a domain expert'})));
+    const g = gaps(ds, 'o2_fraction', 'pressure_kpa');
+    if (g.emptyCells) out.push({kind: 'gap', statement: `${g.emptyCells} of ${g.cells.length} ${VARS[g.x].label} x ${VARS[g.y].label} regions inside the explored range have no experiment.`, evidence: [], limitations: [g.note], status: 'DATA GAP - candidate for future experiments'});
+    return out;
+  }
+
+  // ------------------------------------------------------------------ mission mode
+  const CONTEXTS = {
+    spacecraft:    {label: 'Crewed spacecraft (microgravity)', g: 1e-6, note: '1e-6 g is a representative microgravity level for querying, not a mission requirement.'},
+    lunar_habitat: {label: 'Lunar habitat', g: LUNAR_G, note: 'Mean lunar surface gravity.'},
+    mars_habitat:  {label: 'Mars habitat', g: MARS_G, note: 'Mean Mars surface gravity.'},
+    emergency:     {label: 'Emergency scenario (user-defined atmosphere)', g: null, note: 'Specify gravity and atmosphere yourself.'},
+  };
+  function assessMission(ds, ctxKey, fuel, extra, considerations) {
+    const ctx = CONTEXTS[ctxKey], conds = Object.assign({}, extra || {});
+    if (ctx.g != null && conds.gravity_g == null) conds.gravity_g = ctx.g;
+    const q = {fuel: fuel || null, conditions: conds, phenomena: null};
+    const res = runLab(ds, q);
+    const rows = res.findings.filter(f => f.level !== 'UNKNOWN').map(f => ({phenomenon: f.phenomenon, level: f.level, evidence: f.statement,
+      experiments: f.values.length ? [...new Set(f.values.map(v => v.exp_id))].sort() : ((f.model || {}).training_ids || []),
+      consideration: (considerations || {})[f.phenomenon] || '(no consideration prompt configured)', status: 'UNREVIEWED - not an engineering conclusion',
+      uncertainty: `Confidence: ${f.confidence}. ${res.unknowns.slice(0, 2).join(' ')}`}));
+    return {context: ctx.label, note: ctx.note, query: res.query, rows, unknowns: res.unknowns, warnings: res.warnings, disclaimer: 'Research aid only. Not a safety certification or engineering recommendation.'};
+  }
+
+  // ------------------------------------------------------------------ export
+  const csvCell = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  function experimentsCsv(ds) {
+    const cols = ['exp_id', 'title', 'platform', 'fuel', 'synthetic'].concat(VAR_KEYS, NUM_PHEN.map(p => 'obs:' + p), ['sources']);
+    const lines = [cols.join(',')];
+    ds.experiments.forEach(e => lines.push([e.exp_id, e.title, e.platform, e.fuel || '', e.synthetic ? 1 : 0].concat(VAR_KEYS.map(v => cond(e, v)), NUM_PHEN.map(p => numObs(e, p)), [e.source_ids.join(';')]).map(csvCell).join(',')));
+    return lines.join('\n') + '\n';
+  }
+  function citations(ds, ids) {
+    const s = new Set();
+    ds.experiments.forEach(e => { if (ids && !ids.includes(e.exp_id)) return; e.source_ids.forEach(x => s.add(x)); e.observations.forEach(o => s.add(o.source_id)); Object.values(e.conditions).forEach(m => s.add(m.source_id)); });
+    return [...s].sort().filter(x => ds.sources[x]).map(x => `[${x}] ${cite(ds.sources[x])}` + (ds.sources[x].retrieved ? ` (retrieved ${ds.sources[x].retrieved})` : '')).join('\n');
+  }
+  function comparisonCsv(ds, ids) {
+    const exps = ids.map(i => ds.experiments.find(e => e.exp_id === i)).filter(Boolean);
+    const rows = [['field', 'unit'].concat(exps.map(e => e.exp_id)), ['fuel', ''].concat(exps.map(e => e.fuel || '')), ['platform', ''].concat(exps.map(e => e.platform))];
+    VAR_KEYS.forEach(v => rows.push([v, VARS[v].unit].concat(exps.map(e => cond(e, v)))));
+    NUM_PHEN.forEach(p => rows.push(['obs:' + p, PHEN[p].unit].concat(exps.map(e => numObs(e, p)))));
+    return rows.map(r => r.map(csvCell).join(',')).join('\n') + '\n';
+  }
+
+  return {VARS, PHEN, VAR_KEYS, NUM_PHEN, VAR_DIM, EVIDENCE, CONTEXTS, LUNAR_G, MARS_G, UnitError, DatasetError, QueryError,
+    convert, gravityRegime, loadDataset, cond, numObs, obsOf, conditionsOf, toScale, fitScaler, compare, nearest, within, fitModel,
+    makeQuery, runLab, cite, spearman, permP, bh, associations, anomalies, contradictions, gaps, cluster, hypotheses, assessMission,
+    experimentsCsv, citations, comparisonCsv, distanceMatrix, knnAll, MIN_N, ANALOGY_MAX};
+});
+
+</script>
+<script>
+/* FLARE UI base: DOM helpers, animation loop, live starfield, hero orb, 3D "star map" engine. */
+(function () {
+  'use strict';
+  const F = window.FLARE;
+  const UI = (window.UI = {});
+  const NS = 'http://www.w3.org/2000/svg';
+  UI.REDUCED = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  // ------------------------------------------------------------------ DOM helpers (text only - never innerHTML)
+  UI.h = function h(tag, props, ...kids) {
+    const el = document.createElement(tag);
+    Object.entries(props || {}).forEach(([k, v]) => {
+      if (v == null || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'on') Object.entries(v).forEach(([ev, fn]) => el.addEventListener(ev, fn));
+      else if (k === 'value' || k === 'checked' || k === 'disabled' || k === 'selected') el[k] = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    kids.flat(Infinity).forEach(c => { if (c == null || c === false) return; el.append(c.nodeType ? c : document.createTextNode(String(c))); });
+    return el;
+  };
+  UI.sv = function sv(tag, attrs, ...kids) {
+    const el = document.createElementNS(NS, tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => { if (v != null) el.setAttribute(k, v); });
+    kids.flat(Infinity).forEach(c => { if (c != null && c !== false) el.append(c.nodeType ? c : document.createTextNode(String(c))); });
+    return el;
+  };
+  UI.$ = s => document.querySelector(s);
+  UI.sig = (x, n) => Number(x.toPrecision(n)).toString();
+  UI.fmtVar = (v, x) => {
+    if (x == null) return '—';
+    if (v === 'o2_fraction') return (x * 100).toFixed(1) + ' %';
+    if (v === 'pressure_kpa') return UI.sig(x, 4) + ' kPa';
+    if (v === 'gravity_g') return (x < 0.01 ? x.toExponential(1) : UI.sig(x, 3)) + ' g';
+    if (v === 'temperature_k') return x.toFixed(1) + ' K';
+    return UI.sig(x, 3) + ' mm/s';
+  };
+  UI.fmtNum = (x, u) => (x == null ? '—' : UI.sig(x, 4) + (u ? ' ' + u : ''));
+  const ICONS = {
+    universe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9ZM3.5 15c5-1.2 12-6.5 17-7',
+    lab: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M8 14h8',
+    gaps: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM17 14v6M14 17h6',
+    research: 'M4 19V5M4 19h16M8 15l3-4 3 2 5-6',
+    mission: 'M14 4c3 0 6 1 6 1s1 3 1 6l-6 6-5-5 4-8ZM9 12l-4 1-2 2 5 1M12 15l-1 4-2 2-1-5M15 8.5h.01',
+    data: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3Zm0 0v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6m-16 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6',
+    list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
+    sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5',
+    tour: 'M5 4l14 8-14 8V4Z', close: 'M6 6l12 12M18 6 6 18', reset: 'M4 12a8 8 0 1 0 3-6.2M4 4v4h4',
+    spin: 'M20 12a8 8 0 1 1-3-6.2M20 4v4h-4',
+  };
+  UI.icon = name => UI.sv('svg', {viewBox: '0 0 24 24', 'aria-hidden': 'true'}, UI.sv('path', {d: ICONS[name]}));
+
+  // ------------------------------------------------------------------ shared animation loop
+  const Loop = (UI.Loop = {
+    subs: new Set(), raf: 0, last: 0,
+    add(fn) { this.subs.add(fn); this.start(); },
+    remove(fn) { this.subs.delete(fn); },
+    start() { if (!this.raf && !document.hidden && this.subs.size) this.raf = requestAnimationFrame(t => this.tick(t)); },
+    tick(t) {
+      this.raf = 0; const dt = Math.min(64, t - (this.last || t)); this.last = t;
+      for (const fn of [...this.subs]) fn(t, dt);
+      if (this.subs.size && !document.hidden) this.raf = requestAnimationFrame(t2 => this.tick(t2));
+    },
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { Loop.last = 0; Loop.start(); } });
+
+  const hexRgb = hex => { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const sprites = new Map();
+  function sprite(color) {
+    if (sprites.has(color)) return sprites.get(color);
+    const c = document.createElement('canvas'); c.width = c.height = 96; const x = c.getContext('2d'), [r, g, b] = hexRgb(color);
+    const gr = x.createRadialGradient(48, 48, 0, 48, 48, 48);
+    gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(0.16, `rgba(${r},${g},${b},.85)`); gr.addColorStop(0.4, `rgba(${r},${g},${b},.26)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    x.fillStyle = gr; x.fillRect(0, 0, 96, 96); sprites.set(color, c); return c;
+  }
+  const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  // ------------------------------------------------------------------ live starfield (fixed background)
+  UI.startStars = function (canvas) {
+    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    let W = 0, H = 0, stars = [], mx = 0, my = 0, tx = 0, ty = 0, shoot = null, nextShoot = 4000;
+    function seed() { const n = Math.min(420, Math.round((W * H) / 6500)); stars = Array.from({length: n}, () => ({x: Math.random() * W, y: Math.random() * H, z: Math.random(), r: Math.random() * 1.15 + 0.25, tw: Math.random() * 6.28, sp: 0.4 + Math.random() * 1.3, c: Math.random() < 0.1 ? '230,203,147' : Math.random() < 0.2 ? '168,220,255' : '255,255,255'})); }
+    function resize() { const dpr = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight; canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); seed(); draw(performance.now(), 0); }
+    addEventListener('resize', resize); addEventListener('pointermove', e => { tx = e.clientX / W - 0.5; ty = e.clientY / H - 0.5; }, {passive: true});
+    function draw(t, dt) {
+      mx += (tx - mx) * 0.035; my += (ty - my) * 0.035; ctx.clearRect(0, 0, W, H);
+      for (const s of stars) {
+        const py = UI.REDUCED ? s.y : (s.y + t * 0.005 * (0.25 + s.z)) % H, px = s.x - mx * 34 * s.z, yy = py - my * 34 * s.z;
+        const a = (0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * 0.0011 * s.sp + s.tw))) * (0.25 + 0.75 * s.z);
+        ctx.fillStyle = `rgba(${s.c},${UI.REDUCED ? 0.6 * s.z : a})`; const r = s.r * (0.6 + s.z * 0.8);
+        ctx.beginPath(); ctx.arc(px, yy, r, 0, 6.283); ctx.fill();
+      }
+      if (!UI.REDUCED) {
+        nextShoot -= dt; if (!shoot && nextShoot < 0) { shoot = {x: Math.random() * W * 0.8, y: Math.random() * H * 0.4, life: 0}; nextShoot = 7000 + Math.random() * 9000; }
+        if (shoot) { shoot.life += dt / 900; const k = shoot.life, x = shoot.x + k * 260, y = shoot.y + k * 120, g = ctx.createLinearGradient(x - 90, y - 42, x, y);
+          g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, `rgba(255,236,190,${Math.sin(Math.min(1, k) * 3.14)})`); ctx.strokeStyle = g; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x - 90, y - 42); ctx.lineTo(x, y); ctx.stroke(); if (k >= 1) shoot = null; }
+      }
+    }
+    resize(); if (!UI.REDUCED) Loop.add(draw);
+  };
+
+  // ------------------------------------------------------------------ hero orb: a spherical flame with orbiting "experiments"
+  UI.startOrb = function (canvas) {
+    const ctx = canvas.getContext('2d'); if (!ctx) return () => {};
+    let W = 0, H = 0, mx = 0, my = 0, tx = 0, ty = 0; const sats = Array.from({length: 22}, (_, i) => ({a: Math.random() * 6.28, r: 0.2 + (i % 4) * 0.05 + Math.random() * 0.02, sp: (0.08 + Math.random() * 0.16) * (i % 2 ? 1 : -1), tilt: 0.25 + (i % 3) * 0.3, c: ['#A8DCFF', '#E6CB93', '#4FE3A0', '#FFB067'][i % 4], s: 1.5 + Math.random() * 2.5}));
+    function size() { const r = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); W = r.width; H = r.height; canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    const ro = new ResizeObserver(size); ro.observe(canvas); size();
+    const move = e => { const r = canvas.getBoundingClientRect(); tx = (e.clientX - r.left) / r.width - 0.5; ty = (e.clientY - r.top) / r.height - 0.5; }; addEventListener('pointermove', move, {passive: true});
+    function draw(t) {
+      if (!canvas.isConnected) { stop(); return; }
+      mx += (tx - mx) * 0.05; my += (ty - my) * 0.05; ctx.clearRect(0, 0, W, H);
+      const cx = W / 2 + mx * 26, cy = H / 2 + my * 20, R = Math.min(W, H) * 0.19 * (1 + 0.025 * Math.sin(t * 0.0016)), tt = t * 0.001;
+      // combustion-front ripples
+      for (let i = 0; i < 4; i++) { const p = ((tt * 0.16 + i / 4) % 1), rr = R * (1.15 + p * 1.3); ctx.strokeStyle = `rgba(168,220,255,${0.22 * (1 - p)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, 6.283); ctx.stroke(); }
+      // orbit rings
+      ctx.lineWidth = 1; for (let k = 0; k < 4; k++) { ctx.strokeStyle = `rgba(230,203,147,${0.16 - k * 0.025})`; ctx.beginPath(); ctx.ellipse(cx, cy, W * (0.2 + k * 0.05), W * (0.2 + k * 0.05) * (0.28 + k * 0.1), -0.35 + k * 0.05 + my * 0.2, 0, 6.283); ctx.stroke(); }
+      const draws = sats.map(s => { const a = s.a + tt * s.sp, rr = W * s.r; const ex = Math.cos(a) * rr, ey = Math.sin(a) * rr * s.tilt; const rot = -0.35 + my * 0.2; return {x: cx + ex * Math.cos(rot) - ey * Math.sin(rot), y: cy + ex * Math.sin(rot) + ey * Math.cos(rot), back: Math.sin(a) < 0, s}; });
+      const dot = d => { ctx.globalAlpha = d.back ? 0.45 : 1; ctx.globalCompositeOperation = 'lighter'; const sp = sprite(d.s.c), r = d.s.s * (d.back ? 0.8 : 1.15) * 3.4; ctx.drawImage(sp, d.x - r, d.y - r, r * 2, r * 2); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; };
+      draws.filter(d => d.back).forEach(dot);
+      // the sphere
+      ctx.globalCompositeOperation = 'lighter';
+      let g = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 2.5); g.addColorStop(0, 'rgba(120,150,255,.34)'); g.addColorStop(0.5, 'rgba(120,120,240,.10)'); g.addColorStop(1, 'rgba(60,60,160,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 2.5, 0, 6.283); ctx.fill();
+      g = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.3, R * 0.05, cx, cy, R * 1.2); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(190,225,255,.95)'); g.addColorStop(0.75, 'rgba(112,140,255,.75)'); g.addColorStop(1, 'rgba(90,70,220,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.2, 0, 6.283); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R * 0.98, 0, 6.283); ctx.stroke();
+      draws.filter(d => !d.back).forEach(dot);
+    }
+    function stop() { Loop.remove(draw); removeEventListener('pointermove', move); ro.disconnect(); }
+    draw(0); if (!UI.REDUCED) Loop.add(draw); return stop;
+  };
+
+  // ------------------------------------------------------------------ axis helpers
+  UI.niceTicks = function (lo, hi, log) {
+    const out = [];
+    if (log) {
+      const tryM = ms => { const o = []; for (let k = Math.floor(lo) - 1; k <= Math.ceil(hi); k++) ms.forEach(m => { const v = m * 10 ** k, l = Math.log10(v); if (l >= lo - 1e-9 && l <= hi + 1e-9) o.push([l, v]); }); return o; };
+      let o = tryM([1]); if (o.length < 3) o = tryM([1, 2, 5]); if (o.length < 3) o = tryM([1, 1.5, 2, 3, 4, 5, 6, 8]); if (o.length < 3) o = tryM([1, 1.2, 1.4, 1.6, 1.8, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 9]);
+      return o.slice(0, 7);
+    }
+    const span = hi - lo || 1, raw = span / 4, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 5, 10].map(m => m * mag).find(s => s >= raw);
+    for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push([v, v]); return out;
+  };
+  /** Spec for one plotted axis: label, unit, normaliser to [-1,1] and tick marks. */
+  UI.axisSpec = function (key, exps) {
+    const isObs = key.startsWith('obs:'), p = isObs ? key.slice(4) : null, m = isObs ? null : F.VARS[key];
+    const log = !!(m && m.scale === 'log'), get = isObs ? e => F.numObs(e, p) : e => F.cond(e, key);
+    const tr = x => (log ? F.toScale(key, x) : (key === 'o2_fraction' ? x * 100 : x));
+    const vals = exps.map(get).filter(x => x != null).map(tr);
+    let lo = vals.length ? Math.min(...vals) : 0, hi = vals.length ? Math.max(...vals) : 1; if (hi === lo) { lo -= 0.5; hi += 0.5; }
+    const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+    const norm = x => ((tr(x) - lo) / (hi - lo)) * 2 - 1;
+    const ticks = UI.niceTicks(lo, hi, log).map(([pos, val]) => [((pos - lo) / (hi - lo)) * 2 - 1, UI.sig(val, 3)]);
+    const label = isObs ? F.PHEN[p].label : m.short, unit = isObs ? F.PHEN[p].unit : (key === 'o2_fraction' ? '%' : m.unit);
+    return {key, label, unit, log, get, norm, ticks, title: `${label} (${unit})`};
+  };
+
+  // ------------------------------------------------------------------ Galaxy: interactive 3D star map on canvas
+  class Galaxy {
+    constructor(canvas, opts = {}) {
+      this.c = canvas; this.ctx = canvas.getContext('2d'); this.mini = !!opts.mini; this.tip = opts.tip || null;
+      this.onSelect = opts.onSelect || (() => {}); this.onCompare = opts.onCompare || (() => {});
+      this.cam = {yaw: -0.62, pitch: 0.42, zoom: 1, tx: 0, ty: 0, tz: 0}; this.zoomGoal = 1; this.goal = null; this.vel = {yaw: 0, pitch: 0};
+      this.pts = []; this.axes = null; this.sel = null; this.cmp = []; this.hover = null; this.links = []; this.beacon = null; this.auto = !UI.REDUCED && opts.auto !== false;
+      this.idle = performance.now(); this.w = 0; this.h = 0; this.dragging = false; this.proj = []; this.dead = false;
+      this.ro = new ResizeObserver(() => this.size()); this.ro.observe(canvas.parentElement || canvas); this.size(); this.bind();
+      this.tick = (t, dt) => this.frame(t, dt); Loop.add(this.tick);
+    }
+    size() { const r = (this.c.parentElement || this.c).getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); this.w = Math.max(200, r.width); this.h = Math.max(200, r.height); this.c.width = this.w * dpr; this.c.height = this.h * dpr; if (this.ctx) this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    destroy() { this.dead = true; Loop.remove(this.tick); this.ro.disconnect(); }
+    setData(pts, axes) { this.pts = pts; this.axes = axes; this.byId = new Map(pts.map(p => [p.id, p])); }
+    setSel(id, fly) { this.sel = id; if (fly && id && this.byId && this.byId.has(id)) { const p = this.byId.get(id); this.animateTo({tx: p.x * 0.45, ty: p.y * 0.45, tz: p.z * 0.45}, 900); } this.idle = performance.now(); }
+    animateTo(goal, ms = 1000) { this.goal = {from: {...this.cam}, to: {...goal}, t0: performance.now(), ms}; if (goal.zoom != null) this.zoomGoal = goal.zoom; }
+    preset(name) {
+      const P = {iso: {yaw: -0.62, pitch: 0.42}, front: {yaw: 0, pitch: 0}, side: {yaw: Math.PI / 2, pitch: 0}, top: {yaw: 0, pitch: 1.5}};      const g = {...P[name], tx: 0, ty: 0, tz: 0, zoom: 1}; let d = g.yaw - this.cam.yaw; d = ((d + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; g.yaw = this.cam.yaw + d; this.vel = {yaw: 0, pitch: 0}; this.animateTo(g, 1100);
+    }
+    project(x, y, z) {
+      const c = this.cam; x -= c.tx; y -= c.ty; z -= c.tz; const cy = Math.cos(c.yaw), sy = Math.sin(c.yaw), cp = Math.cos(c.pitch), sp = Math.sin(c.pitch);
+      const x1 = cy * x + sy * z, z1 = -sy * x + cy * z, y2 = cp * y - sp * z1, z2 = sp * y + cp * z1, D = 4.4, k = D / (D - z2), S = Math.min(this.w, this.h) * (this.mini ? 0.3 : 0.31) * c.zoom;
+      return {x: this.w / 2 + x1 * k * S, y: this.h / 2 - y2 * k * S, z: z2, k};
+    }
+    screenPos(id) { const p = this.byId && this.byId.get(id); if (!p) return null; const s = this.project(p.x, p.y, p.z); return {x: s.x, y: s.y}; }
+    bind() {
+      const c = this.c, ptrs = new Map(); let moved = 0, mode = 'orbit', pinch = 0, last = null;
+      c.addEventListener('contextmenu', e => e.preventDefault());
+      c.addEventListener('pointerdown', e => { c.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY}); moved = 0; last = {x: e.clientX, y: e.clientY}; mode = (e.button === 2 || e.shiftKey) ? 'pan' : 'orbit'; this.dragging = true; this.goal = null; this.idle = performance.now(); if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); } });
+      c.addEventListener('pointermove', e => {
+        const r = c.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+        if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
+        if (this.dragging && ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch) this.zoomGoal = Math.max(0.45, Math.min(3.4, this.zoomGoal * d / pinch)); pinch = d; moved = 99; return; }
+        if (this.dragging && last) {
+          const dx = e.clientX - last.x, dy = e.clientY - last.y; moved += Math.abs(dx) + Math.abs(dy); last = {x: e.clientX, y: e.clientY};
+          if (moved > 4) { c.classList.add('grabbing'); if (this.tip) this.tip.classList.remove('on');
+            if (mode === 'orbit') { this.cam.yaw += dx * 0.0062; this.cam.pitch = Math.max(-1.5, Math.min(1.5, this.cam.pitch + dy * 0.0062)); this.vel = {yaw: dx * 0.0062, pitch: dy * 0.0062}; }
+            else { const cm = this.cam, cy = Math.cos(cm.yaw), sy = Math.sin(cm.yaw), cp = Math.cos(cm.pitch), sp = Math.sin(cm.pitch), k = 1 / (Math.min(this.w, this.h) * 0.31 * cm.zoom);
+              const rx = cy, rz = sy, ux = sy * sp, uy = cp, uz = -cy * sp;      // camera right and up vectors in world space
+              cm.tx += (-rx * dx + ux * dy) * k; cm.ty += (uy * dy) * k; cm.tz += (-rz * dx + uz * dy) * k; } }
+          return;
+        }
+        this.hoverAt(px, py, e);
+      });
+      const up = e => {
+        const was = ptrs.has(e.pointerId); ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = 0;
+        if (!was) return; c.classList.remove('grabbing');
+        if (ptrs.size === 0) { this.dragging = false; if (moved <= 4) { const r = c.getBoundingClientRect(), hit = this.pick(e.clientX - r.left, e.clientY - r.top); if (hit) { if (e.shiftKey) this.onCompare(hit.id); else this.onSelect(hit.id, true); } else if (this.sel) this.onSelect(null, false); } this.idle = performance.now(); }
+      };
+      c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
+      c.addEventListener('pointerleave', () => { this.hover = null; if (this.tip) this.tip.classList.remove('on'); c.classList.remove('pointing'); });
+      c.addEventListener('wheel', e => { e.preventDefault(); this.zoomGoal = Math.max(0.45, Math.min(3.4, this.zoomGoal * Math.exp(-e.deltaY * 0.0013))); this.idle = performance.now(); }, {passive: false});
+      c.addEventListener('dblclick', e => { const r = c.getBoundingClientRect(); if (!this.pick(e.clientX - r.left, e.clientY - r.top)) this.preset('iso'); });
+      c.setAttribute('tabindex', '0'); c.setAttribute('role', 'application'); c.setAttribute('aria-label', 'Interactive 3D map of experiments. Drag to orbit, scroll to zoom, click a star to inspect.');
+      c.addEventListener('keydown', e => { const s = 0.09; if (e.key === 'ArrowLeft') this.cam.yaw -= s; else if (e.key === 'ArrowRight') this.cam.yaw += s; else if (e.key === 'ArrowUp') this.cam.pitch = Math.min(1.5, this.cam.pitch + s); else if (e.key === 'ArrowDown') this.cam.pitch = Math.max(-1.5, this.cam.pitch - s); else if (e.key === '+' || e.key === '=') this.zoomGoal = Math.min(3.4, this.zoomGoal * 1.15); else if (e.key === '-') this.zoomGoal = Math.max(0.45, this.zoomGoal / 1.15); else if (e.key === '0') this.preset('iso'); else return; e.preventDefault(); this.idle = performance.now(); });
+    }
+    pick(px, py) { let best = null, bd = 1e9; for (const s of this.proj) { const d = Math.hypot(s.x - px, s.y - py), lim = Math.max(13, s.r * 1.3 + 7); if (d < lim && d < bd) { bd = d; best = s; } } return best; }
+    hoverAt(px, py, e) {
+      const hit = this.pick(px, py); this.hover = hit ? hit.id : null; this.c.classList.toggle('pointing', !!hit);
+      if (this.tip) { if (hit) { const p = this.byId.get(hit.id); this.tip.replaceChildren(UI.h('b', null, hit.id), UI.h('span', null, p.fuel || 'unknown fuel'), UI.h('br'), ...(p.lines || []).map(l => UI.h('div', null, l))); this.tip.style.left = Math.min(px, this.w - 190) + 'px'; this.tip.style.top = py + 'px'; this.tip.classList.add('on'); } else this.tip.classList.remove('on'); }
+    }
+    frame(t, dt) {
+      if (this.dead) return; if (!this.c.isConnected) { this.destroy(); return; } if (!this.ctx) return;
+      const cam = this.cam;
+      if (this.goal) { const k = Math.min(1, (t - this.goal.t0) / this.goal.ms), e = ease(k); for (const key of ['yaw', 'pitch', 'tx', 'ty', 'tz']) if (this.goal.to[key] != null) cam[key] = this.goal.from[key] + (this.goal.to[key] - this.goal.from[key]) * e; if (k >= 1) this.goal = null; }
+      if (!this.dragging && !this.goal) { cam.yaw += this.vel.yaw; cam.pitch = Math.max(-1.5, Math.min(1.5, cam.pitch + this.vel.pitch)); this.vel.yaw *= 0.93; this.vel.pitch *= 0.93;
+        if (this.auto && !this.hover && performance.now() - this.idle > 2600 && Math.abs(this.vel.yaw) < 0.0004) cam.yaw += 0.00006 * dt; }
+      cam.zoom += (this.zoomGoal - cam.zoom) * 0.14;
+      this.draw(t);
+    }
+    draw(t) {
+      const ctx = this.ctx, W = this.w, H = this.h; ctx.clearRect(0, 0, W, H);
+      const P = (x, y, z) => this.project(x, y, z), line = (a, b, col, wd = 1, dash) => { ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.setLineDash(dash || []); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.setLineDash([]); };
+      // floor grid + box
+      for (let i = -4; i <= 4; i++) { const v = i / 4; line(P(v, -1, -1), P(v, -1, 1), 'rgba(230,203,147,.07)'); line(P(-1, -1, v), P(1, -1, v), 'rgba(230,203,147,.07)'); }
+      const C = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]];
+      [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]].forEach(([a, b]) => line(P(...C[a]), P(...C[b]), 'rgba(255,255,255,.09)'));
+      line(P(-1, -1, -1), P(1, -1, -1), 'rgba(230,203,147,.55)', 1.4); line(P(-1, -1, -1), P(-1, 1, -1), 'rgba(230,203,147,.55)', 1.4); line(P(-1, -1, -1), P(-1, -1, 1), 'rgba(230,203,147,.55)', 1.4);
+      const A = this.axes;
+      if (A) {
+        ctx.font = '11px "IBM Plex Sans",system-ui,sans-serif'; ctx.textBaseline = 'middle';
+        A.x.ticks.forEach(([n, l]) => { const s = P(n, -1.02, -1.06); ctx.fillStyle = 'rgba(238,240,247,.62)'; ctx.textAlign = 'center'; ctx.fillText(l, s.x, s.y + 8); const a = P(n, -1, -1), b = P(n, -1.04, -1); line(a, b, 'rgba(230,203,147,.6)'); });
+        A.y.ticks.forEach(([n, l]) => { const s = P(-1.06, n, -1.02); ctx.fillStyle = 'rgba(238,240,247,.62)'; ctx.textAlign = 'right'; ctx.fillText(l, s.x - 4, s.y); });
+        A.z.ticks.forEach(([n, l]) => { const s = P(-1.06, -1.04, n); ctx.fillStyle = 'rgba(238,240,247,.62)'; ctx.textAlign = 'right'; ctx.fillText(l, s.x - 4, s.y + 6); });
+        ctx.font = '600 11px "IBM Plex Sans",system-ui,sans-serif'; ctx.fillStyle = '#E6CB93';
+        let s = P(1.02, -1.02, -1.1); ctx.textAlign = 'left'; ctx.fillText(A.x.label.toUpperCase() + (A.x.unit ? '  ·  ' + A.x.unit : ''), s.x - 30, s.y + 26);
+        s = P(-1.02, 1.12, -1); ctx.textAlign = 'center'; ctx.fillText(A.y.label.toUpperCase() + (A.y.unit ? '  ·  ' + A.y.unit : ''), s.x, s.y - 6);
+        s = P(-1.05, -1.12, 1.05); ctx.textAlign = 'right'; ctx.fillText(A.z.label.toUpperCase() + (A.z.unit ? '  ·  ' + A.z.unit : ''), s.x - 6, s.y + 20);
+      }
+      // project + depth sort
+      const items = this.pts.map(p => { const s = P(p.x, p.y, p.z); return {id: p.id, p, x: s.x, y: s.y, z: s.z, k: s.k, r: (this.mini ? 3.6 : 4.6) * s.k * (0.9 + 0.2 * this.cam.zoom)}; });
+      if (this.beacon) { const b = this.beacon, s = P(b.x, b.y, b.z); items.push({beacon: true, x: s.x, y: s.y, z: s.z, k: s.k, r: 6 * s.k}); }
+      items.sort((a, b) => a.z - b.z); this.proj = items.filter(i => !i.beacon);
+      const at = id => items.find(i => i.id === id);
+      // constellation lines
+      const selI = this.sel && at(this.sel);
+      if (selI) this.links.forEach(id => { const o = at(id); if (!o) return; const g = ctx.createLinearGradient(selI.x, selI.y, o.x, o.y); g.addColorStop(0, 'rgba(168,220,255,.85)'); g.addColorStop(1, 'rgba(168,220,255,.12)'); ctx.strokeStyle = g; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(selI.x, selI.y); ctx.lineTo(o.x, o.y); ctx.stroke(); });
+      const bI = items.find(i => i.beacon);
+      if (bI && this.beaconLinks) this.beaconLinks.forEach(id => { const o = at(id); if (!o) return; ctx.strokeStyle = 'rgba(230,203,147,.7)'; ctx.lineWidth = 1.2; ctx.setLineDash([5, 6]); ctx.lineDashOffset = -t * 0.02; ctx.beginPath(); ctx.moveTo(bI.x, bI.y); ctx.lineTo(o.x, o.y); ctx.stroke(); ctx.setLineDash([]); });
+      const pulse = 0.5 + 0.5 * Math.sin(t * 0.004);
+      ctx.globalCompositeOperation = 'lighter';
+      for (const it of items) {
+        const depth = Math.max(0.25, Math.min(1, 0.55 + it.z * 0.32));
+        if (it.beacon) {
+          for (let i = 0; i < 2; i++) { const ph = ((t * 0.0006) + i * 0.5) % 1; ctx.strokeStyle = `rgba(230,203,147,${0.6 * (1 - ph)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(it.x, it.y, 10 + ph * 34, 0, 6.283); ctx.stroke(); }
+          const sp = sprite('#E6CB93'), r = 30; ctx.globalAlpha = 0.9; ctx.drawImage(sp, it.x - r, it.y - r, r * 2, r * 2); ctx.globalAlpha = 1; continue;
+        }
+        const p = it.p, hov = this.hover === it.id, sel = this.sel === it.id, glow = it.r * (hov ? 5.6 : 4.4);
+        ctx.globalAlpha = depth * (p.dim ? 0.35 : 1); ctx.drawImage(sprite(p.color), it.x - glow, it.y - glow, glow * 2, glow * 2);
+        ctx.globalAlpha = Math.min(1, depth + 0.2) * (p.dim ? 0.4 : 1); const c2 = it.r * 0.5; ctx.drawImage(sprite('#FFFFFF'), it.x - c2 * 2.2, it.y - c2 * 2.2, c2 * 4.4, c2 * 4.4); ctx.globalAlpha = 1;
+      }
+      ctx.globalCompositeOperation = 'source-over';
+      if (bI) { ctx.save(); ctx.translate(bI.x, bI.y); ctx.rotate(t * 0.0006); ctx.strokeStyle = '#F3DEAE'; ctx.lineWidth = 1.8; const d = 8 + pulse * 2; ctx.beginPath(); ctx.moveTo(0, -d); ctx.lineTo(d, 0); ctx.lineTo(0, d); ctx.lineTo(-d, 0); ctx.closePath(); ctx.stroke(); ctx.restore(); ctx.font = '600 10px "IBM Plex Sans",sans-serif'; ctx.fillStyle = '#F3DEAE'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('YOUR SCENARIO', bI.x + 16, bI.y - 14); }
+      for (const it of items) {
+        if (it.beacon) continue; const p = it.p;
+        if (p.anom) { ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(t * 0.0005); ctx.strokeStyle = `rgba(255,107,122,${0.55 + 0.35 * pulse})`; ctx.lineWidth = 1.3; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(0, 0, it.r * 3.2, 0, 6.283); ctx.stroke(); ctx.restore(); }
+        const ci = this.cmp.indexOf(it.id);
+        if (ci >= 0) { ctx.strokeStyle = '#E6CB93'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(it.x, it.y, it.r * 3, 0, 6.283); ctx.stroke(); ctx.fillStyle = '#E6CB93'; ctx.font = '600 10px "IBM Plex Sans",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(ci + 1), it.x, it.y - it.r * 3 - 8); }
+        if (this.sel === it.id) { const rr = it.r * (3.4 + 0.5 * pulse); ctx.strokeStyle = '#A8DCFF'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(it.x, it.y, rr, 0, 6.283); ctx.stroke(); ctx.strokeStyle = 'rgba(168,220,255,.25)'; ctx.beginPath(); ctx.arc(it.x, it.y, rr + 7, 0, 6.283); ctx.stroke();
+          ctx.font = '600 17px "Cormorant Garamond",Georgia,serif'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(it.id, it.x + rr + 8, it.y - 2); }
+        else if (this.links.includes(it.id)) { ctx.font = '11px "IBM Plex Sans",sans-serif'; ctx.fillStyle = 'rgba(168,220,255,.85)'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(it.id, it.x + it.r * 2 + 4, it.y); }
+        if (this.hover === it.id && this.sel !== it.id) { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(it.x, it.y, it.r * 2.6, 0, 6.283); ctx.stroke(); }
+      }
+    }
+  }
+  UI.Galaxy = Galaxy;
+
+  // ------------------------------------------------------------------ toast + text dialog
+  UI.toast = function (msg) { let t = UI.$('#toast'); if (!t) { t = UI.h('div', {id: 'toast', class: 'toast', role: 'status'}); document.body.append(t); } t.textContent = msg; t.classList.add('on'); clearTimeout(UI._tt); UI._tt = setTimeout(() => t.classList.remove('on'), 2600); };
+  UI.showText = function (title, text, filename) {
+    const dlg = UI.$('#modal'); dlg.replaceChildren(); const ta = UI.h('textarea', {readonly: true, 'aria-label': title}); ta.value = text;
+    dlg.append(UI.h('div', {class: 'stack'}, UI.h('h3', null, title), ta, UI.h('div', {class: 'row'},
+      UI.h('button', {class: 'btn gold sm', on: {click: () => { ta.select(); try { navigator.clipboard.writeText(text).then(() => UI.toast('Copied to clipboard')); } catch (e) { document.execCommand && document.execCommand('copy'); UI.toast('Copied'); } }}}, 'Copy'),
+      UI.h('button', {class: 'btn sm', on: {click: () => { const a = UI.h('a', {href: URL.createObjectURL(new Blob([text], {type: 'text/plain'})), download: filename}); document.body.append(a); a.click(); a.remove(); }}}, 'Download'),
+      UI.h('button', {class: 'btn ghost sm', on: {click: () => dlg.close()}}, 'Close'))));
+    dlg.showModal();
+  };
+})();
+
+</script>
+<script>
+/* FLARE application: shell, landing, universe, virtual lab, gaps, research, missions, data, guided tour. */
+(function () {
+  'use strict';
+  const F = window.FLARE, UI = window.UI, {h, sv, $, sig, fmtVar, fmtNum} = UI;
+  const ALLOW_FIXTURE = true;       // embedded NASA PSI seed corpus for the demo build
+  const FIXTURE_EL = document.getElementById('fixture');
+  const CONSIDERATIONS = JSON.parse(document.getElementById('considerations').textContent).considerations;
+  const FUEL_COLORS = ['#8FD3FF', '#FFC46B', '#7DF2B8', '#E79BFF', '#FF8E7A', '#B6A3FF', '#C9D1E6', '#D6EA6A'];
+  const REGIME_COLORS = {microgravity: '#8FD3FF', 'partial gravity': '#FFC46B', 'normal gravity': '#7DF2B8', hypergravity: '#E79BFF', unknown: '#C9D1E6'};
+  const TABS = [['universe', 'Universe', 'universe'], ['lab', 'Virtual lab', 'lab'], ['gaps', 'Gaps', 'gaps'], ['research', 'Research', 'research'], ['mission', 'Missions', 'mission'], ['data', 'Data', 'data']];
+
+  const S = {
+    ds: null, tab: 'landing', sel: null, cmp: [], ax: 'o2_fraction', ay: 'pressure_kpa', az: 'gravity_g', colorBy: 'fuel', auto: true, drawer: null,
+    lab: null, labErr: '', form: {fuel: '', on: {o2: true, p: true, g: true, t: false, f: false}, v: {o2: 25, p: 101.3, g: 1e-5, t: 294, f: 0}},
+    mission: {ctx: 'lunar_habitat', fuel: '', o2: '', p: ''}, gapX: 'o2_fraction', gapY: 'pressure_kpa', resPh: 'flame_spread_rate', tour: null, cache: {}, msg: '',
+  };
+  let galaxy = null, miniGal = null, stopOrb = null, carousel = null, stage = null;
+  const cached = (k, fn) => (k in S.cache ? S.cache[k] : (S.cache[k] = fn()));
+  const fuelsOf = () => [...new Set(S.ds.experiments.map(e => e.fuel).filter(Boolean))].sort();
+  const evPill = (level, extra) => h('span', {class: 'pill ev-' + level, title: F.EVIDENCE[level].meaning}, h('i'), F.EVIDENCE[level].label, extra ? h('b', {style: 'font-weight:500;color:var(--text);margin-left:2px'}, extra) : null);
+  const field = (label, control, hint) => h('div', {class: 'field'}, h('label', null, label), control, hint ? h('span', {class: 'small faint'}, hint) : null);
+  const select = (opts, value, on) => h('select', {on: {change: e => on(e.target.value)}}, opts.map(([v, l]) => h('option', {value: v, selected: v === value}, l)));
+  const stagger = el => { [...el.children].forEach((c, i) => c.style.setProperty('--i', i)); return el; };
+  const dispose = () => { if (galaxy) { galaxy.destroy(); galaxy = null; } if (miniGal) { miniGal.destroy(); miniGal = null; } if (stopOrb) { stopOrb(); stopOrb = null; } if (carousel) { carousel.destroy(); carousel = null; } };
+
+  // ------------------------------------------------------------------ dataset loading
+  function setDataset(json, name, silent) {
+    try {
+      const ds = F.loadDataset(json); S.ds = ds; S.sel = null; S.cmp = []; S.lab = null; S.cache = {}; S.drawer = null;
+      const fu = fuelsOf(); S.form.fuel = fu[0] || ''; S.mission.fuel = '';
+      S.msg = ds.problems.length ? `Loaded ${ds.experiments.length} experiments from ${name}; ${ds.problems.length} rejected (see Data).` : `Loaded ${ds.experiments.length} experiments from ${name}.`;
+      if (!silent) { UI.toast(S.msg); go(ds.experiments.length ? 'universe' : 'data'); } else render();
+    } catch (err) { S.msg = 'Could not load: ' + err.message; UI.toast(S.msg); render(); }
+  }
+  function loadFile(file) { const r = new FileReader(); r.onload = () => { try { setDataset(JSON.parse(r.result), file.name); } catch (e) { S.msg = 'Not valid JSON: ' + e.message; UI.toast(S.msg); render(); } }; r.readAsText(file); }
+  const loadFixture = silent => setDataset(JSON.parse(FIXTURE_EL.textContent), 'the embedded NASA PSI seed corpus', silent);
+  function dropZone() {
+    const z = h('div', {class: 'drop', on: {dragover: e => { e.preventDefault(); z.classList.add('over'); }, dragleave: () => z.classList.remove('over'), drop: e => { e.preventDefault(); z.classList.remove('over'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); }}},
+      h('div', {class: 'eyebrow'}, 'Curated dataset'), h('h3', null, 'Drop a FLARE dataset here'), h('p', {class: 'dim small'}, 'JSON created with the FLARE tools. It is read in your browser and never uploaded.'),
+      h('label', {class: 'btn gold'}, 'Choose a file…', h('input', {type: 'file', accept: '.json,application/json', style: 'display:none', on: {change: e => { if (e.target.files[0]) loadFile(e.target.files[0]); }}})),
+      ALLOW_FIXTURE ? h('button', {class: 'btn sm ghost', on: {click: () => loadFixture(false)}}, 'or load the synthetic demo data (not NASA data)') : null);
+    return z;
+  }
+  const needData = () => h('div', {class: 'glass hud stack', style: 'max-width:640px;margin:8vh auto;text-align:center;align-items:center'}, h('h2', null, 'Load experiments to begin'), h('p', {class: 'dim'}, 'This view explores curated microgravity combustion experiments and shows the source of every number.'), dropZone());
+
+  // ------------------------------------------------------------------ shell
+  function buildShell() {
+    const root = $('#root'); root.replaceChildren();
+    const top = h('header', {class: 'top'}, h('div', {class: 'top-in'},
+      h('button', {class: 'brand', 'aria-label': 'FLARE home', on: {click: () => go('landing')}},
+        sv('svg', {width: 30, height: 30, viewBox: '0 0 30 30', 'aria-hidden': 'true'}, sv('circle', {cx: 15, cy: 15, r: 13.5, fill: 'none', stroke: '#E6CB93', 'stroke-opacity': .55}), sv('ellipse', {cx: 15, cy: 15, rx: 13.5, ry: 4.6, fill: 'none', stroke: '#E6CB93', 'stroke-opacity': .4, transform: 'rotate(-28 15 15)'}), sv('circle', {cx: 15, cy: 15, r: 6, fill: '#FFF'}), sv('circle', {cx: 15, cy: 15, r: 6, fill: 'none', stroke: '#A8DCFF'})),
+        h('span', {class: 'word gold-text'}, 'PROMETHEUS')),
+      h('nav', {class: 'nav', id: 'nav', 'aria-label': 'Sections'}, h('div', {class: 'glider', id: 'glider'}), TABS.map(([k, l, ic]) => h('button', {type: 'button', 'data-tab': k, on: {click: () => go(k)}}, UI.icon(ic), l))),
+      h('div', {class: 'top-r'}, h('div', {class: 'chip-data', id: 'chip'}), h('button', {class: 'btn sm', id: 'tourbtn', 'aria-label': 'Guided tour', on: {click: () => startTour()}}, UI.icon('tour'), h('span', {class: 'longlabel'}, 'Guided tour')),
+        h('button', {class: 'btn iconbtn ghost', 'aria-label': 'Toggle light or dark theme', id: 'themebtn', on: {click: toggleTheme}}, UI.icon('sun')))));
+    stage = h('main', {id: 'stage'});
+    const tabbar = h('nav', {class: 'tabbar', 'aria-label': 'Sections (mobile)', id: 'tabbar'}, TABS.map(([k, l, ic]) => h('button', {type: 'button', 'data-tab': k, on: {click: () => go(k)}}, UI.icon(ic), l.split(' ').pop())));
+    root.append(top, h('div', {id: 'ribbon-slot'}), stage, h('aside', {class: 'drawer glass', id: 'drawer', 'aria-label': 'Experiment details'}), tabbar, h('div', {id: 'tour'}));
+    addEventListener('resize', placeGlider);
+  }
+  function toggleTheme() { const r = document.documentElement, cur = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); r.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark'); }
+  function placeGlider() {
+    const g = $('#glider'), b = document.querySelector(`#nav button[data-tab="${S.tab}"]`); if (!g) return;
+    if (!b) { g.style.opacity = 0; return; } g.style.opacity = 1; g.style.left = b.offsetLeft + 'px'; g.style.width = b.offsetWidth + 'px';
+  }
+  function chrome() {
+    const needsData = new Set(['universe', 'lab', 'gaps', 'research', 'mission']);
+    const haveData = !!(S.ds && S.ds.experiments.length);
+    document.querySelectorAll('#nav button,#tabbar button').forEach(b => {
+      if (b.dataset.tab === S.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      b.disabled = !haveData && needsData.has(b.dataset.tab);
+    });
+    requestAnimationFrame(placeGlider);
+    const chip = $('#chip'); chip.replaceChildren(); chip.className = 'chip-data' + (S.ds && S.ds.hasSynthetic ? ' syn' : '');
+    chip.append(h('i'), S.ds ? h('span', null, `${S.ds.experiments.length} experiments`, S.ds.hasSynthetic ? h('span', {class: 'long'}, ' · synthetic demo') : '') : h('span', null, 'no dataset'));
+    const slot = $('#ribbon-slot'); slot.replaceChildren();
+    if (S.ds && S.ds.hasSynthetic) slot.append(h('div', {class: 'ribbon', role: 'status'}, h('b', null, 'Synthetic data'), 'Toy values for testing the software. Not NASA data.'));
+    $('#tourbtn').disabled = !(S.ds && S.ds.experiments.length);
+  }
+
+  // ------------------------------------------------------------------ router
+  function go(tab) { S.tab = tab; if (tab !== 'universe') { closeDrawer(); } render(); scrollTo({top: 0, behavior: 'instant' in window ? 'instant' : 'auto'}); }
+  function render() {
+    dispose(); chrome(); stage.replaceChildren();
+    const V = {landing: viewLanding, universe: viewUniverse, lab: viewLab, gaps: viewGaps, research: viewResearch, mission: viewMission, data: viewData}[S.tab];
+    const needs = ['universe', 'lab', 'gaps', 'research', 'mission'].includes(S.tab);
+    if (needs && (!S.ds || !S.ds.experiments.length)) stage.append(h('div', {class: 'page view-enter'}, needData())); else V(stage);
+    renderTour();
+  }
+
+  // ------------------------------------------------------------------ carousel
+  function makeCarousel(slides, ms = 7000) {
+    let i = 0, timer = 0, paused = false, dragging = false, startX = 0, dx = 0, last = performance.now(), dead = false;
+    const track = h('div', {class: 'car-track'}, slides.map((s, n) => h('div', {class: 'slide', 'aria-roledescription': 'slide', 'aria-label': `${n + 1} of ${slides.length}`, role: 'group'}, s)));
+    const view = h('div', {class: 'car-view', tabindex: 0, 'aria-label': 'Feature carousel'}, track), prog = h('i'), dots = h('div', {class: 'dots'}, slides.map((_, n) => h('button', {type: 'button', 'aria-label': `Show slide ${n + 1}`, on: {click: () => go(n, true)}})));
+    const prev = h('button', {class: 'btn iconbtn ghost', 'aria-label': 'Previous slide', on: {click: () => go(i - 1, true)}}, sv('svg', {viewBox: '0 0 24 24'}, sv('path', {d: 'M15 5l-7 7 7 7'}))), next = h('button', {class: 'btn iconbtn ghost', 'aria-label': 'Next slide', on: {click: () => go(i + 1, true)}}, sv('svg', {viewBox: '0 0 24 24'}, sv('path', {d: 'M9 5l7 7-7 7'}))), count = h('span', {class: 'small faint'});
+    const el = h('section', {class: 'carousel', 'aria-roledescription': 'carousel', 'aria-label': 'What PROMETHEUS does'}, h('div', {class: 'car-head'}, h('div', {class: 'eyebrow'}, 'What PROMETHEUS does'), h('div', {class: 'row'}, count, dots, prev, next)), view, h('div', {class: 'car-prog'}, prog));
+    function go(n, user) { i = (n + slides.length) % slides.length; track.style.transform = `translateX(${-i * 100}%)`; [...dots.children].forEach((d, k) => d.setAttribute('aria-current', k === i ? 'true' : 'false')); count.textContent = `${String(i + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`; last = performance.now(); if (user) paused = false; }
+    view.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { go(i + 1, true); e.preventDefault(); } if (e.key === 'ArrowLeft') { go(i - 1, true); e.preventDefault(); } });
+    el.addEventListener('mouseenter', () => { paused = true; }); el.addEventListener('mouseleave', () => { paused = false; last = performance.now(); }); view.addEventListener('focusin', () => { paused = true; }); view.addEventListener('focusout', () => { paused = false; last = performance.now(); });
+    view.addEventListener('pointerdown', e => { dragging = true; startX = e.clientX; dx = 0; track.style.transition = 'none'; });
+    view.addEventListener('pointermove', e => { if (!dragging) return; dx = e.clientX - startX; track.style.transform = `translateX(calc(${-i * 100}% + ${dx}px))`; });
+    const end = () => { if (!dragging) return; dragging = false; track.style.transition = ''; if (Math.abs(dx) > 60) go(i + (dx < 0 ? 1 : -1), true); else go(i); };
+    view.addEventListener('pointerup', end); view.addEventListener('pointercancel', end); view.addEventListener('pointerleave', end);
+    function tick(t) { if (dead) return; if (!el.isConnected) { api.destroy(); return; } if (UI.REDUCED || paused || dragging) return; const k = (t - last) / ms; prog.style.transform = `scaleX(${Math.min(1, k)})`; if (k >= 1) go(i + 1); }
+    UI.Loop.add(tick); go(0);
+    const api = {el, go, get index() { return i; }, destroy() { dead = true; UI.Loop.remove(tick); }};
+    return api;
+  }
+  const vizUniverse = () => { const dots = Array.from({length: 26}, (_, n) => ({x: 30 + ((n * 47) % 240), y: 24 + ((n * 83) % 150), r: 1.6 + (n % 4) * 0.8, c: ['#8FD3FF', '#FFC46B', '#7DF2B8', '#E79BFF'][n % 4], d: (n % 7) * 0.4}));
+    return sv('svg', {viewBox: '0 0 300 200', width: '100%', height: '100%', 'aria-hidden': 'true'}, sv('ellipse', {cx: 150, cy: 100, rx: 130, ry: 44, fill: 'none', stroke: '#E6CB93', 'stroke-opacity': .3, transform: 'rotate(-18 150 100)'}), sv('ellipse', {cx: 150, cy: 100, rx: 92, ry: 70, fill: 'none', stroke: '#E6CB93', 'stroke-opacity': .18, transform: 'rotate(24 150 100)'}),
+      dots.map(d => sv('circle', {cx: d.x, cy: d.y, r: d.r, fill: d.c, style: `filter:drop-shadow(0 0 5px ${d.c});animation:float 4s ease-in-out ${d.d}s infinite alternate`})), sv('circle', {cx: 150, cy: 100, r: 15, fill: '#fff', style: 'filter:drop-shadow(0 0 16px #A8DCFF)'})); };
+  const vizLab = () => h('div', {class: 'stack s8', style: 'width:100%;max-width:300px'}, h('div', {class: 'small dim'}, '27 % O₂ · Mars gravity · your fuel'), ['OBSERVED', 'MODEL_INFERRED', 'ANALOGICAL', 'UNKNOWN'].map((l, n) => h('div', {class: 'finding ev-' + l, style: `--i:${n + 2};padding:2px 0 2px 12px`}, evPill(l))));
+  const vizChain = () => h('div', {class: 'stack s8', style: 'align-items:center;width:100%'}, ['value as reported', 'table · row · column', 'source · DOI · file hash'].map((t, n) => h('div', {class: 'stack s8', style: 'align-items:center;--i:' + n}, n ? h('div', {style: 'width:1px;height:16px;background:var(--gold)'}) : null, h('div', {class: 'tag gold', style: 'font-size:13px;padding:5px 14px;margin:0'}, t))));
+  const vizGaps = () => h('div', {class: 'heat', style: 'grid-template-columns:repeat(6,34px);gap:4px'}, Array.from({length: 30}, (_, n) => { const e = [2, 3, 8, 14, 15, 21, 27].includes(n); return h('div', {class: 'cell' + (e ? ' empty' : ''), style: `--i:${n};aspect-ratio:1;font-size:0;${e ? '' : `background:rgba(230,203,147,${0.12 + ((n * 37) % 50) / 100})`}`}, ' '); }));
+  const vizMission = () => h('div', {class: 'row', style: 'gap:26px;justify-content:center'}, [['Earth', '1 g', '#6FB1FF', 46], ['Mars', '0.379 g', '#FF8E7A', 30], ['Moon', '0.166 g', '#C9D1E6', 24]].map(([n, g, c, r]) => h('div', {class: 'stack s8', style: 'align-items:center'}, h('div', {style: `width:${r * 2}px;height:${r * 2}px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,${c} 55%,#0b1020);box-shadow:0 0 34px -4px ${c}`}), h('span', {class: 'small dim'}, n), h('span', {class: 'small', style: 'color:var(--gold)'}, g))));
+  const slideOf = (eyebrow, title, text, viz) => h('div', {class: 'glass hud'}, h('div', null, h('div', {class: 'eyebrow'}, eyebrow), h('h3', null, title), h('p', null, text)), h('div', {class: 'viz'}, viz));
+
+  // ------------------------------------------------------------------ LANDING
+  function viewLanding(root) {
+    const ds = S.ds, ok = ds && ds.experiments.length, n = ok ? ds.experiments.length : 0;
+    const orb = h('canvas', {'aria-label': 'A spherical microgravity flame surrounded by orbiting experiments', role: 'img'});
+    const stats = ok ? h('div', {class: 'stats'}, [[n, 'Experiments'], [Object.keys(ds.sources).length, 'Sources'], [fuelsOf().length, 'Fuels'], [Math.round(100 * ds.experiments.filter(e => Object.keys(e.conditions).length >= 3).length / n), '% with ≥3 conditions']].map(([v, l], i) => h('div', {class: 'glass stat', style: `--i:${i}`}, h('b', {'data-count': v}, '0'), h('span', null, l)))) : null;
+    const car = makeCarousel([
+      slideOf('01 · The universe', 'Every experiment, one star map', 'Each microgravity combustion experiment becomes a star. Orbit it, zoom into a cluster, and compare regimes side by side.', vizUniverse()),
+      slideOf('02 · The virtual lab', 'Ask “what would happen if…”', 'Move a slider and FLARE answers with what was observed, what is only analogous and what is unknown. Never a made-up number.', vizLab()),
+      slideOf('03 · Traceable', 'Every number knows where it came from', 'Values keep their unit as reported, the table or figure they came from, and a file hash. Missing data stays missing.', vizChain()),
+      slideOf('04 · Honest gaps', 'See what nobody has measured yet', 'Coverage maps show where evidence exists, and where it stops. Absence of data is never presented as absence of a phenomenon.', vizGaps()),
+      slideOf('05 · Future missions', 'From evidence to engineering questions', 'Lunar and Martian gravity levels, spacecraft atmospheres: FLARE pairs recorded evidence with open questions and stated uncertainty.', vizMission())]);
+    carousel = car;
+    root.append(h('div', {class: 'page view-enter' + (ok && ds.hasSynthetic ? ' rib' : '')},
+      h('section', {class: 'hero'}, h('div', null, h('div', {class: 'eyebrow'}, 'NASA Space Apps Challenge 2026 · Flame in Freefall'), h('h1', {class: 'gold-text'}, 'PROMETHEUS'),
+        h('p', {class: 'sub'}, 'Where ', h('em', null, 'fire'), ' meets ', h('em', null, 'freefall'), '. Every conclusion, traceable to its evidence.'),
+        h('div', {class: 'hero-cta'}, ok ? h('button', {class: 'btn gold', on: {click: () => go('universe')}}, 'Enter the universe  →') : ALLOW_FIXTURE ? h('button', {class: 'btn gold', on: {click: () => loadFixture(false)}}, 'Enter with demo data  →') : h('button', {class: 'btn gold', on: {click: () => go('data')}}, 'Load your dataset  →'),
+          h('button', {class: 'btn', disabled: !ok, on: {click: () => startTour()}}, 'Guided tour'), ok ? h('button', {class: 'btn ghost', on: {click: () => go('data')}}, 'Load a dataset') : null)),
+        h('div', {class: 'orb-wrap'}, orb, h('div', {class: 'orb-cap'}, 'Without buoyancy, a flame is a sphere'))), stats, h('div', {style: 'height:34px'}), car.el,
+      h('p', {class: 'faint small', style: 'margin-top:34px;text-align:center'}, ok && ds.hasSynthetic ? 'You are viewing SYNTHETIC test data. Nothing shown is a NASA measurement.' : 'A research aid. Not a safety certification. Unvalidated until reviewed by a domain expert.')));
+    stopOrb = UI.startOrb(orb);
+    root.querySelectorAll('[data-count]').forEach(el => { const to = +el.dataset.count, t0 = performance.now(); const step = t => { const k = Math.min(1, (t - t0) / 1100); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1 && el.isConnected) requestAnimationFrame(step); }; requestAnimationFrame(step); });
+  }
+
+  // ------------------------------------------------------------------ UNIVERSE
+  const axisFor = (key, exps) => (key === 'none' ? {key, label: '—', unit: '', norm: () => 0, ticks: [], get: () => 0, title: ''} : UI.axisSpec(key, exps));
+  const axisOptions = withNone => { const o = F.VAR_KEYS.map(v => [v, F.VARS[v].short]); F.NUM_PHEN.forEach(p => { if (S.ds.experiments.some(e => F.numObs(e, p) != null)) o.push(['obs:' + p, F.PHEN[p].label]); }); if (withNone) o.push(['none', '— (flat)']); return o; };
+  function buildPlot() {
+    const exps = S.ds.experiments, ax = axisFor(S.ax, exps), ay = axisFor(S.ay, exps), az = axisFor(S.az, exps);
+    const anom = cached('anom:flame_spread_rate', () => F.anomalies(S.ds, 'flame_spread_rate')).flagged.map(f => f.exp_id);
+    const fuels = fuelsOf(), clus = S.colorBy === 'cluster' ? cached('cluster', () => F.cluster(S.ds, 0.15)).clusters : null;
+    const colorOf = e => S.colorBy === 'regime' ? REGIME_COLORS[F.gravityRegime(F.cond(e, 'gravity_g'))] : S.colorBy === 'cluster' ? (() => { const i = clus.findIndex(c => c.includes(e.exp_id)); return clus[i] && clus[i].length > 1 ? FUEL_COLORS[i % FUEL_COLORS.length] : '#7C86A2'; })() : FUEL_COLORS[Math.max(0, fuels.indexOf(e.fuel)) % FUEL_COLORS.length] || '#C9D1E6';
+    const pts = []; let skipped = 0;
+    exps.forEach(e => { const x = ax.get(e), y = ay.get(e), z = az.get(e); if (x == null || y == null || z == null) { skipped++; return; }
+      pts.push({id: e.exp_id, fuel: e.fuel, x: ax.norm(x), y: ay.norm(y), z: az.norm(z), color: colorOf(e), anom: anom.includes(e.exp_id), lines: [`${ax.label}: ${sig(x, 4)} ${ax.unit}`, `${ay.label}: ${sig(y, 4)} ${ay.unit}`].concat(S.az === 'none' ? [] : [`${az.label}: ${sig(z, 4)} ${az.unit}`])}); });
+    return {pts, axes: {x: ax, y: ay, z: az}, skipped, fuels};
+  }
+  function nnIds(id, k = 5) { const e = S.ds.experiments.find(z => z.exp_id === id); if (!e) return []; return F.nearest(F.conditionsOf(e), e.fuel, S.ds.experiments.filter(z => z !== e), k, 2).map(t => t.e.exp_id); }
+  function selectExp(id, fly) { S.sel = id; if (galaxy) { galaxy.setSel(id, fly); galaxy.links = id ? nnIds(id) : []; } openDrawer(id ? 'exp' : null); }
+  function toggleCmp(id) { const i = S.cmp.indexOf(id); if (i >= 0) S.cmp.splice(i, 1); else if (S.cmp.length < 3) S.cmp.push(id); else UI.toast('Compare up to three experiments'); if (galaxy) galaxy.cmp = S.cmp; if (S.drawer) renderDrawer(); }
+
+  function viewUniverse(root) {
+    const plot = buildPlot(), canvas = h('canvas'), tip = h('div', {class: 'tip'});
+    const vp = h('div', {class: 'viewport tall'}, canvas, tip);
+    const opts = axisOptions(false), optsN = axisOptions(true);
+    const legend = h('div', {class: 'vp-bl'});
+    if (S.colorBy === 'fuel') plot.fuels.forEach((f, i) => legend.append(h('span', {class: 'leg', style: `color:${FUEL_COLORS[i % FUEL_COLORS.length]}`}, h('i'), h('span', {style: 'color:var(--dim)'}, f))));
+    if (S.colorBy === 'regime') Object.entries(REGIME_COLORS).filter(([k]) => k !== 'hypergravity').forEach(([k, c]) => legend.append(h('span', {class: 'leg', style: `color:${c}`}, h('i'), h('span', {style: 'color:var(--dim)'}, k))));
+    if (S.colorBy === 'cluster') legend.append(h('span', null, 'Colour = similarity cluster (grey = not clustered). Similar recorded conditions, not similar physics.'));
+    legend.append(h('span', {class: 'leg', style: 'color:#FF6B7A'}, h('i'), h('span', {style: 'color:var(--dim)'}, 'flagged outlier (review pointer)')));
+    const presetSeg = h('div', {class: 'seg vp-glass', style: 'padding:3px'}, [['iso', '3D'], ['front', 'Front'], ['side', 'Side'], ['top', 'Top']].map(([k, l]) => h('button', {type: 'button', 'aria-pressed': 'false', on: {click: () => { galaxy.preset(k); [...presetSeg.children].forEach(b => b.setAttribute('aria-pressed', String(b.textContent === l))); }}}, l)));
+    presetSeg.firstChild.setAttribute('aria-pressed', 'true');
+    const axesPanel = h('div', {class: 'vp-glass axes-row'}, field('X', select(opts, S.ax, v => { S.ax = v; render(); })), field('Y', select(opts, S.ay, v => { S.ay = v; render(); })), field('Depth', select(optsN, S.az, v => { S.az = v; render(); })),
+      field('Colour', select([['fuel', 'Fuel'], ['regime', 'Gravity regime'], ['cluster', 'Cluster']], S.colorBy, v => { S.colorBy = v; render(); })));
+    const axesToggle = h('button', {type: 'button', class: 'btn sm vp-glass axes-toggle', 'aria-expanded': 'false', 'aria-label': 'Show axis controls', on: {click: () => { const open = axesPanel.classList.toggle('open'); axesToggle.setAttribute('aria-expanded', String(open)); }}}, UI.icon('gaps'), ' Axes');
+    vp.append(h('div', {class: 'vp-ui'},
+      h('div', {class: 'vp-tl'}, h('div', {class: 'row', style: 'align-items:flex-start'}, h('div', null, h('div', {class: 'eyebrow'}, 'Combustion universe'), h('div', {style: 'font-family:var(--serif);font-size:26px;line-height:1.1;margin-top:4px'}, `${plot.pts.length} of ${S.ds.experiments.length} experiments`)), axesToggle),
+        axesPanel),
+      h('div', {class: 'vp-tr'}, presetSeg, h('label', {class: 'switch vp-glass', style: 'padding:8px 12px', title: 'Auto-orbit'}, h('input', {type: 'checkbox', checked: S.auto, 'aria-label': 'Auto-rotate', on: {change: e => { S.auto = e.target.checked; galaxy.auto = S.auto && !UI.REDUCED; }}}), h('span', {class: 'longlabel'}, 'Auto-orbit')),
+        h('button', {class: 'btn sm vp-glass', 'aria-label': 'Index of experiments', on: {click: () => openDrawer('index')}}, UI.icon('list'), h('span', {class: 'longlabel'}, 'Index')),
+        h('button', {class: 'btn sm vp-glass', 'aria-label': 'Reset view', on: {click: () => galaxy.preset('iso')}}, UI.icon('reset'), h('span', {class: 'longlabel'}, 'Reset'))),
+      legend, h('div', {class: 'vp-br'}, 'Drag · orbit    Scroll · zoom    Click · inspect    Shift-click · compare')));
+    root.append(h('div', {class: 'page wide view-enter' + (S.ds.hasSynthetic ? ' rib' : '')}, vp,
+      plot.pts.length < 2 ? h('div', {class: 'notice', style: 'margin-top:14px'}, 'Fewer than two experiments report all three chosen axes. Choose other axes, or set Depth to “— (flat)”.') : null,
+      plot.skipped ? h('p', {class: 'small faint', style: 'margin:12px 6px 0'}, `${plot.skipped} experiments are not plotted because they do not report every chosen axis.`) : null));
+    galaxy = new UI.Galaxy(canvas, {tip, auto: S.auto, onSelect: (id, fly) => selectExp(id, fly), onCompare: id => toggleCmp(id)});
+    galaxy.setData(plot.pts, plot.axes); galaxy.cmp = S.cmp;
+    if (S.lab && S.lab.query) placeBeacon(galaxy, plot.axes, S.lab);
+    if (S.sel) { galaxy.sel = S.sel; galaxy.links = nnIds(S.sel); }
+    window.__flare = {S, get galaxy() { return galaxy; }, get mini() { return miniGal; }, get carousel() { return carousel; }};
+  }
+  function placeBeacon(g, axes, lab) {
+    const q = lab.query.conditions, pos = k => { const a = axes[k]; if (a.key === 'none' || a.key.startsWith('obs:')) return 0; return q[a.key] != null ? a.norm(q[a.key]) : 0; };
+    g.beacon = {x: pos('x'), y: pos('y'), z: pos('z')}; g.beaconLinks = lab.neighbors.map(n => n.exp_id);
+  }
+
+  // ------------------------------------------------------------------ drawer (inspector / index)
+  function openDrawer(mode) { S.drawer = mode; renderDrawer(); }
+  function closeDrawer() { S.drawer = null; const d = $('#drawer'); if (d) d.classList.remove('open'); pageShift(false); }
+  function renderDrawer() {
+    const d = $('#drawer'); if (!d) return; d.replaceChildren();
+    if (!S.drawer || !S.ds) { d.classList.remove('open'); pageShift(false); return; }
+    d.append(h('button', {class: 'btn iconbtn ghost xbtn', 'aria-label': 'Close panel', on: {click: () => { S.sel = null; if (galaxy) { galaxy.sel = null; galaxy.links = []; } closeDrawer(); }}}, UI.icon('close')));
+    if (S.drawer === 'index') {
+      const list = h('div', {class: 'list'}), fill = q => { list.replaceChildren(...S.ds.experiments.filter(e => !q || (e.exp_id + ' ' + (e.fuel || '') + ' ' + e.title).toLowerCase().includes(q.toLowerCase())).map(e => h('button', {type: 'button', on: {click: () => { selectExp(e.exp_id, true); }}}, h('span', null, e.exp_id, h('span', {class: 'faint small'}, ' ' + (e.fuel || ''))), h('span', {class: 'faint small'}, fmtVar('o2_fraction', F.cond(e, 'o2_fraction')))))); };
+      d.append(h('div', {class: 'eyebrow'}, 'Index'), h('h3', null, 'All experiments'), h('div', {class: 'sec'}, h('input', {type: 'search', placeholder: 'Search id, fuel or title…', style: 'width:100%', 'aria-label': 'Search experiments', on: {input: e => fill(e.target.value)}})), list); fill('');
+    } else {
+      const e = S.ds.experiments.find(z => z.exp_id === S.sel); if (!e) { d.classList.remove('open'); pageShift(false); return; }
+      const nn = F.nearest(F.conditionsOf(e), e.fuel, S.ds.experiments.filter(z => z !== e), 5, 2), an = cached('anom:flame_spread_rate', () => F.anomalies(S.ds, 'flame_spread_rate')).flagged.find(f => f.exp_id === e.exp_id);
+      const contra = cached('contra:flame_spread_rate', () => F.contradictions(S.ds, 'flame_spread_rate')).filter(c => c.a === e.exp_id || c.b === e.exp_id);
+      const srcIds = [...new Set(e.source_ids.concat(e.observations.map(o => o.source_id), Object.values(e.conditions).map(m => m.source_id)))].filter(s => S.ds.sources[s]);
+      d.append(h('div', {class: 'eyebrow'}, 'Experiment'), h('h3', null, e.exp_id), h('p', {class: 'dim', style: 'margin-top:4px'}, e.title),
+        h('div', {style: 'margin-top:10px'}, h('span', {class: 'tag'}, e.platform), e.synthetic ? h('span', {class: 'tag warn'}, 'synthetic') : null, e.fuel ? h('span', {class: 'tag gold'}, e.fuel) : null),
+        h('div', {class: 'row', style: 'margin-top:8px'}, h('button', {class: 'btn sm', on: {click: () => toggleCmp(e.exp_id)}}, S.cmp.includes(e.exp_id) ? 'Remove from comparison' : 'Add to comparison'), h('button', {class: 'btn sm ghost', on: {click: () => { S.lab = null; S.form.fuel = e.fuel || S.form.fuel; F.VAR_KEYS.forEach(v => { const k = {o2_fraction: 'o2', pressure_kpa: 'p', gravity_g: 'g', temperature_k: 't', flow_velocity_mm_s: 'f'}[v]; if (F.cond(e, v) != null) { S.form.v[k] = k === 'o2' ? F.cond(e, v) * 100 : F.cond(e, v); S.form.on[k] = true; } }); go('lab'); }}}, 'Use as lab scenario')),
+        h('div', {class: 'sec stack s8'}, h('h4', null, 'Conditions'), h('dl', {class: 'kv'}, F.VAR_KEYS.flatMap(v => [h('dt', null, F.VARS[v].short), h('dd', {title: e.conditions[v] ? `${e.conditions[v].value} ${e.conditions[v].unit} as reported · ${e.conditions[v].source_id}${e.conditions[v].locator ? ' · ' + e.conditions[v].locator : ''}` : 'not reported'}, fmtVar(v, F.cond(e, v)))]))),
+        h('div', {class: 'sec stack s8'}, h('h4', null, 'Observed'), e.observations.length ? e.observations.map(o => h('div', {class: 'small'}, h('span', {class: 'dim'}, F.PHEN[o.phenomenon].label + ' · '), o.measurement ? fmtNum(o.measurement.canonical_value, o.measurement.canonical_unit) : '', o.description ? (o.measurement ? ' — ' : '') + o.description : '')) : h('p', {class: 'dim small'}, 'No observations recorded.')),
+        h('div', {class: 'sec stack s8'}, h('h4', null, 'Related experiments'), h('div', {class: 'list', style: 'max-height:none'}, nn.map(t => h('button', {type: 'button', on: {click: () => selectExp(t.e.exp_id, true)}}, h('span', null, t.e.exp_id), h('span', {class: 'faint small'}, 'd = ' + t.c.distance.toFixed(3)))))),
+        h('div', {class: 'sec stack s8'}, h('h4', null, 'Scientific evidence'), srcIds.map(s => h('p', {class: 'small'}, h('b', null, s + ' '), F.cite(S.ds.sources[s]))), e.observations.filter(o => o.locator).slice(0, 4).map(o => h('p', {class: 'small faint'}, `${F.PHEN[o.phenomenon].label}: ${o.source_id} · ${o.locator}`))),
+        h('div', {class: 'sec stack s8'}, h('h4', null, 'FLARE analysis'), an ? h('p', {class: 'small'}, evPill('UNKNOWN', 'outlier'), ` spread rate ${sig(an.observed, 3)} vs ${sig(an.neighbour_estimate, 3)} ${an.unit} expected from its neighbours (robust z ${an.robust_z.toFixed(1)}). A pointer for review, not a finding.`) : h('p', {class: 'dim small'}, 'Not flagged as a spread-rate outlier among its nearest neighbours.'),
+          contra.map(c => h('p', {class: 'small'}, `Near-identical recorded conditions to ${c.a === e.exp_id ? c.b : c.a}, yet ${(c.relative_difference * 100).toFixed(0)}% different spread rate.`))));
+      if (S.cmp.length >= 2) d.append(compareBox());
+    }
+    d.classList.add('open'); pageShift(true);
+  }
+  function pageShift(on) { const pg = document.querySelector('.page.wide'); if (pg) pg.classList.toggle('with-drawer', on && S.tab === 'universe'); }
+  function compareBox() {
+    const exps = S.cmp.map(i => S.ds.experiments.find(e => e.exp_id === i)).filter(Boolean);
+    return h('div', {class: 'sec stack s8'}, h('h4', null, 'Comparison'), h('div', {class: 'tblwrap'}, h('table', null, h('thead', null, h('tr', null, h('th'), exps.map(e => h('th', null, e.exp_id)))),
+      h('tbody', null, h('tr', null, h('td', {class: 'dim'}, 'Fuel'), exps.map(e => h('td', null, e.fuel || '—'))), F.VAR_KEYS.map(v => h('tr', null, h('td', {class: 'dim'}, F.VARS[v].short), exps.map(e => h('td', null, fmtVar(v, F.cond(e, v)))))),
+        F.NUM_PHEN.filter(p => exps.some(e => F.numObs(e, p) != null)).map(p => h('tr', null, h('td', {class: 'dim'}, F.PHEN[p].label), exps.map(e => h('td', null, fmtNum(F.numObs(e, p), F.PHEN[p].unit)))))))),
+      h('button', {class: 'btn sm', on: {click: () => UI.showText('Comparison (CSV)', F.comparisonCsv(S.ds, S.cmp), 'flare-comparison.csv')}}, 'Export comparison'));
+  }
+
+  // ------------------------------------------------------------------ VIRTUAL LAB
+  const LAB_KEYS = {o2: 'o2_fraction', p: 'pressure_kpa', g: 'gravity_g', t: 'temperature_k', f: 'flow_velocity_mm_s'};
+  function labRanges() {
+    const ex = S.ds.experiments, rng = v => { const xs = ex.map(e => F.cond(e, v)).filter(x => x != null); return xs.length ? [Math.min(...xs), Math.max(...xs)] : null; };
+    const o = rng('o2_fraction'), p = rng('pressure_kpa'), t = rng('temperature_k'), f = rng('flow_velocity_mm_s');
+    return {
+      o2: o ? [Math.max(1, Math.floor(o[0] * 100 - 8)), Math.min(100, Math.ceil(o[1] * 100 + 12))] : [5, 60],
+      p: p ? [Math.max(0.1, p[0] / 3), p[1] * 3] : [10, 1000], g: [1e-6, 3], t: t ? [Math.max(150, t[0] - 40), t[1] + 60] : [250, 400], f: f ? [0, Math.max(50, f[1] * 1.6)] : [0, 200],
+    };
+  }
+  function parseLabForm() {
+    const fm = S.form, c = {}; Object.entries(LAB_KEYS).forEach(([k, v]) => { if (fm.on[k] && isFinite(fm.v[k])) c[v] = k === 'o2' ? F.convert(fm.v[k], '%', 'fraction') : fm.v[k]; });
+    return F.makeQuery(fm.fuel || null, c, null);
+  }
+  let labTimer = 0;
+  function runLabSoon(immediate) { clearTimeout(labTimer); labTimer = setTimeout(runLabNow, immediate ? 0 : 70); }
+  function runLabNow() {
+    try { S.labErr = ''; S.lab = F.runLab(S.ds, parseLabForm()); } catch (e) { S.labErr = e.message; S.lab = null; }
+    const box = $('#labres'); if (!box) return; box.replaceChildren(); if (S.labErr) box.append(h('div', {class: 'notice', role: 'alert', style: 'border-color:var(--unk)'}, S.labErr)); else box.append(labResult(S.lab));
+    if (miniGal && S.lab) { placeBeacon(miniGal, miniGal.axes, S.lab); miniGal.animateTo({}, 1); } else if (miniGal) { miniGal.beacon = null; miniGal.beaconLinks = []; }
+    const badge = $('#labbadge'); if (badge) { badge.replaceChildren(S.lab ? evPill(S.lab.summary) : h('span', {class: 'faint small'}, '—')); }
+  }
+  function sliderRow(key, label, unit, toS, fromS, min, max, step, fmt) {
+    const fm = S.form, [lo, hi] = [toS(min), toS(max)];
+    const range = h('input', {type: 'range', min: lo, max: hi, step: step, 'aria-label': label + ' slider'}), num = h('input', {type: 'number', step: 'any', 'aria-label': label, style: 'width:6.4em;text-align:right;font-family:var(--serif);font-size:20px;padding:4px 8px'});
+    const setFill = () => range.style.setProperty('--p', ((range.value - lo) / (hi - lo) * 100) + '%');
+    const sync = () => { const v = fm.v[key]; range.value = toS(Math.min(max, Math.max(min, v))); num.value = fmt(v); setFill(); };
+    range.addEventListener('input', () => { fm.v[key] = fromS(+range.value); num.value = fmt(fm.v[key]); setFill(); runLabSoon(); });
+    num.addEventListener('change', () => { const v = parseFloat(num.value); if (isFinite(v)) { fm.v[key] = v; sync(); runLabSoon(true); } });
+    const on = h('input', {type: 'checkbox', checked: fm.on[key], 'aria-label': `Specify ${label}`, on: {change: e => { fm.on[key] = e.target.checked; row.style.opacity = fm.on[key] ? 1 : 0.45; range.disabled = !fm.on[key]; runLabSoon(true); }}});
+    const row = h('div', {class: 'stack s8', style: `opacity:${fm.on[key] ? 1 : 0.45}`}, h('div', {class: 'sliderrow'}, h('label', {class: 'switch'}, on, h('span', {class: 'lbl', style: 'color:var(--dim)'}, label + (unit ? ' · ' + unit : ''))), num), range);
+    range.disabled = !fm.on[key]; sync(); row.sync = sync; return row;
+  }
+  function viewLab(root) {
+    const R = labRanges(), fm = S.form, fuels = fuelsOf(), rows = {};
+    const lin = v => v, g10 = v => Math.log10(v), p10 = s => Math.pow(10, s);
+    rows.o2 = sliderRow('o2', 'Oxygen', '%', lin, lin, R.o2[0], R.o2[1], 0.1, v => (+v).toFixed(1));
+    rows.p = sliderRow('p', 'Pressure', 'kPa', g10, p10, R.p[0], R.p[1], 0.005, v => sig(+v, 4));
+    rows.g = sliderRow('g', 'Gravity', 'g', g10, p10, R.g[0], R.g[1], 0.01, v => (+v < 0.01 ? (+v).toExponential(1) : sig(+v, 3)));
+    rows.t = sliderRow('t', 'Temperature', 'K', lin, lin, R.t[0], R.t[1], 0.5, v => (+v).toFixed(1));
+    rows.f = sliderRow('f', 'Forced flow', 'mm/s', lin, lin, R.f[0], R.f[1], 0.5, v => (+v).toFixed(1));
+    const preset = (label, g, c) => h('button', {class: 'btn sm', type: 'button', on: {click: () => { fm.v.g = g; fm.on.g = true; rows.g.querySelector('input[type=checkbox]').checked = true; rows.g.style.opacity = 1; rows.g.querySelector('input[type=range]').disabled = false; rows.g.sync(); runLabSoon(true); }}}, h('span', {class: 'orbchip'}, h('i', {style: `background:radial-gradient(circle at 32% 28%,#fff,${c} 60%,#0b1020)`}), label));
+    const canvas = h('canvas'), tip = h('div', {class: 'tip'}), vp = h('div', {class: 'viewport mini'}, canvas, tip, h('div', {class: 'vp-ui'}, h('div', {class: 'vp-tl'}, h('div', {class: 'eyebrow'}, 'Your scenario in the universe')), h('div', {class: 'vp-bl'}, h('span', null, 'The dashed lines reach the closest experiments. Drag to orbit.'))));
+    const fuelSel = select([['', 'Any / not specified']].concat(fuels.map(x => [x, x])), fm.fuel, v => { fm.fuel = v; runLabSoon(true); });
+    root.append(h('div', {class: 'page view-enter' + (S.ds.hasSynthetic ? ' rib' : '')},
+      h('div', {class: 'head'}, h('div', null, h('div', {class: 'eyebrow'}, 'Virtual laboratory'), h('h2', null, 'Ask “what would happen if…”'), h('p', {class: 'lead'}, 'Describe a scenario and move the sliders. FLARE answers live from the recorded experiments: what was observed, what is only analogous, and what is unknown. It never fills a gap with an invented number.')),
+        h('div', {class: 'row'}, h('span', {class: 'small faint'}, 'Overall evidence'), h('span', {id: 'labbadge'}))),
+      h('div', {class: 'lab-grid'}, h('div', {class: 'glass hud stack s24'}, field('Fuel', fuelSel, 'Matched by name'), rows.o2, rows.p,
+        h('div', {class: 'stack s8'}, rows.g, h('div', {class: 'presets'}, preset('Earth 1 g', 1, '#6FB1FF'), preset('Mars 0.379 g', 0.379, '#FF8E7A'), preset('Moon 0.166 g', 0.166, '#C9D1E6'), preset('Microgravity', 1e-6, '#E6CB93'))), rows.t, rows.f,
+        h('div', {class: 'row'}, h('button', {class: 'btn gold', id: 'runbtn', on: {click: () => runLabSoon(true)}}, 'Run experiment'), h('span', {class: 'small faint'}, 'Live: results update as you move a slider'))), vp),
+      h('div', {id: 'labres', style: 'margin-top:22px'})));
+    const axes = {x: UI.axisSpec('o2_fraction', S.ds.experiments), y: UI.axisSpec('pressure_kpa', S.ds.experiments), z: UI.axisSpec('gravity_g', S.ds.experiments)};
+    const pts = S.ds.experiments.filter(e => F.cond(e, 'o2_fraction') != null && F.cond(e, 'pressure_kpa') != null && F.cond(e, 'gravity_g') != null).map(e => ({id: e.exp_id, fuel: e.fuel, x: axes.x.norm(F.cond(e, 'o2_fraction')), y: axes.y.norm(F.cond(e, 'pressure_kpa')), z: axes.z.norm(F.cond(e, 'gravity_g')), color: FUEL_COLORS[Math.max(0, fuels.indexOf(e.fuel)) % FUEL_COLORS.length], lines: [`O₂ ${fmtVar('o2_fraction', F.cond(e, 'o2_fraction'))}`, `P ${fmtVar('pressure_kpa', F.cond(e, 'pressure_kpa'))}`, `g ${fmtVar('gravity_g', F.cond(e, 'gravity_g'))}`]}));
+    miniGal = new UI.Galaxy(canvas, {tip, mini: true, auto: true, onSelect: id => { if (id) { S.sel = id; UI.toast(id + ' · open it in the Universe to inspect'); } }, onCompare: () => {}});
+    miniGal.setData(pts, axes);
+    window.__flare = {S, get galaxy() { return galaxy; }, get mini() { return miniGal; }, get carousel() { return carousel; }};
+    runLabNow();
+  }
+  function labResult(r) {
+    const box = h('div', {class: 'stack s24'});
+    box.append(h('div', {class: 'glass hud stack'}, h('div', {class: 'row', style: 'justify-content:space-between'}, h('h3', null, 'Result'), h('span', {class: 'small faint'}, `${r.n} experiments searched`)),
+      r.warnings.map(w => h('div', {class: 'notice'}, w)),
+      r.findings.length ? r.findings.map((x, i) => h('div', {class: 'finding ev-' + x.level, style: `--i:${i}`}, h('div', {class: 'ftop'}, h('strong', null, x.label), evPill(x.level), h('span', {class: 'small dim'}, 'Confidence · ' + x.confidence)), h('p', {class: 'txt'}, x.statement), x.reasons.map(t => h('p', {class: 'small faint'}, t)),
+        x.values.length ? h('div', null, x.values.slice(0, 6).map(v => h('span', {class: 'tag'}, `${v.exp_id}: ${v.value != null ? sig(v.value, 4) + ' ' + v.unit : v.description} [${v.source_id}${v.locator ? ' · ' + v.locator : ''}]`))) : null)) : h('p', {class: 'dim'}, 'Nothing in this dataset is similar enough to report on. That is itself the answer: unknown.'),
+      h('div', {class: 'row'}, h('button', {class: 'btn sm', on: {click: () => { const q = r.query.conditions, have = F.VAR_KEYS.filter(v => q[v] != null); if (have.length >= 2) { S.ax = have.includes('o2_fraction') ? 'o2_fraction' : have[0]; S.ay = have.find(v => v !== S.ax); S.az = have.find(v => v !== S.ax && v !== S.ay) || 'none'; } go('universe'); }}}, 'Show in full universe'), h('button', {class: 'btn sm ghost', on: {click: () => UI.showText('Virtual experiment result (JSON)', JSON.stringify(r, null, 2), 'flare-lab-result.json')}}, 'Export result'))));
+    box.append(h('div', {class: 'grid2'},
+      h('div', {class: 'glass stack'}, h('h3', null, 'What is unknown'), r.unknowns.length ? r.unknowns.map(u => h('p', {class: 'small'}, u)) : h('p', {class: 'dim small'}, 'No additional unknowns detected beyond the notices above.')),
+      h('div', {class: 'glass stack'}, h('h3', null, 'Sources'), r.sources.length ? r.sources.map(s => h('p', {class: 'small'}, h('b', null, s.source_id + ' '), s.citation)) : h('p', {class: 'dim small'}, 'No sources were used.'))));
+    const diffCell = n => h('td', null,
+      Object.entries(n.differences).map(([v, d]) => (v === 'fuel' ? h('span', {class: 'tag warn'}, `fuel: ${d.query} vs ${d.experiment}`) : h('span', {class: 'tag'}, `${F.VARS[v].short}: ${fmtVar(v, d.query)} vs ${fmtVar(v, d.experiment)}`))),
+      n.not_reported.map(v => h('span', {class: 'tag warn'}, (F.VARS[v] ? F.VARS[v].short : v) + ' not reported')));
+    const nrow = n => h('tr', null, h('td', null, n.exp_id, n.is_match ? h('span', {class: 'tag gold', style: 'margin-left:8px'}, 'match') : null), h('td', null, n.fuel || '—'), h('td', {class: 'num'}, n.distance.toFixed(3)), diffCell(n));
+    const head = h('thead', null, h('tr', null, ['Experiment', 'Fuel', 'Distance', 'Differs from your scenario in'].map(t => h('th', null, t))));
+    box.append(h('div', {class: 'glass stack'}, h('h3', null, 'Closest experiments and how they differ'), h('div', {class: 'tblwrap'}, h('table', null, head, h('tbody', null, r.neighbors.map(nrow))))));
+    return stagger(box);
+  }
+
+  // ------------------------------------------------------------------ GAPS
+  function viewGaps(root) {
+    const ds = S.ds, g = F.gaps(ds, S.gapX, S.gapY, 6), cov = ds.experiments.length, mx = Math.max(1, ...g.cells.map(c => c.count));
+    const heat = h('div', {class: 'heat', style: `grid-template-columns:repeat(${g.bins},1fr)`});
+    for (let by = g.bins - 1; by >= 0; by--) for (let bx = 0; bx < g.bins; bx++) { const c = g.cells.find(z => z.bx === bx && z.by === by); if (!c) continue;
+      heat.append(h('div', {class: 'cell' + (c.count ? '' : ' empty'), style: `--i:${(g.bins - 1 - by) * g.bins + bx};${c.count ? `background:linear-gradient(180deg,rgba(230,203,147,${0.14 + 0.5 * c.count / mx}),rgba(230,203,147,${0.06 + 0.25 * c.count / mx}));` : ''}`, title: `${F.VARS[S.gapX].short} ${sig(c.x_range[0], 3)}–${sig(c.x_range[1], 3)} · ${F.VARS[S.gapY].short} ${sig(c.y_range[0], 3)}–${sig(c.y_range[1], 3)}\n${c.exp_ids.join(', ') || 'no experiments'}`}, c.count || 'no data')); }
+    const opts = F.VAR_KEYS.map(v => [v, F.VARS[v].short]);
+    const heatCard = h('div', {class: 'glass hud stack'}, h('h3', null, `${F.VARS[S.gapX].label}  ×  ${F.VARS[S.gapY].label}`), g.cells.length ? heat : h('p', {class: 'dim'}, g.note),
+      g.cells.length ? h('p', {class: 'small dim'}, `${g.emptyCells} of ${g.cells.length} cells inside the explored range have no experiment. ${g.n} experiments report both variables.`) : null);
+    const rangeRow = v => { const r = g.ranges[v], n = ds.experiments.filter(e => F.cond(e, v) != null).length; return h('tr', null, h('td', null, F.VARS[v].short), h('td', null, `${n}/${cov}`), h('td', null, r ? fmtVar(v, r[0]) : '—'), h('td', null, r ? fmtVar(v, r[1]) : '—'), h('td', null, r ? r[2] : '—')); };
+    const rangeCard = h('div', {class: 'glass stack'}, h('h3', null, 'Range explored'),
+      h('div', {class: 'tblwrap'}, h('table', null, h('thead', null, h('tr', null, ['Variable', 'Reported', 'Min', 'Max', 'Distinct'].map(t => h('th', null, t)))), h('tbody', null, F.VAR_KEYS.map(rangeRow)))),
+      g.neverVaried.length ? h('div', {class: 'notice'}, 'Never varied: ' + g.neverVaried.map(v => F.VARS[v].label).join(', ') + '. Its effect cannot be learned from these experiments.') : null);
+    const outRow = p => { const n = ds.experiments.filter(e => F.obsOf(e, p).length).length; return h('div', {class: 'stack s8'}, h('div', {class: 'row', style: 'justify-content:space-between'}, h('span', null, F.PHEN[p].label), h('span', {class: 'dim small'}, `${n} of ${cov}`)), h('div', {class: 'bar'}, h('div', {style: `width:${cov ? 100 * n / cov : 0}%`}))); };
+    const outCard = h('div', {class: 'glass stack'}, h('h3', null, 'Outcomes reported'), F.NUM_PHEN.concat(['morphology', 'extinction', 'stability', 'soot']).map(outRow));
+    const headEl = h('div', {class: 'head'}, h('div', null, h('div', {class: 'eyebrow'}, 'Coverage'), h('h2', null, 'What has been measured, and what has not'), h('p', {class: 'lead'}, 'Where the recorded experiments are, and where they stop. An empty region is missing evidence, not evidence that nothing happens there.')),
+      h('div', {class: 'row'}, field('Horizontal', select(opts, S.gapX, v => { S.gapX = v; render(); })), field('Vertical', select(opts, S.gapY, v => { S.gapY = v; render(); }))));
+    root.append(h('div', {class: 'page view-enter' + (ds.hasSynthetic ? ' rib' : '')}, headEl, stagger(h('div', {class: 'stack s24'}, heatCard, h('div', {class: 'grid2'}, rangeCard, outCard)))));
+  }
+
+  // ------------------------------------------------------------------ RESEARCH
+  function viewResearch(root) {
+    const ds = S.ds, host = h('div', {class: 'stack s24'}, [1, 2, 3].map(() => h('div', {class: 'glass stack'}, h('div', {class: 'skel', style: 'width:38%'}), h('div', {class: 'skel'}), h('div', {class: 'skel', style: 'width:72%'}))));
+    root.append(h('div', {class: 'page view-enter' + (ds.hasSynthetic ? ' rib' : '')}, h('div', {class: 'head'}, h('div', null, h('div', {class: 'eyebrow'}, 'Research workspace'), h('h2', null, 'Patterns across experiments'), h('p', {class: 'lead'}, 'Everything here is descriptive and unvalidated: associations are not causes, and outliers are pointers for review.')),
+      h('div', {class: 'row'}, h('button', {class: 'btn sm', on: {click: () => UI.showText('Experiments (CSV)', F.experimentsCsv(ds), 'flare-experiments.csv')}}, 'Export CSV'), h('button', {class: 'btn sm', on: {click: () => UI.showText('Dataset (JSON)', JSON.stringify(ds.raw, null, 2), 'flare-dataset.json')}}, 'Export JSON'), h('button', {class: 'btn sm', on: {click: () => UI.showText('Citations', F.citations(ds), 'flare-citations.txt')}}, 'Export citations'))), host));
+    setTimeout(() => { if (!host.isConnected) return; host.replaceChildren(stagger(researchBody())); }, 40);
+  }
+  function researchBody() {
+    const ds = S.ds, hyp = cached('hyp', () => F.hypotheses(ds)), assoc = cached('assoc', () => F.associations(ds, 8, 500)).filter(r => r.kind === 'condition-outcome').slice(0, 10), cl = cached('cluster', () => F.cluster(ds, 0.15));
+    const phOpts = F.NUM_PHEN.filter(p => ds.experiments.filter(e => F.numObs(e, p) != null).length >= 8).map(p => [p, F.PHEN[p].label]); if (phOpts.length && !phOpts.some(o => o[0] === S.resPh)) S.resPh = phOpts[0][0];
+    const box = h('div', {class: 'stack s24'});
+    box.append(h('div', {class: 'glass hud stack'}, h('h3', null, 'Hypotheses to investigate'), h('p', {class: 'small dim'}, 'Generated only from statistics on this dataset. Each lists its evidence and limits. None is a discovery until a domain expert validates it.'),
+      hyp.length ? hyp.map((x, i) => h('div', {class: 'finding ev-ANALOGICAL', style: `--i:${i}`}, h('p', {class: 'txt'}, x.statement), h('p', {class: 'small faint'}, x.status + (x.evidence.length ? ` · evidence: ${x.evidence.slice(0, 8).join(', ')}${x.evidence.length > 8 ? ', …' : ''}` : '')), h('p', {class: 'small dim'}, 'Limitations: ' + x.limitations.join('; ')))) : h('p', {class: 'dim'}, 'No association or contradiction passed the thresholds, and no gaps were found. That is a valid result.')));
+    box.append(h('div', {class: 'glass stack'}, h('h3', null, 'Condition–outcome associations'), assoc.length ? h('div', {class: 'tblwrap'}, h('table', null, h('thead', null, h('tr', null, ['Condition', 'Outcome', 'n', 'Spearman ρ', 'BH-adjusted q'].map(t => h('th', null, t)))), h('tbody', null, assoc.map(r => { const c = r.a.startsWith('obs:') ? r.b : r.a, o = r.a.startsWith('obs:') ? r.a : r.b; return h('tr', null, h('td', null, F.VARS[c].short), h('td', null, F.PHEN[o.slice(4)].label), h('td', {class: 'num'}, r.n), h('td', {class: 'num'}, r.rho.toFixed(2)), h('td', {class: 'num'}, r.q.toFixed(3))); })))) : h('p', {class: 'dim'}, 'Not enough experiments report both a condition and an outcome (needs at least 8).'), h('p', {class: 'small faint'}, 'Rank association with permutation p-values, corrected for many comparisons. Fuel and other conditions are not controlled for.')));
+    if (phOpts.length) { const an = cached('anom:' + S.resPh, () => F.anomalies(ds, S.resPh)), co = cached('contra:' + S.resPh, () => F.contradictions(ds, S.resPh));
+      const sel = select(phOpts, S.resPh, v => { S.resPh = v; render(); });
+      box.append(h('div', {class: 'glass stack'}, h('div', {class: 'row', style: 'justify-content:space-between'}, h('h3', null, 'Anomalies and contradictions'), field('Outcome', sel)), h('h4', null, 'Behaves differently from its nearest neighbours'),
+        an.flagged.length ? an.flagged.map(f => h('p', {class: 'small'}, h('button', {class: 'btn sm ghost', on: {click: () => { S.sel = f.exp_id; go('universe'); setTimeout(() => selectExp(f.exp_id, true), 200); }}}, f.exp_id), ` observed ${sig(f.observed, 3)} vs ${sig(f.neighbour_estimate, 3)} ${f.unit} from ${f.neighbours.length} neighbours (robust z ${f.robust_z.toFixed(1)})`)) : h('p', {class: 'small dim'}, an.note || 'None flagged.'),
+        h('h4', {style: 'margin-top:8px'}, 'Near-identical conditions, different results'), co.length ? co.slice(0, 6).map(c => h('p', {class: 'small'}, `${c.a} vs ${c.b}: ${sig(c.value_a, 3)} vs ${sig(c.value_b, 3)} ${c.unit} (${(c.relative_difference * 100).toFixed(0)}% apart). Possible reasons: ${c.possible_explanations.join('; ')}.`)) : h('p', {class: 'small dim'}, 'None found.'), an.limitation ? h('p', {class: 'small faint'}, an.limitation) : null)); }
+    box.append(h('div', {class: 'glass stack'}, h('h3', null, 'Experiments studying similar regimes'), cl.clusters.filter(c => c.length > 1).map((c, i) => h('p', {class: 'small'}, h('b', {style: 'color:var(--gold)'}, `Group ${i + 1} (${c.length}) `), c.join(', '))), cl.clusters.every(c => c.length < 2) ? h('p', {class: 'dim small'}, 'No groups of similar experiments at this threshold.') : null, h('p', {class: 'small faint'}, 'Average-linkage clusters on the FLARE distance (threshold 0.15). They group similar recorded conditions, not similar physical behaviour.')));
+    return box;
+  }
+
+  // ------------------------------------------------------------------ MISSIONS
+  function viewMission(root) {
+    const ds = S.ds, m = S.mission, fuels = fuelsOf(), extra = {}; let out, err = '';
+    try { if (m.o2 !== '') extra.o2_fraction = F.convert(Number(m.o2), '%', 'fraction'); if (m.p !== '') extra.pressure_kpa = Number(m.p); out = F.assessMission(ds, m.ctx, m.fuel || null, extra, CONSIDERATIONS); } catch (e) { err = e.message; }
+    const orbs = {spacecraft: ['Spacecraft', 'microgravity', '#E6CB93'], lunar_habitat: ['Lunar habitat', '0.166 g', '#C9D1E6'], mars_habitat: ['Mars habitat', '0.379 g', '#FF8E7A'], emergency: ['Custom', 'you choose', '#A8DCFF']};
+    const ctxCards = h('div', {class: 'grid2', style: 'grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))'}, Object.entries(orbs).map(([k, [n, g, c]]) => h('button', {type: 'button', class: 'glass lift', 'aria-pressed': String(m.ctx === k), style: `text-align:left;cursor:pointer;color:inherit;padding:18px;${m.ctx === k ? 'border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),var(--shadow)' : ''}`, on: {click: () => { m.ctx = k; render(); }}},
+      h('div', {class: 'row'}, h('div', {style: `width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,${c} 55%,#0b1020);box-shadow:0 0 26px -4px ${c}`}), h('div', null, h('div', {style: 'font-family:var(--serif);font-size:21px'}, n), h('div', {class: 'small dim'}, g))))));
+    root.append(h('div', {class: 'page view-enter' + (ds.hasSynthetic ? ' rib' : '')}, h('div', {class: 'head'}, h('div', null, h('div', {class: 'eyebrow'}, 'Future missions'), h('h2', null, 'From evidence to engineering questions'), h('p', {class: 'lead'}, 'Recorded evidence, the phenomenon it concerns, an open engineering question, and how uncertain it all is. The questions are prompts for engineers, not conclusions, and are unreviewed.'))),
+      stagger(h('div', {class: 'stack s24'}, ctxCards, h('div', {class: 'glass row'}, field('Fuel', select([['', 'Any']].concat(fuels.map(x => [x, x])), m.fuel, v => { m.fuel = v; render(); })), field('Oxygen (%)', h('input', {type: 'number', step: 'any', value: m.o2, style: 'width:110px', on: {change: e => { m.o2 = e.target.value; render(); }}})), field('Pressure (kPa)', h('input', {type: 'number', step: 'any', value: m.p, style: 'width:120px', on: {change: e => { m.p = e.target.value; render(); }}}))),
+        err ? h('div', {class: 'notice', role: 'alert', style: 'border-color:var(--unk)'}, err) : h('div', {class: 'stack s24'}, h('div', {class: 'notice'}, out.note + ' ' + out.disclaimer), out.warnings.map(w => h('div', {class: 'notice'}, w)),
+          h('div', {class: 'glass hud stack'}, out.rows.length ? h('div', {class: 'tblwrap'}, h('table', null, h('thead', null, h('tr', null, ['Phenomenon', 'NASA evidence', 'Engineering question (unreviewed)', 'Uncertainty'].map(t => h('th', null, t)))), h('tbody', null, out.rows.map(r => h('tr', null, h('td', null, F.PHEN[r.phenomenon].label, h('div', {style: 'margin-top:6px'}, evPill(r.level))), h('td', null, r.evidence, h('div', {class: 'small faint'}, r.experiments.slice(0, 6).join(', '))), h('td', null, r.consideration), h('td', {class: 'small'}, r.uncertainty)))))) : h('p', {class: 'dim'}, 'No evidence in this dataset is close enough to this setting. Nothing is claimed.'), out.unknowns.map(u => h('p', {class: 'small'}, u))))))));
+  }
+
+  // ------------------------------------------------------------------ DATA
+  function viewData(root) {
+    const ds = S.ds;
+    root.append(h('div', {class: 'page view-enter' + (ds && ds.hasSynthetic ? ' rib' : '')}, h('div', {class: 'head'}, h('div', null, h('div', {class: 'eyebrow'}, 'Data'), h('h2', null, 'Datasets & provenance'), h('p', {class: 'lead'}, 'Datasets are curated JSON files created by the FLARE tools (python -m flare). Every value carries its source and location. Nothing is uploaded anywhere.'))),
+      stagger(h('div', {class: 'stack s24'}, dropZone(), S.msg ? h('div', {class: 'notice', role: 'status'}, S.msg) : null,
+        ds ? h('div', {class: 'grid2'}, h('div', {class: 'glass stack'}, h('h3', null, 'Summary'), h('dl', {class: 'kv'}, h('dt', null, 'Experiments'), h('dd', null, ds.experiments.length), h('dt', null, 'Sources'), h('dd', null, Object.keys(ds.sources).length), h('dt', null, 'Fuels'), h('dd', null, fuelsOf().join(', ') || '—'), h('dt', null, 'Rejected records'), h('dd', null, ds.problems.length))),
+          h('div', {class: 'glass stack'}, h('h3', null, 'Sources'), Object.values(ds.sources).map(s => h('p', {class: 'small'}, h('b', null, s.source_id + ' '), F.cite(s), s.sha256 ? h('span', {class: 'faint'}, ' · sha256 ' + s.sha256.slice(0, 12) + '…') : null)))) : null,
+        ds && ds.problems.length ? h('div', {class: 'glass stack'}, h('h3', null, 'Rejected records'), ds.problems.map(p => h('p', {class: 'small'}, h('b', null, p.exp_id + ': '), p.errors.join('; ')))) : null))));
+  }
+
+  // ------------------------------------------------------------------ GUIDED TOUR
+  function tourSteps() {
+    const ds = S.ds, n = ds.experiments.length, srcs = Object.keys(ds.sources).length, fuels = fuelsOf();
+    const top = F.hypotheses(ds).find(x => x.kind === 'association') || F.hypotheses(ds)[0];
+    const firstCond = ds.experiments.flatMap(e => Object.entries(e.conditions).map(([v, m]) => [e, v, m])).find(t => t[2].locator);
+    return [
+      {title: 'The problem', tab: 'universe', cam: 'iso', body: () => [h('p', null, 'On Earth, buoyant convection shapes a flame like a teardrop. In microgravity, where convective flows are absent, NASA shows the flame becomes spherical.'), h('p', {class: 'small dim'}, 'Fire safety for spacecraft and future habitats needs that evidence organised, comparable and honest about what it cannot say. Source: ', h('a', {href: 'https://www.nasa.gov/image-detail/candle-flames-3', target: '_blank', rel: 'noopener'}, 'NASA, “Candle Flame – 1g vs Microgravity”'), '.')]},
+      {title: 'What the experiments contain', tab: 'gaps', body: () => [h('p', null, `${n} experiments from ${srcs} source${srcs === 1 ? '' : 's'} are loaded${fuels.length ? `, covering ${fuels.length} fuel${fuels.length === 1 ? '' : 's'}` : ''}.`), h('p', {class: 'small dim'}, 'The coverage view shows what each experiment actually reports, and which regions were never explored.')]},
+      {title: 'How FLARE structures it', tab: 'universe', cam: 'side', body: () => [h('p', null, 'Each experiment is one star. Every value is stored as reported and in canonical units, with its source and location. Missing values stay missing.'), firstCond ? h('p', {class: 'small dim'}, `Example: ${firstCond[0].exp_id} ${F.VARS[firstCond[1]].short} = ${firstCond[2].value} ${firstCond[2].unit} → ${fmtVar(firstCond[1], firstCond[2].canonical_value)}; source ${firstCond[2].source_id}, ${firstCond[2].locator}.`) : null]},
+      {title: 'Patterns across experiments', tab: 'research', body: () => [h('p', null, top ? top.statement : 'No association passed the thresholds in this dataset.'), h('p', {class: 'small dim'}, top ? top.status : 'FLARE reports that plainly instead of inventing a pattern.')]},
+      {title: 'Change the conditions', tab: 'lab', act: () => { const e = ds.experiments[Math.floor(n / 2)], f = S.form, o2 = F.cond(e, 'o2_fraction'), p = F.cond(e, 'pressure_kpa'); f.fuel = e.fuel || ''; if (o2 != null) { f.v.o2 = +(o2 * 100 + 4).toFixed(1); f.on.o2 = true; } if (p != null) { f.v.p = +p.toFixed(1); f.on.p = true; } f.v.g = +F.MARS_G.toFixed(3); f.on.g = true; f.on.t = false; f.on.f = false; },
+        body: () => [h('p', null, 'A scenario one step outside the recorded conditions: Mars gravity and 4 points more oxygen. FLARE says which parts are observed, analogous or unknown.')]},
+      {title: 'Show where the answer came from', tab: 'lab', body: () => [h('p', null, 'Every finding lists the experiments behind it with source and table or file location, and the closest experiments show exactly how they differ from your scenario.')]},
+      {title: 'Why it matters for future missions', tab: 'mission', body: () => [h('p', null, 'The mission view links evidence to open engineering questions and states the uncertainty. It never gives a safety conclusion.')]},
+    ];
+  }
+  function startTour() { if (!S.ds || !S.ds.experiments.length) return; goTour(0); }
+  function goTour(i) { const st = tourSteps()[i]; S.tour = {step: i}; if (st.act) st.act(); const same = S.tab === st.tab; S.tab = st.tab; if (!same || S.tab === 'lab') render(); else renderTour(); if (st.cam && galaxy) galaxy.preset(st.cam); else if (st.cam) setTimeout(() => galaxy && galaxy.preset(st.cam), 400); renderTour(); }
+  function renderTour() {
+    const box = $('#tour'); if (!box) return; box.replaceChildren(); if (!S.tour || !S.ds) return;
+    const steps = tourSteps(), i = S.tour.step, st = steps[i];
+    box.append(h('div', {class: 'glass', role: 'dialog', 'aria-label': 'Guided tour'}, h('div', {class: 'row', style: 'justify-content:space-between'}, h('span', {class: 'eyebrow'}, `Guided tour · ${i + 1} of ${steps.length}`), h('button', {class: 'btn sm ghost', on: {click: () => { S.tour = null; renderTour(); }}}, 'Exit')),
+      h('h3', null, st.title), h('div', {class: 'stack s8'}, st.body()), h('div', {class: 'row', style: 'justify-content:space-between;margin-top:12px'}, h('div', {class: 'tour-dots'}, steps.map((_, k) => h('i', {class: k <= i ? 'on' : ''}))), h('div', {class: 'row'}, h('button', {class: 'btn sm', disabled: i === 0, on: {click: () => goTour(i - 1)}}, 'Back'), h('button', {class: 'btn gold sm', on: {click: () => (i + 1 < steps.length ? goTour(i + 1) : (S.tour = null, renderTour()))}}, i + 1 < steps.length ? 'Next' : 'Finish')))));
+  }
+
+  // ------------------------------------------------------------------ boot
+  function boot() {
+    UI.startStars($('#stars')); buildShell();
+    if (ALLOW_FIXTURE && FIXTURE_EL && FIXTURE_EL.textContent.trim().startsWith('{')) { try { setDataset(JSON.parse(FIXTURE_EL.textContent), 'the embedded NASA PSI seed corpus', true); } catch (e) { render(); } } else render();
+    window.__flare = {S, go, get galaxy() { return galaxy; }, get mini() { return miniGal; }, get carousel() { return carousel; }};
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+
+</script>
+</body>
+</html>
