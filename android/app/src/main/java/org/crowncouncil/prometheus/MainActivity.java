@@ -11,7 +11,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getBridge().getWebView().postDelayed(this::injectPrometheusAI, 1400);
+        getBridge().getWebView().postDelayed(this::injectPrometheusAI, 900);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class MainActivity extends BridgeActivity {
             String line;
             while ((line = reader.readLine()) != null) script.append(line).append("\\n");
             reader.close();
-            String js = "javascript:(function(){try{" + script.toString() + "}catch(e){console.error('PROMETHEUS AI injection failed',e);}})()";
+            String js = "(function(){try{" + script.toString() + "}catch(e){console.error('PROMETHEUS AI injection failed',e);}})()";
             webView.evaluateJavascript(js, null);
         } catch (Exception e) {
             e.printStackTrace();
