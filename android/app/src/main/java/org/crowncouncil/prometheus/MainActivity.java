@@ -44,7 +44,7 @@ public class MainActivity extends BridgeActivity {
             BufferedReader reader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
             StringBuilder script = new StringBuilder();
             String line;
-            while ((line = reader.readLine()) != null) script.append(line).append("\\n");
+            while ((line = reader.readLine()) != null) script.append(line).append(System.lineSeparator());
             reader.close();
             String js = "(function(){try{" + script.toString() + "}catch(e){console.error('PROMETHEUS AI injection failed',e);}})()";
             webView.evaluateJavascript(js, null);
