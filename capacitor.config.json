@@ -1,0 +1,17 @@
+{
+  "appId": "org.crowncouncil.prometheus",
+  "appName": "PROMETHEUS",
+  "webDir": "www",
+  "backgroundColor": "#04060C",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 700,
+      "backgroundColor": "#04060C",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    }
+  }
+}
