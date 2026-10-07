@@ -3,12 +3,9 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M54,23 C45,34 42,41 43,48 C34,54 34,67 43,74 C49,79 60,80 68,75 C78,69 77,55 69,49 C69,42 64,34 54,23Z" />
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2.8"
-        android:pathData="M15,58 C29,31 77,27 94,50 C80,76 31,81 15,58Z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M54,28 C40,28 29,39 29,54 C29,69 40,80 54,80 C68,80 79,69 79,54 C79,39 68,28 54,28Z" />
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="5"
+        android:pathData="M12,54 C21,27 83,22 96,51 C85,80 23,82 12,54Z" />
+    <circle android:fillColor="#FFFFFFFF" android:centerX="78" android:centerY="33" android:radius="4" />
 </vector>
