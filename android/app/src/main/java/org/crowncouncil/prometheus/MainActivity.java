@@ -11,7 +11,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getBridge().getWebView().postDelayed(this::injectPrometheusAI, 900);
+        getBridge().getWebView().postDelayed(this::injectPrometheusAI, 900);\n        getBridge().getWebView().postDelayed(this::injectPrometheusAI, 2200);
     }
 
     @Override
