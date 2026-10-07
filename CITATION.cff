@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: "PROMETHEUS: Scientific Intelligence for Microgravity Combustion"
+message: "If you use PROMETHEUS software or methods, please cite this project."
+type: software
+authors:
+  - family-names: Rahman
+    given-names: Masudur
+    affiliation: "The Crown Council"
+version: 1.0.0
+date-released: 2026-10-07
+repository-code: "https://github.com/masudurrahman-ds/prometheus-microgravity"
+keywords:
+  - NASA
+  - microgravity
+  - combustion
+  - fire safety
+  - artificial intelligence
+  - scientific computing
+license: "TBD"
