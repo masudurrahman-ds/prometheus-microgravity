@@ -1,0 +1,888 @@
+{
+  "schema_version": "1",
+  "dataset_id": "prometheus-nasa-psi-seed-2026-10-06",
+  "title": "PROMETHEUS — NASA PSI Provenance-Tracked Combustion Seed Corpus",
+  "description": "A small, provenance-preserving seed corpus built from NASA Physical Sciences Informatics investigation metadata and experimental-table entries. It is not a substitute for the full PSI download; missing values remain missing.",
+  "sources": [
+    {
+      "source_id": "PSI-98",
+      "title": "NASA PSI-98 — Spacecraft Fire Safety Experiment-I (SAFFIRE-I)",
+      "citation": "NASA Physical Sciences Informatics, PSI-98 Version 4, Spacecraft Fire Safety Experiment-I (SAFFIRE-I). DOI: 10.60555/0t15-1z43.",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-98",
+      "doi": "10.60555/0t15-1z43",
+      "license": "CC0-1.0",
+      "note": "NASA experimental table values. O2 midpoint and microgravity proxy are explicitly documented as canonicalization aids; the source reports an O2 range and low-g regime."
+    },
+    {
+      "source_id": "PSI-69",
+      "title": "NASA PSI-69 — Flame Extinguishment Experiment (FLEX)",
+      "citation": "NASA Physical Sciences Informatics, PSI-69 Version 5, Flame Extinguishment Experiment (FLEX). DOI: 10.60555/mbq8-0451.",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-69",
+      "doi": "10.60555/mbq8-0451",
+      "license": "CC0-1.0",
+      "note": "NASA investigation metadata. Documents LOI studies, droplet burning/extinction, 0.5–1.5 atm test pressure range and ~3 mm droplets."
+    },
+    {
+      "source_id": "PSI-25",
+      "title": "NASA PSI-25 — Burning and Suppression of Solids-II (BASS-II)",
+      "citation": "NASA Physical Sciences Informatics, PSI-25 Version 4, Burning and Suppression of Solids-II (BASS-II). DOI: 10.60555/4qc4-de67.",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-25",
+      "doi": "10.60555/4qc4-de67",
+      "license": "CC0-1.0",
+      "note": "NASA investigation metadata. Documents ignition, flame growth, flame spread and extinction limits for solid fuels in microgravity."
+    },
+    {
+      "source_id": "PSI-107",
+      "title": "NASA PSI-107 — Smoke Point In Co-flow Experiment (SPICE)",
+      "citation": "NASA Physical Sciences Informatics, PSI-107 Version 4, Smoke Point In Co-flow Experiment (SPICE). DOI: 10.60555/9kbh-e962.",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-107",
+      "doi": "10.60555/9kbh-e962",
+      "license": "CC0-1.0",
+      "note": "NASA investigation metadata. Documents 526 flames, methane/ethylene/propane/propylene fuels, 0.41/0.76/1.6 mm burners and 5.4–65 cm/s co-flow velocities."
+    },
+    {
+      "source_id": "PSI-62",
+      "title": "NASA PSI-62 — Concurrent Flame Spread Modeling in Microgravity",
+      "citation": "NASA Physical Sciences Informatics, PSI-62 Version 1, Concurrent Flame Spread Modeling using Flamelet Generated Manifolds in Microgravity with Comparison to BASS Experiments using Two-Color Tomography. DOI: 10.60555/e9xp-ex83.",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-62",
+      "doi": "10.60555/e9xp-ex83",
+      "license": "CC0-1.0",
+      "note": "NASA PSI ground investigation using BASS/BASS-II imagery and modeling; included to connect experiment evidence with validated modeling research."
+    },
+    {
+      "source_id": "NASA-PSI-COMBUSTION-CATALOG",
+      "title": "NASA PSI — Combustion Science investigation catalog",
+      "citation": "NASA Physical Sciences Informatics, Investigations by Research Area — Combustion Science.",
+      "url": "https://www.nasa.gov/physical-sciences-informatics-psi/psi-investigations-by-research-area/",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-PSI-RESEARCH-OPPORTUNITY",
+      "title": "NASA PSI Research Opportunity — E.12 eligible combustion investigations",
+      "citation": "NASA Science, NASA PSI Research Opportunity.",
+      "url": "https://science.nasa.gov/physical-sciences-informatics-psi/nasa-psi-research-opportunity/",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-NTRS-20170000230",
+      "title": "NTRS — Spacecraft Fire Experiments status",
+      "citation": "NASA Technical Reports Server, Document ID 20170000230.",
+      "url": "https://ntrs.nasa.gov/citations/20170000230",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-NTRS-20200000557",
+      "title": "NTRS — Buoyancy Effects on Concurrent Flame Spread Over Thick PMMA",
+      "citation": "NASA Technical Reports Server, Document ID 20200000557.",
+      "url": "https://ntrs.nasa.gov/citations/20200000557",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-NTRS-20250010653",
+      "title": "NTRS — Lunar Combustion Investigation",
+      "citation": "NASA Technical Reports Server, Document ID 20250010653.",
+      "url": "https://ntrs.nasa.gov/citations/20250010653",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-SVS-31394",
+      "title": "NASA SVS — NASA Studies Fire in Microgravity",
+      "citation": "NASA Scientific Visualization Studio, ID 31394.",
+      "url": "https://svs.gsfc.nasa.gov/31394/",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-COMBUSTION-SCIENCE",
+      "title": "NASA Glenn — Combustion Science",
+      "citation": "NASA Glenn Research Center, Combustion Science.",
+      "url": "https://www.nasa.gov/glenn/glenn-expertise-space-exploration/physical-sciences-program/combustion-science/",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-SPACE-FIRE-SAFETY",
+      "title": "NASA — Studying Combustion and Fire Safety",
+      "citation": "NASA, Space Station Research Integration Office.",
+      "url": "https://www.nasa.gov/missions/station/iss-research/studying-combustion-and-fire-safety/",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-NTRS-19930047031",
+      "title": "NTRS — Microgravity test results and spacecraft fire safety",
+      "citation": "NASA Technical Reports Server, Document ID 19930047031.",
+      "url": "https://ntrs.nasa.gov/citations/19930047031",
+      "license": "NASA public source",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-NTRS-20160000593",
+      "title": "NTRS — BASS-II combustion results",
+      "citation": "NASA Technical Reports Server, Document ID 20160000593.",
+      "url": "https://ntrs.nasa.gov/citations/20160000593",
+      "license": "NASA public source",
+      "metadata_only": true
+    }
+  ],
+  "experiments": [
+    {
+      "exp_id": "PSI98-S1",
+      "title": "SAFFIRE-I S1 — concurrent flow",
+      "platform": "ISS / Cygnus free-flight",
+      "fuel": "SIBAL Fabric",
+      "fuel_source": "PSI-98",
+      "source_ids": [
+        "PSI-98"
+      ],
+      "conditions": {
+        "o2_fraction": {
+          "value": "21.5–21.7%",
+          "unit": "%",
+          "canonical_value": 0.216,
+          "canonical_unit": "fraction",
+          "source_id": "PSI-98",
+          "locator": "Experimental Table · S1",
+          "canonical_note": "midpoint of NASA-reported range used only for canonical plotting"
+        },
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-98",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "1e-6 g is a visualization proxy for the reported microgravity regime; not a measured value"
+        },
+        "flow_velocity_mm_s": {
+          "value": "20",
+          "unit": "cm/s",
+          "canonical_value": 200,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-98",
+          "locator": "Experimental Table · S1"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "morphology",
+          "description": "Large-scale flame on SIBAL fabric; flame images were captured by two cameras.",
+          "source_id": "PSI-98",
+          "locator": "Experimental Table / Approach"
+        },
+        {
+          "phenomenon": "extinction",
+          "description": "Investigation targets low-g flammability limits and flame behavior in reduced gravity.",
+          "source_id": "PSI-98",
+          "locator": "Objectives / Hypothesis"
+        },
+        {
+          "phenomenon": "soot",
+          "description": "Smoke/flame behavior is part of the spacecraft fire-safety investigation.",
+          "source_id": "PSI-98",
+          "locator": "Research area: Spacecraft Fire, Smoke Distribution"
+        }
+      ],
+      "text": "NASA PSI-98 experimental-table record. Sample S1; SIBAL fabric 0.37 cm thick, 40.6 cm long, 94 cm wide; air flow 20 cm/s; O2 21.5–21.7%; ignition power 182 W; ignition time 8 s; burn time 420 s; flow direction Concurrent. Canonical O2 is a midpoint only; gravity is a visualization proxy for the reported microgravity regime."
+    },
+    {
+      "exp_id": "PSI98-S2",
+      "title": "SAFFIRE-I S2 — opposed flow",
+      "platform": "ISS / Cygnus free-flight",
+      "fuel": "SIBAL Fabric",
+      "fuel_source": "PSI-98",
+      "source_ids": [
+        "PSI-98"
+      ],
+      "conditions": {
+        "o2_fraction": {
+          "value": "~21.5%",
+          "unit": "%",
+          "canonical_value": 0.215,
+          "canonical_unit": "fraction",
+          "source_id": "PSI-98",
+          "locator": "Experimental Table · S2",
+          "canonical_note": "midpoint of NASA-reported range used only for canonical plotting"
+        },
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-98",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "1e-6 g is a visualization proxy for the reported microgravity regime; not a measured value"
+        },
+        "flow_velocity_mm_s": {
+          "value": "20",
+          "unit": "cm/s",
+          "canonical_value": 200,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-98",
+          "locator": "Experimental Table · S2"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "morphology",
+          "description": "Large-scale flame on SIBAL fabric; flame images were captured by two cameras.",
+          "source_id": "PSI-98",
+          "locator": "Experimental Table / Approach"
+        },
+        {
+          "phenomenon": "extinction",
+          "description": "Investigation targets low-g flammability limits and flame behavior in reduced gravity.",
+          "source_id": "PSI-98",
+          "locator": "Objectives / Hypothesis"
+        },
+        {
+          "phenomenon": "soot",
+          "description": "Smoke/flame behavior is part of the spacecraft fire-safety investigation.",
+          "source_id": "PSI-98",
+          "locator": "Research area: Spacecraft Fire, Smoke Distribution"
+        }
+      ],
+      "text": "NASA PSI-98 experimental-table record. Sample S2; SIBAL fabric 0.37 cm thick, 40.6 cm long, 94 cm wide; air flow 20 cm/s; O2 ~21.5%; ignition power 182 W; ignition time 8 s; burn time 70 s; flow direction Opposed. Canonical O2 is a midpoint only; gravity is a visualization proxy for the reported microgravity regime."
+    },
+    {
+      "exp_id": "PSI107-MET-low",
+      "title": "SPICE — Methane / low co-flow configuration (documented)",
+      "platform": "ISS Microgravity Science Glovebox",
+      "fuel": "methane",
+      "fuel_source": "PSI-107",
+      "source_ids": [
+        "PSI-107"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-107",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "visualization proxy for the reported microgravity regime"
+        },
+        "flow_velocity_mm_s": {
+          "value": "5.4",
+          "unit": "cm/s",
+          "canonical_value": 54,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-107",
+          "locator": "Approach · co-flow velocity range"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "soot",
+          "description": "SPICE studies smoke-point / sooting propensity for methane under non-buoyant jet diffusion flame conditions.",
+          "source_id": "PSI-107",
+          "locator": "Objectives / Approach"
+        },
+        {
+          "phenomenon": "morphology",
+          "description": "Luminous flame length and smoke point were recorded using still and video cameras.",
+          "source_id": "PSI-107",
+          "locator": "Approach"
+        }
+      ],
+      "text": "NASA PSI-107 documents methane among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."
+    },
+    {
+      "exp_id": "PSI107-MET-high",
+      "title": "SPICE — Methane / high co-flow configuration (documented)",
+      "platform": "ISS Microgravity Science Glovebox",
+      "fuel": "methane",
+      "fuel_source": "PSI-107",
+      "source_ids": [
+        "PSI-107"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-107",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "visualization proxy for the reported microgravity regime"
+        },
+        "flow_velocity_mm_s": {
+          "value": "65",
+          "unit": "cm/s",
+          "canonical_value": 650,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-107",
+          "locator": "Approach · co-flow velocity range"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "soot",
+          "description": "SPICE studies smoke-point / sooting propensity for methane under non-buoyant jet diffusion flame conditions.",
+          "source_id": "PSI-107",
+          "locator": "Objectives / Approach"
+        },
+        {
+          "phenomenon": "morphology",
+          "description": "Luminous flame length and smoke point were recorded using still and video cameras.",
+          "source_id": "PSI-107",
+          "locator": "Approach"
+        }
+      ],
+      "text": "NASA PSI-107 documents methane among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."
+    },
+    {
+      "exp_id": "PSI107-ETH-low",
+      "title": "SPICE — Ethylene / low co-flow configuration (documented)",
+      "platform": "ISS Microgravity Science Glovebox",
+      "fuel": "ethylene",
+      "fuel_source": "PSI-107",
+      "source_ids": [
+        "PSI-107"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-107",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "visualization proxy for the reported microgravity regime"
+        },
+        "flow_velocity_mm_s": {
+          "value": "5.4",
+          "unit": "cm/s",
+          "canonical_value": 54,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-107",
+          "locator": "Approach · co-flow velocity range"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "soot",
+          "description": "SPICE studies smoke-point / sooting propensity for ethylene under non-buoyant jet diffusion flame conditions.",
+          "source_id": "PSI-107",
+          "locator": "Objectives / Approach"
+        },
+        {
+          "phenomenon": "morphology",
+          "description": "Luminous flame length and smoke point were recorded using still and video cameras.",
+          "source_id": "PSI-107",
+          "locator": "Approach"
+        }
+      ],
+      "text": "NASA PSI-107 documents ethylene among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."
+    },
+    {
+      "exp_id": "PSI107-ETH-high",
+      "title": "SPICE — Ethylene / high co-flow configuration (documented)",
+      "platform": "ISS Microgravity Science Glovebox",
+      "fuel": "ethylene",
+      "fuel_source": "PSI-107",
+      "source_ids": [
+        "PSI-107"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-107",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "visualization proxy for the reported microgravity regime"
+        },
+        "flow_velocity_mm_s": {
+          "value": "65",
+          "unit": "cm/s",
+          "canonical_value": 650,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-107",
+          "locator": "Approach · co-flow velocity range"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "soot",
+          "description": "SPICE studies smoke-point / sooting propensity for ethylene under non-buoyant jet diffusion flame conditions.",
+          "source_id": "PSI-107",
+          "locator": "Objectives / Approach"
+        },
+        {
+          "phenomenon": "morphology",
+          "description": "Luminous flame length and smoke point were recorded using still and video cameras.",
+          "source_id": "PSI-107",
+          "locator": "Approach"
+        }
+      ],
+      "text": "NASA PSI-107 documents ethylene among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."
+    },
+    {
+      "exp_id": "PSI107-PRO-low",
+      "title": "SPICE — Propane / low co-flow configuration (documented)",
+      "platform": "ISS Microgravity Science Glovebox",
+      "fuel": "propane",
+      "fuel_source": "PSI-107",
+      "source_ids": [
+        "PSI-107"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-107",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "visualization proxy for the reported microgravity regime"
+        },
+        "flow_velocity_mm_s": {
+          "value": "5.4",
+          "unit": "cm/s",
+          "canonical_value": 54,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-107",
+          "locator": "Approach · co-flow velocity range"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "soot",
+          "description": "SPICE studies smoke-point / sooting propensity for propane under non-buoyant jet diffusion flame conditions.",
+          "source_id": "PSI-107",
+          "locator": "Objectives / Approach"
+        },
+        {
+          "phenomenon": "morphology",
+          "description": "Luminous flame length and smoke point were recorded using still and video cameras.",
+          "source_id": "PSI-107",
+          "locator": "Approach"
+        }
+      ],
+      "text": "NASA PSI-107 documents propane among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."
+    },
+    {
+      "exp_id": "PSI107-PRO-high",
+      "title": "SPICE — Propane / high co-flow configuration (documented)",
+      "platform": "ISS Microgravity Science Glovebox",
+      "fuel": "propane",
+      "fuel_source": "PSI-107",
+      "source_ids": [
+        "PSI-107"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-107",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "visualization proxy for the reported microgravity regime"
+        },
+        "flow_velocity_mm_s": {
+          "value": "65",
+          "unit": "cm/s",
+          "canonical_value": 650,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-107",
+          "locator": "Approach · co-flow velocity range"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "soot",
+          "description": "SPICE studies smoke-point / sooting propensity for propane under non-buoyant jet diffusion flame conditions.",
+          "source_id": "PSI-107",
+          "locator": "Objectives / Approach"
+        },
+        {
+          "phenomenon": "morphology",
+          "description": "Luminous flame length and smoke point were recorded using still and video cameras.",
+          "source_id": "PSI-107",
+          "locator": "Approach"
+        }
+      ],
+      "text": "NASA PSI-107 documents propane among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."
+    },
+    {
+      "exp_id": "PSI107-PROPY-low",
+      "title": "SPICE — Propylene / low co-flow configuration (documented)",
+      "platform": "ISS Microgravity Science Glovebox",
+      "fuel": "propylene",
+      "fuel_source": "PSI-107",
+      "source_ids": [
+        "PSI-107"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-107",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "visualization proxy for the reported microgravity regime"
+        },
+        "flow_velocity_mm_s": {
+          "value": "5.4",
+          "unit": "cm/s",
+          "canonical_value": 54,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-107",
+          "locator": "Approach · co-flow velocity range"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "soot",
+          "description": "SPICE studies smoke-point / sooting propensity for propylene under non-buoyant jet diffusion flame conditions.",
+          "source_id": "PSI-107",
+          "locator": "Objectives / Approach"
+        },
+        {
+          "phenomenon": "morphology",
+          "description": "Luminous flame length and smoke point were recorded using still and video cameras.",
+          "source_id": "PSI-107",
+          "locator": "Approach"
+        }
+      ],
+      "text": "NASA PSI-107 documents propylene among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."
+    },
+    {
+      "exp_id": "PSI107-PROPY-high",
+      "title": "SPICE — Propylene / high co-flow configuration (documented)",
+      "platform": "ISS Microgravity Science Glovebox",
+      "fuel": "propylene",
+      "fuel_source": "PSI-107",
+      "source_ids": [
+        "PSI-107"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "PSI-107",
+          "locator": "Project Type: Microgravity Investigation",
+          "canonical_note": "visualization proxy for the reported microgravity regime"
+        },
+        "flow_velocity_mm_s": {
+          "value": "65",
+          "unit": "cm/s",
+          "canonical_value": 650,
+          "canonical_unit": "mm/s",
+          "source_id": "PSI-107",
+          "locator": "Approach · co-flow velocity range"
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "soot",
+          "description": "SPICE studies smoke-point / sooting propensity for propylene under non-buoyant jet diffusion flame conditions.",
+          "source_id": "PSI-107",
+          "locator": "Objectives / Approach"
+        },
+        {
+          "phenomenon": "morphology",
+          "description": "Luminous flame length and smoke point were recorded using still and video cameras.",
+          "source_id": "PSI-107",
+          "locator": "Approach"
+        }
+      ],
+      "text": "NASA PSI-107 documents propylene among tested fuels and a co-flow velocity range of 5.4–65 cm/s. This record represents a documented boundary configuration, not a claim that a single flight sample was run exactly at this boundary."
+    },
+    {
+      "exp_id": "PSI-25-META",
+      "title": "BASS-II — Burning and Suppression of Solids-II",
+      "platform": "NASA PSI",
+      "fuel": null,
+      "source_ids": [
+        "PSI-25"
+      ],
+      "conditions": {},
+      "observations": [
+        {
+          "phenomenon": "flame_spread_rate",
+          "description": "NASA documents ignition, flame growth, flame spread and extinction limits for solid fuels in microgravity.",
+          "source_id": "PSI-25",
+          "locator": "Investigation Objectives / Approach"
+        }
+      ],
+      "text": "NASA documents ignition, flame growth, flame spread and extinction limits for solid fuels in microgravity."
+    },
+    {
+      "exp_id": "PSI-62-META",
+      "title": "Concurrent Flame Spread Modeling",
+      "platform": "NASA PSI",
+      "fuel": null,
+      "source_ids": [
+        "PSI-62"
+      ],
+      "conditions": {},
+      "observations": [
+        {
+          "phenomenon": "flame_spread_rate",
+          "description": "NASA PSI documents modeling and two-color tomography comparisons against BASS/BASS-II experiments.",
+          "source_id": "PSI-62",
+          "locator": "Investigation Objectives / Approach"
+        }
+      ],
+      "text": "NASA PSI documents modeling and two-color tomography comparisons against BASS/BASS-II experiments."
+    },
+    {
+      "exp_id": "NTRS-SAFFIREII-PMMA",
+      "title": "SAFFIRE-II PMMA · documented microgravity configuration",
+      "platform": "Cygnus CRS OA-5",
+      "fuel": "PMMA",
+      "fuel_source": "NASA-NTRS-20170000230",
+      "source_ids": [
+        "NASA-NTRS-20170000230"
+      ],
+      "conditions": {
+        "pressure_kpa": {
+          "value": "100",
+          "unit": "kPa",
+          "canonical_value": 100,
+          "canonical_unit": "kPa",
+          "source_id": "NASA-NTRS-20170000230",
+          "locator": "Saffire-II comparison",
+          "canonical_note": "Reported condition."
+        },
+        "flow_velocity_mm_s": {
+          "value": "200",
+          "unit": "mm/s",
+          "canonical_value": 200,
+          "canonical_unit": "mm/s",
+          "source_id": "NASA-NTRS-20170000230",
+          "locator": "Saffire-II comparison",
+          "canonical_note": "Reported flow."
+        },
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "NASA-NTRS-20170000230",
+          "locator": "Saffire-II",
+          "canonical_note": "Visualization proxy."
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "morphology",
+          "description": "Large-scale material fire/flame spread studied in low gravity.",
+          "source_id": "NASA-NTRS-20170000230",
+          "locator": "Saffire-II objectives"
+        }
+      ],
+      "text": "Documented configuration; not a reconstructed raw row."
+    },
+    {
+      "exp_id": "NTRS-PMMA-40KPA",
+      "title": "PMMA pressure comparison · 1-g 40 kPa boundary",
+      "platform": "Ground test",
+      "fuel": "PMMA",
+      "fuel_source": "NASA-NTRS-20200000557",
+      "source_ids": [
+        "NASA-NTRS-20200000557"
+      ],
+      "conditions": {
+        "pressure_kpa": {
+          "value": "40",
+          "unit": "kPa",
+          "canonical_value": 40,
+          "canonical_unit": "kPa",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Pressure range",
+          "canonical_note": "Boundary of reported 40–100 kPa range."
+        },
+        "flow_velocity_mm_s": {
+          "value": "200",
+          "unit": "mm/s",
+          "canonical_value": 200,
+          "canonical_unit": "mm/s",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Experimental conditions",
+          "canonical_note": "Reported flow."
+        },
+        "gravity_g": {
+          "value": "1",
+          "unit": "g",
+          "canonical_value": 1,
+          "canonical_unit": "g",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Normal gravity",
+          "canonical_note": "Normal gravity."
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "flame_spread_rate",
+          "description": "Pressure effect on concurrent flame spread over thick PMMA was studied.",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Abstract"
+        }
+      ],
+      "text": "Documented boundary condition."
+    },
+    {
+      "exp_id": "NTRS-PMMA-100KPA",
+      "title": "PMMA pressure comparison · 1-g 100 kPa boundary",
+      "platform": "Ground test",
+      "fuel": "PMMA",
+      "fuel_source": "NASA-NTRS-20200000557",
+      "source_ids": [
+        "NASA-NTRS-20200000557"
+      ],
+      "conditions": {
+        "pressure_kpa": {
+          "value": "100",
+          "unit": "kPa",
+          "canonical_value": 100,
+          "canonical_unit": "kPa",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Pressure range",
+          "canonical_note": "Boundary of reported 40–100 kPa range."
+        },
+        "flow_velocity_mm_s": {
+          "value": "200",
+          "unit": "mm/s",
+          "canonical_value": 200,
+          "canonical_unit": "mm/s",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Experimental conditions",
+          "canonical_note": "Reported flow."
+        },
+        "gravity_g": {
+          "value": "1",
+          "unit": "g",
+          "canonical_value": 1,
+          "canonical_unit": "g",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Normal gravity",
+          "canonical_note": "Normal gravity."
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "flame_spread_rate",
+          "description": "Pressure effect on concurrent flame spread over thick PMMA was studied.",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Abstract"
+        }
+      ],
+      "text": "Documented boundary condition."
+    },
+    {
+      "exp_id": "NTRS-PMMA-MG",
+      "title": "PMMA · Saffire-II microgravity comparison",
+      "platform": "Cygnus / Saffire-II",
+      "fuel": "PMMA",
+      "fuel_source": "NASA-NTRS-20200000557",
+      "source_ids": [
+        "NASA-NTRS-20200000557"
+      ],
+      "conditions": {
+        "pressure_kpa": {
+          "value": "100",
+          "unit": "kPa",
+          "canonical_value": 100,
+          "canonical_unit": "kPa",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Microgravity Saffire-II condition",
+          "canonical_note": "Reported."
+        },
+        "flow_velocity_mm_s": {
+          "value": "200",
+          "unit": "mm/s",
+          "canonical_value": 200,
+          "canonical_unit": "mm/s",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Microgravity Saffire-II condition",
+          "canonical_note": "Reported."
+        },
+        "gravity_g": {
+          "value": "microgravity",
+          "unit": "regime",
+          "canonical_value": 0.000001,
+          "canonical_unit": "regime",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Microgravity condition",
+          "canonical_note": "Visualization proxy."
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "flame_spread_rate",
+          "description": "Microgravity flame-spread behavior over PMMA was compared with reduced-pressure normal-gravity tests.",
+          "source_id": "NASA-NTRS-20200000557",
+          "locator": "Abstract"
+        }
+      ],
+      "text": "Documented comparison condition."
+    },
+    {
+      "exp_id": "LUCI-LUNAR-G",
+      "title": "LUCI · extended Lunar-gravity combustion configuration",
+      "platform": "New Shepard sounding rocket",
+      "fuel": "cotton-fiberglass composite",
+      "fuel_source": "NASA-NTRS-20250010653",
+      "source_ids": [
+        "NASA-NTRS-20250010653"
+      ],
+      "conditions": {
+        "gravity_g": {
+          "value": "Lunar gravity",
+          "unit": "g",
+          "canonical_value": 0.166,
+          "canonical_unit": "g",
+          "source_id": "NASA-NTRS-20250010653",
+          "locator": "Abstract",
+          "canonical_note": "Numerical representation of Lunar gravity for comparison."
+        }
+      },
+      "observations": [
+        {
+          "phenomenon": "flame_spread_rate",
+          "description": "Flame images were used to determine flame spread and growth rates; oxygen concentration was measured as burns progressed.",
+          "source_id": "NASA-NTRS-20250010653",
+          "locator": "Abstract"
+        }
+      ],
+      "text": "NASA NTRS describes extended-duration simulated Lunar-gravity combustion testing."
+    }
+  ],
+  "challenge_sources": [
+    "ACME BRE",
+    "ACME CLD Flame",
+    "ACME E-FIELD Flames",
+    "ACME S-Flames",
+    "BASS",
+    "BASS-II",
+    "CFI",
+    "DAFT",
+    "DAFT-2",
+    "FLEX",
+    "FLEX-2",
+    "Quantitative Studies of Cool Flame Transitions",
+    "SAFFIRE-I",
+    "SAFFIRE-II",
+    "SAFFIRE-III",
+    "SAME",
+    "SAME-R",
+    "SLICE",
+    "SPICE",
+    "Utilization of SAME data for microgravity smoke modeling"
+  ],
+  "update_version": "2026.10.07.2"
+}
