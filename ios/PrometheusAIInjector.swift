@@ -2,7 +2,7 @@ import WebKit
 
 /// PROMETHEUS iOS native bridge.
 /// Add prometheus_ai.js to the iOS target's Copy Bundle Resources.
-final class PrometheusAIInjector {
+final class PrometheusAISwiftInjector {
     static func inject(into webView: WKWebView) {
         guard let url = Bundle.main.url(forResource: "prometheus_ai", withExtension: "js"),
               let script = try? String(contentsOf: url, encoding: .utf8) else { return }
