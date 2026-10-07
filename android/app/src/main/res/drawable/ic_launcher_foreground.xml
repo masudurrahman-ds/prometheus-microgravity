@@ -3,11 +3,36 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:fillColor="#00000000" android:pathData="M0,0h108v108h-108z" />
-    <path android:fillColor="#446EAFFF" android:pathData="M54,26a28,28 0,1 0,0 56a28,28 0,1 0,0 -56z" />
-    <path android:fillColor="#7790FFFF" android:pathData="M48,29a25,25 0,1 0,0 50a25,25 0,1 0,0 -50z" />
-    <path android:fillColor="#D9E7FFFF" android:pathData="M47,31a19,19 0,1 0,0 38a19,19 0,1 0,0 -38z" />
-    <path android:fillColor="#FFFFFFFF" android:pathData="M43,34a11,11 0,1 0,0 22a11,11 0,1 0,0 -22z" />
-    <path android:fillColor="#00000000" android:strokeColor="#E6CB93" android:strokeWidth="2.4" android:pathData="M19,49 C35,28 75,27 92,47 C75,65 35,67 19,49Z" />
-    <path android:fillColor="#00000000" android:strokeColor="#F2D9A4" android:strokeWidth="1.2" android:pathData="M20,49 C35,31 74,30 91,47" />
+
+    <!-- PROMETHEUS: a floating flame inside an orbital trajectory -->
+    <path
+        android:fillColor="#07131B"
+        android:pathData="M18,0h72a18,18 0,0 1,18 18v72a18,18 0,0 1,-18 18h-72a18,18 0,0 1,-18 -18v-72a18,18 0,0 1,18 -18z" />
+
+    <!-- orbital trajectory -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D7B56D"
+        android:strokeWidth="2.6"
+        android:pathData="M15,58 C29,31 77,27 94,50 C80,76 31,81 15,58Z" />
+
+    <!-- flame glow -->
+    <path
+        android:fillColor="#143442"
+        android:pathData="M54,23 C45,34 42,41 43,48 C34,54 34,67 43,74 C49,79 60,80 68,75 C78,69 77,55 69,49 C69,42 64,34 54,23Z" />
+
+    <!-- outer flame -->
+    <path
+        android:fillColor="#FF7A2F"
+        android:pathData="M55,27 C48,37 46,43 48,49 C40,54 39,64 44,70 C49,77 61,78 68,70 C74,63 71,54 65,49 C65,42 61,34 55,27Z" />
+
+    <!-- inner flame -->
+    <path
+        android:fillColor="#FFD166"
+        android:pathData="M56,43 C52,49 51,53 52,56 C48,59 48,64 51,67 C54,70 60,70 63,66 C66,62 63,57 61,55 C61,51 59,47 56,43Z" />
+
+    <!-- small cool highlight: combustion / microgravity cue -->
+    <path
+        android:fillColor="#72D6E8"
+        android:pathData="M42,51 C39,54 38,58 39,61 C40,64 42,65 44,66 C42,61 44,56 47,53 C45,52 44,51 42,51Z" />
 </vector>
