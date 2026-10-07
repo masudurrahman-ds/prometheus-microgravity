@@ -46,9 +46,9 @@
     .pm-logic div{padding:7px;border-radius:9px;background:rgba(255,255,255,.035);font-size:9px;color:#aab2c8}
     .pm-logic b{display:block;color:#e6cb93;margin-bottom:2px}
     .pm-3d{position:relative;background:#03060d;border-radius:13px;overflow:hidden}
-    .pm-3d canvas{display:block;width:100%;height:270px;touch-action:none}
+    .pm-3d canvas{display:block;width:100%;height:clamp(205px,52vw,270px);touch-action:none;background:#03060d}
     .pm-3d-hud{position:absolute;left:10px;top:9px;right:10px;display:flex;justify-content:space-between;pointer-events:none;color:#aab2c8;font-size:9px;letter-spacing:.08em;text-transform:uppercase}
-    .pm-3d-controls{display:flex;gap:6px;padding:8px;border-top:1px solid rgba(255,255,255,.07)}
+    .pm-3d-controls{display:flex;gap:6px;padding:8px;border-top:1px solid rgba(255,255,255,.07);flex-wrap:wrap}
     .pm-3d-controls button{border:1px solid rgba(230,203,147,.28);background:rgba(230,203,147,.06);color:#e6cb93;border-radius:8px;padding:5px 8px;font-size:10px;cursor:pointer}
     .pm-video-note{color:#737c96;font-size:9.5px;margin:7px 0 0}
 
@@ -198,12 +198,41 @@
     card.querySelector("[data-rotate]").onclick=()=>{running=!running;running?start():stop();};
     card.querySelector("[data-reset]").onclick=()=>{yaw=-.35;pitch=-.18;zoom=1;frame(performance.now());};
     card.querySelector("[data-video]").onclick=()=>{
-      if(recording||!canvas.captureStream){return;}
-      recording=true; const stream=canvas.captureStream(30), chunks=[];
+      const btn=card.querySelector("[data-video]");
+      if(recording)return;
+      if(!canvas.captureStream||typeof MediaRecorder==="undefined"){
+        btn.textContent="Recorder unavailable";
+        setTimeout(()=>btn.textContent="Generate video",2200);
+        return;
+      }
+      recording=true; btn.textContent="Recording…";
+      const stream=canvas.captureStream(30), chunks=[];
       const mime=MediaRecorder.isTypeSupported("video/webm;codecs=vp9")?"video/webm;codecs=vp9":"video/webm";
-      const rec=new MediaRecorder(stream,{mimeType:mime}); rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
-      rec.onstop=()=>{recording=false;const blob=new Blob(chunks,{type:mime});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="prometheus-nasa-3d-result.webm";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
-      const old=running; running=true; rec.start(); setTimeout(()=>{rec.stop();running=old;},8000);
+      let rec;
+      try{ rec=new MediaRecorder(stream,{mimeType:mime}); }
+      catch(e){ recording=false; btn.textContent="Generate video"; return; }
+      rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+      rec.onstop=()=>{
+        recording=false; btn.textContent="Generate video";
+        const blob=new Blob(chunks,{type:mime}), url=URL.createObjectURL(blob);
+        let preview=card.querySelector("[data-video-preview]");
+        if(!preview){
+          preview=document.createElement("div");
+          preview.dataset.videoPreview="1";
+          preview.style.cssText="padding:0 8px 8px";
+          card.appendChild(preview);
+        }
+        preview.innerHTML="";
+        const v=document.createElement("video");
+        v.controls=true; v.playsInline=true; v.muted=true; v.src=url;
+        v.style.cssText="display:block;width:100%;border-radius:10px;background:#000";
+        const dl=document.createElement("a");
+        dl.href=url; dl.download="prometheus-nasa-3d-result.webm"; dl.textContent="Save generated video";
+        dl.style.cssText="display:inline-block;margin-top:7px;color:#e6cb93;font:600 11px system-ui;text-decoration:none";
+        preview.append(v,dl);
+      };
+      const old=running; running=true; rec.start();
+      setTimeout(()=>{if(rec.state!=="inactive")rec.stop();running=old;stream.getTracks().forEach(t=>t.stop());},8000);
     };
     start(); return card;
   }
