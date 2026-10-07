@@ -1443,7 +1443,7 @@ select,input,button,.field>label,.lbl{font-variant-numeric:tabular-nums lining-n
         h('div', {class: 'hero-cta'}, ok ? h('button', {class: 'btn gold', on: {click: () => go('universe')}}, 'Enter the universe  →') : ALLOW_FIXTURE ? h('button', {class: 'btn gold', on: {click: () => loadFixture(false)}}, 'Enter with demo data  →') : h('button', {class: 'btn gold', on: {click: () => go('data')}}, 'Load your dataset  →'),
           h('button', {class: 'btn', disabled: !ok, on: {click: () => startTour()}}, 'Guided tour'), ok ? h('button', {class: 'btn ghost', on: {click: () => go('data')}}, 'Load a dataset') : null)),
         h('div', {class: 'orb-wrap'}, orb, h('div', {class: 'orb-cap'}, 'Without buoyancy, a flame is a sphere'))), stats, h('div', {style: 'height:34px'}), car.el,
-      h('p', {class: 'faint small', style: 'margin-top:34px;text-align:center'}, ok && ds.hasSynthetic ? 'NASA evidence is shown with provenance labels; synthetic demonstration records are excluded from this build.' : 'A research aid. Not a safety certification. Unvalidated until reviewed by a domain expert.')));
+      h('p', {class: 'faint small', style: 'margin-top:34px;text-align:center'}, ok ? 'NASA PSI provenance-tracked evidence is loaded. Source and measurement status are shown for every record.' : 'A research aid. Not a safety certification. Unvalidated until reviewed by a domain expert.')));
     stopOrb = UI.startOrb(orb);
     root.querySelectorAll('[data-count]').forEach(el => { const to = +el.dataset.count, t0 = performance.now(); const step = t => { const k = Math.min(1, (t - t0) / 1100); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1 && el.isConnected) requestAnimationFrame(step); }; requestAnimationFrame(step); });
   }
