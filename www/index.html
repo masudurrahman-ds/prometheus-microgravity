@@ -1220,7 +1220,16 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
   }
 
   // ------------------------------------------------------------------ router
-  function go(tab) { S.tab = tab; if (tab !== 'universe') { closeDrawer(); } render(); scrollTo({top: 0, behavior: 'instant' in window ? 'instant' : 'auto'}); }
+  function go(tab, opts = {}) {
+    const same = S.tab === tab;
+    S.tab = tab;
+    if (tab !== 'universe') { closeDrawer(); }
+    if (!opts.fromHistory && !same && history.state?.prometheus !== tab) {
+      try { history.pushState({prometheus: tab}, '', '#'+tab); } catch (_) {}
+    }
+    render();
+    scrollTo({top: 0, behavior: 'instant' in window ? 'instant' : 'auto'});
+  }
   function render() {
     dispose(); chrome(); stage.replaceChildren();
     const V = {landing: viewLanding, universe: viewUniverse, lab: viewLab, gaps: viewGaps, research: viewResearch, mission: viewMission, data: viewData}[S.tab];
@@ -1529,7 +1538,7 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
     ];
   }
   function startTour() { if (!S.ds || !S.ds.experiments.length) return; goTour(0); }
-  function goTour(i) { const st = tourSteps()[i]; S.tour = {step: i}; if (st.act) st.act(); const same = S.tab === st.tab; S.tab = st.tab; if (!same || S.tab === 'lab') render(); else renderTour(); if (st.cam && galaxy) galaxy.preset(st.cam); else if (st.cam) setTimeout(() => galaxy && galaxy.preset(st.cam), 400); renderTour(); }
+  function goTour(i) { const st = tourSteps()[i]; S.tour = {step: i}; if (st.act) st.act(); const same = S.tab === st.tab; S.tab = st.tab; if (!same || S.tab === 'lab') { try { history.replaceState({prometheus: S.tab}, '', '#'+S.tab); } catch (_) {} render(); } else renderTour(); if (st.cam && galaxy) galaxy.preset(st.cam); else if (st.cam) setTimeout(() => galaxy && galaxy.preset(st.cam), 400); renderTour(); }
   function renderTour() {
     const box = $('#tour'); if (!box) return; box.replaceChildren(); if (!S.tour || !S.ds) return;
     const steps = tourSteps(), i = S.tour.step, st = steps[i];
@@ -1539,6 +1548,22 @@ dialog textarea{width:100%;height:46vh;background:rgba(0,0,0,.28);color:var(--te
 
   // ------------------------------------------------------------------ boot
   function boot() {
+    try {
+      const initial = location.hash.replace(/^#/, '');
+      const valid = ['landing','universe','lab','gaps','research','mission','data'];
+      history.replaceState({prometheus: valid.includes(initial) ? initial : 'landing'}, '', '#'+(valid.includes(initial) ? initial : 'landing'));
+      if (valid.includes(initial)) S.tab = initial;
+      addEventListener('popstate', e => {
+        const tab = e.state?.prometheus || 'landing';
+        if (valid.includes(tab)) go(tab, {fromHistory:true});
+      });
+      window.__prometheusBack = () => {
+        if (S.tour) { S.tour = null; renderTour(); return true; }
+        if (S.drawer) { closeDrawer(); return true; }
+        if (history.state?.prometheus && history.state.prometheus !== 'landing') { history.back(); return true; }
+        return false;
+      };
+    } catch (_) {}
     UI.startStars($('#stars')); buildShell();
     if (ALLOW_FIXTURE && FIXTURE_EL && FIXTURE_EL.textContent.trim().startsWith('{')) { try { setDataset(JSON.parse(FIXTURE_EL.textContent), 'the embedded NASA PSI seed corpus', true); } catch (e) { render(); } } else render();
     window.__flare = {S, go, get galaxy() { return galaxy; }, get mini() { return miniGal; }, get carousel() { return carousel; }};
