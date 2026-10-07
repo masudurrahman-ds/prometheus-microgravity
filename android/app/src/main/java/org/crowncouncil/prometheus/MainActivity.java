@@ -2,6 +2,7 @@ package org.crowncouncil.prometheus;
 
 import android.os.Bundle;
 import android.webkit.WebView;
+import androidx.activity.OnBackPressedCallback;
 import com.getcapacitor.BridgeActivity;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -11,31 +12,31 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        installBackHandler();
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 1200);
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 2600);
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 5200);
     }
 
-    @Override
-    public void onBackPressed() {
-        WebView webView = getBridge().getWebView();
-        if (webView == null) {
-            super.onBackPressed();
-            return;
-        }
-        webView.evaluateJavascript(
-            "(window.__prometheusBack ? window.__prometheusBack() : false)",
-            value -> {
-                if ("true".equals(value)) {
+    private void installBackHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                WebView webView = getBridge().getWebView();
+                if (webView == null) {
+                    finish();
                     return;
                 }
-                if (webView.canGoBack()) {
-                    webView.goBack();
-                } else {
-                    MainActivity.super.onBackPressed();
-                }
+                webView.evaluateJavascript(
+                    "(window.__prometheusBack ? window.__prometheusBack() : false)",
+                    value -> {
+                        if ("true".equals(value)) return;
+                        if (webView.canGoBack()) webView.goBack();
+                        else finish();
+                    }
+                );
             }
-        );
+        });
     }
 
     private void injectPrometheusAI() {
