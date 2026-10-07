@@ -4,35 +4,22 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- PROMETHEUS: a floating flame inside an orbital trajectory -->
-    <path
-        android:fillColor="#07131B"
-        android:pathData="M18,0h72a18,18 0,0 1,18 18v72a18,18 0,0 1,-18 18h-72a18,18 0,0 1,-18 -18v-72a18,18 0,0 1,18 -18z" />
+    <!-- PROMETHEUS: a planet in microgravity with a clear orbital trajectory -->
+    <path android:fillColor="#050A14" android:pathData="M18,0h72a18,18 0,0 1,18 18v72a18,18 0,0 1,-18 18h-72a18,18 0,0 1,-18 -18v-72a18,18 0,0 1,18 -18z" />
 
-    <!-- orbital trajectory -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#D7B56D"
-        android:strokeWidth="2.6"
-        android:pathData="M15,58 C29,31 77,27 94,50 C80,76 31,81 15,58Z" />
+    <!-- rear orbit -->
+    <path android:fillColor="#00000000" android:strokeColor="#D8B86C" android:strokeWidth="3"
+        android:pathData="M9,54 C19,26 49,14 78,25 C96,32 101,49 94,62" />
 
-    <!-- flame glow -->
-    <path
-        android:fillColor="#143442"
-        android:pathData="M54,23 C45,34 42,41 43,48 C34,54 34,67 43,74 C49,79 60,80 68,75 C78,69 77,55 69,49 C69,42 64,34 54,23Z" />
+    <!-- planet -->
+    <circle android:fillColor="#183B63" android:centerX="54" android:centerY="54" android:radius="23" />
+    <path android:fillColor="#2C6596" android:pathData="M34,48 C42,31 64,27 77,40 C69,36 57,37 49,44 C43,49 39,56 39,65 C34,60 32,54 34,48Z" />
+    <circle android:fillColor="#75C9E8" android:alpha="0.9" android:centerX="47" android:centerY="44" android:radius="5" />
 
-    <!-- outer flame -->
-    <path
-        android:fillColor="#FF7A2F"
-        android:pathData="M55,27 C48,37 46,43 48,49 C40,54 39,64 44,70 C49,77 61,78 68,70 C74,63 71,54 65,49 C65,42 61,34 55,27Z" />
+    <!-- front orbital trajectory -->
+    <path android:fillColor="#00000000" android:strokeColor="#F0D58F" android:strokeWidth="3.2"
+        android:pathData="M9,54 C19,82 50,94 79,83 C96,76 101,59 94,46" />
 
-    <!-- inner flame -->
-    <path
-        android:fillColor="#FFD166"
-        android:pathData="M56,43 C52,49 51,53 52,56 C48,59 48,64 51,67 C54,70 60,70 63,66 C66,62 63,57 61,55 C61,51 59,47 56,43Z" />
-
-    <!-- small cool highlight: combustion / microgravity cue -->
-    <path
-        android:fillColor="#72D6E8"
-        android:pathData="M42,51 C39,54 38,58 39,61 C40,64 42,65 44,66 C42,61 44,56 47,53 C45,52 44,51 42,51Z" />
+    <!-- small combustion spark, not a flame-shaped logo -->
+    <circle android:fillColor="#FFD166" android:centerX="54" android:centerY="54" android:radius="3.5" />
 </vector>
