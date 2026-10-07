@@ -6,7 +6,7 @@ authors:
   - family-names: Rahman
     given-names: Masudur
     affiliation: "The Crown Council"
-version: 1.0.0
+version: 1.1.0
 date-released: 2026-10-07
 repository-code: "https://github.com/masudurrahman-ds/prometheus-microgravity"
 keywords:
@@ -16,4 +16,4 @@ keywords:
   - fire safety
   - artificial intelligence
   - scientific computing
-license: "TBD"
+license: "MIT"
