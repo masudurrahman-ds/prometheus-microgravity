@@ -1,0 +1,1 @@
+{"name":"prometheus-scientific-agent","private":true,"type":"module","scripts":{"start":"node src/server.mjs","dev":"node --watch src/server.mjs"},"dependencies":{"openai":"^6.16.0"}}
