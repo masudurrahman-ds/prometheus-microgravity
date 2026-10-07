@@ -1,6 +1,7 @@
 (() => {
   "use strict";
   if (window.__prometheusAIInjected) return;
+  window.__prometheusAIStatus = "loading";
   window.__prometheusAIInjected = true;
 
   /*
@@ -23,7 +24,7 @@
   const OUTSIDE = /\b(stock|crypto|bitcoin|recipe|football|soccer|celebrity|politics|election|weather|password|homework|joke|poem|dating|relationship|medical diagnosis|medicine|restaurant|shopping|travel|programming|javascript|android|python|linux|gaming|movie|music|lyrics|religion|news)\b/i;
 
   const style = document.createElement("style");
-  style.textContent = \`
+  style.textContent = `
     #pm-ai-fab{position:fixed;right:18px;bottom:22px;z-index:99999;width:62px;height:62px;border-radius:50%;border:1px solid rgba(230,203,147,.8);background:radial-gradient(circle at 35% 27%,#fff8df 0 8%,#e6cb93 25%,#6f5830 62%,#090c15 100%);box-shadow:0 14px 40px rgba(0,0,0,.62),0 0 30px rgba(230,203,147,.28);color:#161108;font:700 12px IBM Plex Sans,system-ui;cursor:pointer}
     #pm-ai-fab .pm-orbit{position:absolute;inset:8px;border:1px solid rgba(20,16,8,.42);border-radius:50%;transform:rotate(-23deg)}
     #pm-ai-fab .pm-spark{font-size:17px;line-height:13px;display:block}
@@ -73,7 +74,7 @@
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
     #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
     @media(max-width:600px){#pm-ai-fab{right:14px;bottom:16px}#pm-ai-panel{right:9px;bottom:84px;width:calc(100vw - 18px);height:calc(100vh - 102px);border-radius:20px}}
-  \`;
+  `;
   document.head.appendChild(style);
 
   const fab = document.createElement("button");
@@ -84,7 +85,7 @@
   const panel = document.createElement("section");
   panel.id = "pm-ai-panel";
   panel.setAttribute("aria-label","PROMETHEUS AI scientific intelligence");
-  panel.innerHTML = \`
+  panel.innerHTML = `
     <div id="pm-ai-head">
       <div>
         <strong>PROMETHEUS AI</strong>
@@ -105,7 +106,7 @@
       <input id="pm-ai-input" placeholder="Ask a NASA combustion question…" autocomplete="off" />
       <button id="pm-ai-send" type="submit">Ask</button>
     </form>
-  \`;
+  `;
   document.body.appendChild(panel);
   document.body.appendChild(fab);
 
@@ -538,6 +539,9 @@
   panel.querySelector("#pm-ai-close").onclick=()=>panel.classList.remove("open");
   panel.querySelector("#pm-ai-form").onsubmit=e=>{e.preventDefault();ask(input.value);input.value="";};
   panel.querySelectorAll(".pm-chip").forEach(b=>b.onclick=()=>{input.value=b.textContent;ask(input.value);input.value="";});
+
+  window.__prometheusAIStatus = "ready";
+  window.__prometheusAIOpen = ()=>{ panel.classList.add("open"); if(!body.childElementCount) readyMessage(); input.focus(); };
 
   window.PROMETHEUS_AI = {
     version:"2.0.0",
