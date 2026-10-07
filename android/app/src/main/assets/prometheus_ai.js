@@ -1,6 +1,7 @@
 (() => {
   "use strict";
-  if (window.__prometheusAIInjected) return;
+  if (window.__prometheusAIStatus === "ready") return;
+  if (window.__prometheusAIStatus === "loading" && window.__prometheusAIInjected) return;
   window.__prometheusAIStatus = "loading";
   window.__prometheusAIInjected = true;
 
