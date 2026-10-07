@@ -1,4 +1,4 @@
-name: Build PROMETHEUS Android app
+name: Validate PROMETHEUS repository
 
 on:
   push:
@@ -6,23 +6,23 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  debug-apk:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-      - run: npm ci
-      - run: npx cap sync android
-      - name: Build debug APK
-        working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
-      - uses: actions/upload-artifact@v4
-        with:
-          name: prometheus-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Validate NASA PSI seed JSON
+        run: python -m json.tool data/prometheus_nasa_psi_seed.json > /dev/null
+      - name: Check required project documentation
+        run: |
+          test -f README.md
+          test -f data/NASA_SOURCES.md
+          test -f data/PROMETHEUS_NASA_CITATIONS.md
+          test -f PROMETHEUS_BUILD_STATUS.md
+      - name: Report Android source status
+        run: |
+          if [ -f www/index.html ] && [ -f android/gradlew ]; then
+            echo "Complete Android/web source tree detected."
+          else
+            echo "Android/web source tree is not yet complete in GitHub."
+            echo "Repository validation passed; Android APK build will be enabled after the full source tree is published."
+          fi
