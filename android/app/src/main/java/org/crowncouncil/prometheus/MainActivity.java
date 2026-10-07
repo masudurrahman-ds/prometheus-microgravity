@@ -14,6 +14,28 @@ public class MainActivity extends BridgeActivity {
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 1400);
     }
 
+    @Override
+    public void onBackPressed() {
+        WebView webView = getBridge().getWebView();
+        if (webView == null) {
+            super.onBackPressed();
+            return;
+        }
+        webView.evaluateJavascript(
+            "(window.__prometheusBack ? window.__prometheusBack() : false)",
+            value -> {
+                if ("true".equals(value)) {
+                    return;
+                }
+                if (webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    MainActivity.super.onBackPressed();
+                }
+            }
+        );
+    }
+
     private void injectPrometheusAI() {
         try {
             WebView webView = getBridge().getWebView();
