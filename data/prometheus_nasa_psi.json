@@ -128,6 +128,62 @@
       "url": "https://ntrs.nasa.gov/citations/20160000593",
       "license": "NASA public source",
       "metadata_only": true
+    },
+    {
+      "source_id": "NASA-SOFIE",
+      "title": "Solid Fuel Ignition and Extinction (SoFIE) — NASA Science",
+      "url": "https://science.nasa.gov/biological-physical/investigations/sofie/",
+      "publisher": "NASA",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-FLARE",
+      "title": "Flammability Limits At Reduced-g Experiment (FLARE) — NASA",
+      "url": "https://science.nasa.gov/mission/flare/",
+      "publisher": "NASA/JAXA",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-FLARE-GRC",
+      "title": "FLARE — NASA Glenn Research Center",
+      "url": "https://www.nasa.gov/glenn/glenn-expertise-space-exploration/physical-sciences-program/combustion-science/flammability-limits-at-reduced-g-experiment-flare/",
+      "publisher": "NASA",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-FM2",
+      "title": "Flammability of Materials on the Moon (FM²) — NASA",
+      "url": "https://www.nasa.gov/glenn/glenn-expertise-space-exploration/physical-sciences-program/combustion-science/flammability-of-materials-on-the-moon-fm2/",
+      "publisher": "NASA",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-CONFINED-COMBUSTION",
+      "title": "Confined Combustion — NASA fire-safety research",
+      "url": "https://www.nasa.gov/missions/station/iss-research/studying-combustion-and-fire-safety/",
+      "publisher": "NASA / ISS National Lab",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-FIRE-SAFETY-OVERVIEW",
+      "title": "Studying Combustion and Fire Safety — NASA",
+      "url": "https://www.nasa.gov/missions/station/iss-research/studying-combustion-and-fire-safety/",
+      "publisher": "NASA",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-FLAME-EXPLAINER",
+      "title": "Why NASA is studying flames in space — NASA Science",
+      "url": "https://science.nasa.gov/biological-physical/resources/explainers-infographics/why-nasa-is-studying-flames-in-space/",
+      "publisher": "NASA",
+      "metadata_only": true
+    },
+    {
+      "source_id": "NASA-LUCI",
+      "title": "Lunar Combustion Investigation (LUCI) — NTRS",
+      "url": "https://ntrs.nasa.gov/citations/20250010653",
+      "publisher": "NASA NTRS",
+      "metadata_only": true
     }
   ],
   "experiments": [
@@ -169,6 +225,18 @@
         }
       },
       "observations": [
+        {
+          "phenomenon": "burn_duration",
+          "description": "NASA experimental table reports a 420 s burn time for S1.",
+          "source_id": "PSI-98",
+          "locator": "Experimental Table · S1",
+          "measurement": {
+            "value": "420",
+            "unit": "s",
+            "canonical_value": 420,
+            "canonical_unit": "s"
+          }
+        },
         {
           "phenomenon": "morphology",
           "description": "Large-scale flame on SIBAL fabric; flame images were captured by two cameras.",
@@ -228,6 +296,18 @@
         }
       },
       "observations": [
+        {
+          "phenomenon": "burn_duration",
+          "description": "NASA experimental table reports a 70 s burn time for S2.",
+          "source_id": "PSI-98",
+          "locator": "Experimental Table · S2",
+          "measurement": {
+            "value": "70",
+            "unit": "s",
+            "canonical_value": 70,
+            "canonical_unit": "s"
+          }
+        },
         {
           "phenomenon": "morphology",
           "description": "Large-scale flame on SIBAL fabric; flame images were captured by two cameras.",
@@ -882,7 +962,16 @@
     "SAME-R",
     "SLICE",
     "SPICE",
-    "Utilization of SAME data for microgravity smoke modeling"
+    "Utilization of SAME data for microgravity smoke modeling",
+    "SoFIE",
+    "SoFIE-GEL",
+    "SoFIE-MIST",
+    "FM²",
+    "FLARE",
+    "Confined Combustion",
+    "LUCI",
+    "NASA fire-safety overview",
+    "Why NASA is studying flames in space"
   ],
-  "update_version": "2026.10.07.2"
+  "update_version": "2026.10.07.3"
 }
