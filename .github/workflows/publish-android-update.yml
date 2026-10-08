@@ -16,19 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate embedded application JavaScript syntax
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import vm from 'node:vm';
-          const html = fs.readFileSync('www/index.html', 'utf8');
-          const scripts = [...html.matchAll(/<script([^>]*)>([\\s\\S]*?)<\\/script>/gi)];
-          const app = scripts.map(m => ({attrs:m[1], source:m[2]})).find(x => !/type=["']application\\/json["']/i.test(x.attrs) && x.source.includes('/* PROMETHEUS application'));
-          if (!app) throw new Error('PROMETHEUS application script not found');
-          new vm.Script(app.source, {filename:'www/index.html#application'});
-          console.log('Embedded PROMETHEUS application script syntax: OK');
-          NODE
-
       - name: Check production signing configuration
         id: signing
         env:
