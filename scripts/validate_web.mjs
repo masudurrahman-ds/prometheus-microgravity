@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import vm from "node:vm";
 
 const html=fs.readFileSync("www/index.html","utf8");
 const match=html.match(/<script type="application\/json" id="fixture">([\s\S]*?)<\/script>/);
@@ -12,4 +13,10 @@ const psi98=fixture.experiments.find(e=>e.exp_id==="PSI98-S1");
 if(!psi98 || !(psi98.observations||[]).some(o=>o.phenomenon==="burn_duration" && o.measurement?.canonical_value===420)) throw new Error("SAFFIRE S1 burn duration missing");
 const data=JSON.parse(fs.readFileSync("data/prometheus_nasa_psi.json","utf8"));
 if(data.update_version!=="2026.10.07.3") throw new Error("dataset update version mismatch");
+
+const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
+scripts.forEach(({attrs,source,index})=>{
+  if(/type=["']application\/json["']/i.test(attrs)) return;
+  new vm.Script(source,{filename:`www/index.html#script-${index+1}`});
+});
 console.log("PROMETHEUS web/data validation passed:", fixture.experiments.length, "experiments;", fixture.sources.length, "sources;");

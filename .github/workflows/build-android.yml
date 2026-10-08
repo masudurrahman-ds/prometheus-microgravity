@@ -4,6 +4,8 @@ name: Build PROMETHEUS Android app
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
     paths-ignore:
       - update/update.json
   workflow_dispatch: {}
