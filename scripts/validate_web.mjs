@@ -14,7 +14,7 @@ if(!psi98 || !(psi98.observations||[]).some(o=>o.phenomenon==="burn_duration" &&
 const data=JSON.parse(fs.readFileSync("data/prometheus_nasa_psi.json","utf8"));
 if(data.update_version!=="2026.10.07.3") throw new Error("dataset update version mismatch");
 
-const scripts=[...html.matchAll(/<script([^>]*)>([\\s\\S]*?)<\\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
+const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
 scripts.forEach(({attrs,source,index})=>{
   if(/type=["']application\/json["']/i.test(attrs)) return;
   new vm.Script(source,{filename:`www/index.html#script-${index+1}`});
