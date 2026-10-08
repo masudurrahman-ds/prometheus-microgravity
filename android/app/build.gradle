@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+def releaseVersionCode = (System.getenv("PROMETHEUS_VERSION_CODE") ?: "2").toInteger()
+def releaseVersionName = System.getenv("PROMETHEUS_VERSION_NAME") ?: "1.1.0"
+def releaseKeystore = System.getenv("PROMETHEUS_KEYSTORE_PATH")
+
 android {
     namespace = "org.crowncouncil.prometheus"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,16 +11,28 @@ android {
         applicationId "org.crowncouncil.prometheus"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.1.0"
+        versionCode releaseVersionCode
+        versionName releaseVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (releaseKeystore) {
+            release {
+                storeFile file(releaseKeystore)
+                storePassword System.getenv("PROMETHEUS_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("PROMETHEUS_KEY_ALIAS")
+                keyPassword System.getenv("PROMETHEUS_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            if (releaseKeystore) signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
