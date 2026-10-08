@@ -4,6 +4,10 @@ import { searchNasaEvidence, getExperiment, compareExperiments, getSource } from
 const PORT = Number(process.env.PORT || 8787);
 const MODEL = process.env.PROMETHEUS_MODEL;
 const MAX_ROUNDS = Number(process.env.MAX_TOOL_ROUNDS || 8);
+const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 65536);
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "*";
+const RATE_LIMIT = Number(process.env.RATE_LIMIT_PER_MINUTE || 20);
+const rate = new Map();
 
 const SYSTEM = `You are the PROMETHEUS Scientific Agent. You help users explore microgravity combustion using the indexed NASA evidence supplied by tools.
 
@@ -71,19 +75,24 @@ async function runAgent(body) {
 }
 
 function send(res,status,payload){
-  res.writeHead(status,{"Content-Type":"application/json","Cache-Control":"no-store","Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Content-Type"});
+  res.writeHead(status,{"Content-Type":"application/json","Cache-Control":"no-store","Access-Control-Allow-Origin":ALLOWED_ORIGIN,"Access-Control-Allow-Headers":"Content-Type"});
   res.end(JSON.stringify(payload));
 }
 
 http.createServer(async(req,res)=>{
-  if(req.method==="OPTIONS"){res.writeHead(204,{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Content-Type"});return res.end();}
+  if(req.method==="OPTIONS"){res.writeHead(204,{"Access-Control-Allow-Origin":ALLOWED_ORIGIN,"Access-Control-Allow-Headers":"Content-Type"});return res.end();}
+  const ip=(req.headers["x-forwarded-for"]||req.socket.remoteAddress||"unknown").toString().split(",")[0].trim();
+  const now=Date.now(), bucket=Math.floor(now/60000), key=ip+":"+bucket;
+  const count=(rate.get(key)||0)+1; rate.set(key,count);
+  for(const k of rate.keys()) if(!k.endsWith(":"+bucket)) rate.delete(k);
+  if(count>RATE_LIMIT) return send(res,429,{ok:false,error:"Rate limit exceeded. Please retry shortly."});
   if(req.method==="GET"&&req.url==="/health") return send(res,200,{ok:true,service:"prometheus-scientific-agent"});
   if(req.method!=="POST"||req.url!=="/v1/agent") return send(res,404,{ok:false,error:"Not found"});
   try{
-    let raw="";for await(const chunk of req)raw+=chunk;
+    let raw="";for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>MAX_BODY_BYTES) return send(res,413,{ok:false,error:"Request body too large."});}
     const body=JSON.parse(raw||"{}");
     if(!body.message) return send(res,400,{ok:false,error:"message is required"});
     const result=await runAgent(body);
     return send(res,result.ok?200:403,result);
-  }catch(error){return send(res,500,{ok:false,error:"Agent execution failed",detail:String(error.message||error)});}
+  }catch(error){console.error("PROMETHEUS agent error:",error);return send(res,500,{ok:false,error:"Agent execution failed"});}
 }).listen(PORT,()=>console.log("PROMETHEUS agent listening on "+PORT));
