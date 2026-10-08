@@ -62,7 +62,7 @@ async function runAgent(body) {
     const outputs=calls.map(call=>{
       let args={}; try{args=JSON.parse(call.arguments||"{}");}catch{}
       const result=runTool(call.name,args);
-      trace.push({tool:call.name,args});
+      trace.push({tool:call.name,args,result});
       return {type:"function_call_output",call_id:call.call_id,output:JSON.stringify(result)};
     });
     response=await callLLM({model:MODEL,instructions:SYSTEM,previous_response_id:data.id,input:outputs,tools,tool_choice:"auto"});
@@ -71,6 +71,7 @@ async function runAgent(body) {
   }
 
   const answer=(data.output||[]).filter(x=>x.type==="message").flatMap(x=>x.content||[]).filter(x=>x.type==="output_text").map(x=>x.text).join("\n").trim();
+  if(!answer) return {ok:false,code:"EMPTY_MODEL_RESPONSE",message:"The scientific agent produced no final answer.",trace,model:MODEL,evidence_policy:"NASA indexed corpus only"};
   return {ok:true,answer,trace,model:MODEL,evidence_policy:"NASA indexed corpus only"};
 }
 
@@ -86,13 +87,16 @@ http.createServer(async(req,res)=>{
   const count=(rate.get(key)||0)+1; rate.set(key,count);
   for(const k of rate.keys()) if(!k.endsWith(":"+bucket)) rate.delete(k);
   if(count>RATE_LIMIT) return send(res,429,{ok:false,error:"Rate limit exceeded. Please retry shortly."});
-  if(req.method==="GET"&&req.url==="/health") return send(res,200,{ok:true,service:"prometheus-scientific-agent"});
+  if(req.method==="GET"&&req.url==="/health") return send(res,200,{ok:true,service:"prometheus-scientific-agent",configured:!!(process.env.OPENAI_API_KEY&&MODEL),model:MODEL||null,evidence_policy:"NASA indexed corpus only"});
   if(req.method!=="POST"||req.url!=="/v1/agent") return send(res,404,{ok:false,error:"Not found"});
   try{
     let raw="";for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>MAX_BODY_BYTES) return send(res,413,{ok:false,error:"Request body too large."});}
-    const body=JSON.parse(raw||"{}");
-    if(!body.message) return send(res,400,{ok:false,error:"message is required"});
+    let body;
+    try { body=JSON.parse(raw||"{}"); } catch { return send(res,400,{ok:false,error:"Invalid JSON body."}); }
+    if(typeof body.message!=="string" || !body.message.trim()) return send(res,400,{ok:false,error:"message is required"});
+    if(body.history!=null && !Array.isArray(body.history)) return send(res,400,{ok:false,error:"history must be an array"});
+    if(body.history && body.history.length>24) return send(res,400,{ok:false,error:"history is limited to 24 messages"});
     const result=await runAgent(body);
-    return send(res,result.ok?200:403,result);
+    return send(res,result.ok?200:(result.code==="AI_NOT_CONFIGURED"?503:403),result);
   }catch(error){console.error("PROMETHEUS agent error:",error);return send(res,500,{ok:false,error:"Agent execution failed"});}
 }).listen(PORT,()=>console.log("PROMETHEUS agent listening on "+PORT));
