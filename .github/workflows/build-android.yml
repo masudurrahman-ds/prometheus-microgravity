@@ -27,6 +27,8 @@ jobs:
           node scripts/validate_web.mjs
           node --check android/app/src/main/assets/prometheus_ai.js
           cd agent
+          node --check server.mjs
+          node --check evidence.mjs
           npm test
       - name: Sync Capacitor Android project
         run: npx cap sync android
