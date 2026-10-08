@@ -12,11 +12,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class MainActivity extends BridgeActivity {
+    private UpdateManager updateManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         installBackHandler();
         installWindowInsets();
+        updateManager = new UpdateManager(this);
+        updateManager.checkIfDue();
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 1200);
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 2600);
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 5200);
