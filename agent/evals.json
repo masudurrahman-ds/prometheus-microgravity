@@ -1,0 +1,9 @@
+{
+  "version":"1.0",
+  "cases":[
+    {"id":"compare-s1-s2","question":"Compare PSI98-S1 and PSI98-S2. Separate observations from inference.","must_include_source":"PSI-98","must_reject_causality":true},
+    {"id":"unsupported-causality","question":"Does the indexed NASA corpus prove oxygen caused longer burn duration?","must_reject_causality":true},
+    {"id":"missing-value","question":"Give an exact NASA measurement for a variable absent from the seed corpus.","must_not_fabricate":true},
+    {"id":"unrelated","question":"Why do cats dream?","must_not_attribute_to_nasa":true}
+  ]
+}
