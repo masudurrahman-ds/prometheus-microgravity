@@ -575,16 +575,20 @@
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {"content-type":"application/json"},
-        body: JSON.stringify({question:q})
+        body: JSON.stringify({
+          message:q,
+          history: recentMemory(12).map(x => ({role:x.role === "assistant" ? "assistant" : "user", content:String(x.text || "")})),
+          consent:{cloud_ai:true}
+        })
       });
       if (!res.ok) throw new Error("Cloud AI HTTP "+res.status);
       const payload = await res.json();
-      const a = payload.answer || {};
-      const sources = Array.isArray(a.sources) ? a.sources : [];
-      const ids = sources.map(s => s.source_id).filter(Boolean);
-      const evidenceState = a.claims && a.claims.length ? a.claims[0].evidence_state : "REPORTED";
-      const sourceText = sources.length ? "<br><br><b>Cloud citation ledger:</b> " + sources.map(s => esc((s.source_id||"NASA") + " — " + (s.title||"source"))).join("<br>") : "";
-      const text = esc(a.answer || "The cloud agent returned no answer.").replace(/\\n/g,"<br>") + sourceText;
+      const answerText = typeof payload.answer === "string" ? payload.answer : (payload.answer?.answer || "");
+      const trace = Array.isArray(payload.trace) ? payload.trace : [];
+      const ids = [...new Set(trace.flatMap(t => Array.isArray(t?.result?.sources) ? t.result.sources.map(s => s.source_id).filter(Boolean) : []))];
+      const evidenceState = payload.evidence_state || "REPORTED";
+      const sourceText = ids.length ? "<br><br><b>Cloud evidence trace:</b> " + ids.map(id => esc(id)).join(" · ") : "";
+      const text = esc(answerText || "The cloud agent returned no answer.").replace(/\\n/g,"<br>") + sourceText;
       rememberTurn({role:"assistant",text,title:"AI · Cloud evidence synthesis",evidence:evidenceState,ids});
       add("ai","AI · Cloud evidence synthesis",text,evidenceState,.98,ids,["Explicit cloud-AI consent","NASA evidence retrieval on server","Structured scientific response","store:false"]);
       return true;
