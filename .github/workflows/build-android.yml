@@ -1,4 +1,5 @@
 name: Build PROMETHEUS Android app
+# Current mainline verification trigger
 
 on:
   push:
