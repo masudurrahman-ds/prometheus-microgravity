@@ -1494,8 +1494,22 @@ select,input,button,.field>label,.lbl{font-variant-numeric:tabular-nums lining-n
       field('Colour', select([['fuel', 'Fuel'], ['regime', 'Gravity regime'], ['cluster', 'Cluster']], S.colorBy, v => { S.colorBy = v; render(); })));
     const axesToggle = h('button', {type: 'button', class: 'btn sm vp-glass axes-toggle', 'aria-expanded': 'false', 'aria-label': 'Show axis controls', on: {click: () => { const open = axesPanel.classList.toggle('open'); axesToggle.setAttribute('aria-expanded', String(open)); }}}, UI.icon('gaps'), ' Axes');
     vp.append(h('div', {class: 'vp-ui'},
-      h('div', {class: 'vp-tl'}, h('div', {class: 'row', style: 'align-items:flex-start'}, h('div', null, h('div', {class: 'eyebrow'}, 'Combustion universe'), h('div', {style: 'font-family:var(--serif);font-size:26px;line-height:1.1;margin-top:4px'}, `${S.ds.experiments.length} indexed evidence records`), h('div',{class:'row',style:'margin-top:8px'}, h('div',{class:'field experiment-field'},h('label',null,'Experiment'),select([['','Choose experiment…']].concat(S.ds.experiments.map(e=>[e.exp_id,e.exp_id+' · '+(e.fuel||'NASA record')])), S.sel||'', v=>{if(v)selectExp(v,true);}),h('span',{class:'small faint'},'Focus the selected experiment'))), axesToggle),
-        axesPanel),
+    const experimentFocus = h('div', {class:'row', style:'margin-top:8px'},
+      field('Experiment', select([['','Choose experiment…']].concat(S.ds.experiments.map(e => [e.exp_id, e.exp_id + ' · ' + (e.fuel || 'NASA record')])), S.sel || '', v => { if (v) selectExp(v, true); }), 'Focus the selected experiment')
+    );
+    vp.append(h('div', {class: 'vp-ui'},
+      h('div', {class: 'vp-tl'},
+        h('div', {class: 'row', style: 'align-items:flex-start'},
+          h('div', null,
+            h('div', {class: 'eyebrow'}, 'Combustion universe'),
+            h('div', {style: 'font-family:var(--serif);font-size:26px;line-height:1.1;margin-top:4px'}, `${S.ds.experiments.length} indexed evidence records`),
+            experimentFocus
+          ),
+          axesToggle
+        ),
+        axesPanel
+      ),
+
       h('div', {class: 'vp-tr'}, presetSeg, h('label', {class: 'switch vp-glass', style: 'padding:8px 12px', title: 'Auto-orbit'}, h('input', {type: 'checkbox', checked: S.auto, 'aria-label': 'Auto-rotate', on: {change: e => { S.auto = e.target.checked; galaxy.auto = S.auto && !UI.REDUCED; }}}), h('span', {class: 'longlabel'}, 'Auto-orbit')),
         h('button', {class: 'btn sm vp-glass', 'aria-label': 'Index of experiments', on: {click: () => openDrawer('index')}}, UI.icon('list'), h('span', {class: 'longlabel'}, 'Index')),
         h('button', {class: 'btn sm vp-glass', 'aria-label': 'Reset view', on: {click: () => galaxy.preset('iso')}}, UI.icon('reset'), h('span', {class: 'longlabel'}, 'Reset'))),
