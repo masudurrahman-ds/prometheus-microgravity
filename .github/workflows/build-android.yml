@@ -22,10 +22,12 @@ jobs:
           gradle-version: '8.13'
       - name: Install Capacitor dependencies
         run: npm install --no-audit --no-fund
-      - name: Validate PROMETHEUS web and NASA dataset
+      - name: Validate PROMETHEUS web, NASA dataset, and scientific agent
         run: |
           node scripts/validate_web.mjs
           node --check android/app/src/main/assets/prometheus_ai.js
+          cd agent
+          npm test
       - name: Sync Capacitor Android project
         run: npx cap sync android
       - name: Build debug APK
