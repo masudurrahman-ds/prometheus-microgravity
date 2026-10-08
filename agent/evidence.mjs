@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const corpus = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), "data/prometheus_nasa_psi.json"), "utf8"));
+const corpus = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), "../data/prometheus_nasa_psi.json"), "utf8"));
 const experiments = corpus.experiments || [];
 const sources = corpus.sources || [];
 const sourceMap = new Map(sources.map((s) => [s.source_id, s]));
