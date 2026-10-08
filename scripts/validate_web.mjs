@@ -16,7 +16,7 @@ if(data.update_version!=="2026.10.07.3") throw new Error("dataset update version
 
 const scripts=[...html.matchAll(/<script([^>]*)>([\\s\\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
 scripts.forEach(({attrs,source,index})=>{
-  if(/type=["']application\\/json["']/i.test(attrs)) return;
+  if(/type=["']application\/json["']/i.test(attrs)) return;
   new vm.Script(source,{filename:`www/index.html#script-${index+1}`});
 });
 console.log("PROMETHEUS web/data validation passed:", fixture.experiments.length, "experiments;", fixture.sources.length, "sources;");
