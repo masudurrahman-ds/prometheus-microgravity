@@ -1,0 +1,118 @@
+name: Publish signed PROMETHEUS update
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - update/update.json
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check production signing configuration
+        id: signing
+        env:
+          KEYSTORE: ${{ secrets.PROMETHEUS_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.PROMETHEUS_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PROMETHEUS_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.PROMETHEUS_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE" ] || [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Production signing secrets are not configured; update publication is skipped safely."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Node
+        if: steps.signing.outputs.configured == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Java
+        if: steps.signing.outputs.configured == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        if: steps.signing.outputs.configured == 'true'
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Install Capacitor dependencies
+        if: steps.signing.outputs.configured == 'true'
+        run: npm install --no-audit --no-fund
+
+      - name: Prepare signing key
+        if: steps.signing.outputs.configured == 'true'
+        env:
+          KEYSTORE_B64: ${{ secrets.PROMETHEUS_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 --decode > "${RUNNER_TEMP}/prometheus-release.jks"
+          test -s "${RUNNER_TEMP}/prometheus-release.jks"
+
+      - name: Build signed release APK
+        if: steps.signing.outputs.configured == 'true'
+        env:
+          PROMETHEUS_KEYSTORE_PATH: ${{ runner.temp }}/prometheus-release.jks
+          PROMETHEUS_KEYSTORE_PASSWORD: ${{ secrets.PROMETHEUS_KEYSTORE_PASSWORD }}
+          PROMETHEUS_KEY_ALIAS: ${{ secrets.PROMETHEUS_KEY_ALIAS }}
+          PROMETHEUS_KEY_PASSWORD: ${{ secrets.PROMETHEUS_KEY_PASSWORD }}
+          PROMETHEUS_VERSION_CODE: ${{ format('{0}', 100000 + github.run_number) }}
+          PROMETHEUS_VERSION_NAME: ${{ format('1.1.{0}', github.run_number) }}
+        run: |
+          npx cap sync android
+          gradle -p android assembleRelease --no-daemon
+          cp android/app/build/outputs/apk/release/app-release.apk prometheus-release.apk
+          sha256sum prometheus-release.apk > prometheus-release.sha256
+          cat prometheus-release.sha256
+
+      - name: Publish GitHub release
+        if: steps.signing.outputs.configured == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: auto-${{ github.run_number }}
+          name: PROMETHEUS ${{ format('1.1.{0}', github.run_number) }}
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            prometheus-release.apk
+            prometheus-release.sha256
+
+      - name: Publish update manifest
+        if: steps.signing.outputs.configured == 'true'
+        env:
+          VERSION_CODE: ${{ format('{0}', 100000 + github.run_number) }}
+          VERSION_NAME: ${{ format('1.1.{0}', github.run_number) }}
+          APK_URL: https://github.com/masudurrahman-ds/prometheus-microgravity/releases/download/auto-${{ github.run_number }}/prometheus-release.apk
+          RELEASE_NOTES: Automatic PROMETHEUS production update from GitHub Actions.
+        run: |
+          SHA256="$(cut -d' ' -f1 prometheus-release.sha256)"
+          cat > update/update.json <<EOF
+          {
+            "schema_version": 1,
+            "enabled": true,
+            "package_name": "org.crowncouncil.prometheus",
+            "version_code": $VERSION_CODE,
+            "version_name": "$VERSION_NAME",
+            "apk_url": "$APK_URL",
+            "sha256": "$SHA256",
+            "release_notes": "$RELEASE_NOTES"
+          }
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add update/update.json
+          git commit -m "chore: publish PROMETHEUS update manifest [skip ci]"
+          git push
