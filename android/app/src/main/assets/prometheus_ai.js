@@ -126,7 +126,7 @@
     }
     const endpoint = window.prompt("Enter your PROMETHEUS AI server endpoint (for example https://your-domain/api/ask). Your question will leave this device only after you enable Cloud AI.");
     if (!endpoint) return;
-    try { localStorage.setItem(CLOUD_ENDPOINT_KEY, endpoint.replace(/\\/+$/, "")); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
+    try { localStorage.setItem(CLOUD_ENDPOINT_KEY, endpoint.replace(/\/+$/, "")); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
     updateCloudButton(); UI.toast("Cloud AI enabled with explicit consent");
   };
   updateCloudButton();
