@@ -1493,7 +1493,6 @@ select,input,button,.field>label,.lbl{font-variant-numeric:tabular-nums lining-n
     const axesPanel = h('div', {class: 'vp-glass axes-row'}, field('X', select(opts, S.ax, v => { S.ax = v; render(); })), field('Y', select(opts, S.ay, v => { S.ay = v; render(); })), field('Depth', select(optsN, S.az, v => { S.az = v; render(); })),
       field('Colour', select([['fuel', 'Fuel'], ['regime', 'Gravity regime'], ['cluster', 'Cluster']], S.colorBy, v => { S.colorBy = v; render(); })));
     const axesToggle = h('button', {type: 'button', class: 'btn sm vp-glass axes-toggle', 'aria-expanded': 'false', 'aria-label': 'Show axis controls', on: {click: () => { const open = axesPanel.classList.toggle('open'); axesToggle.setAttribute('aria-expanded', String(open)); }}}, UI.icon('gaps'), ' Axes');
-    vp.append(h('div', {class: 'vp-ui'},
     const experimentFocus = h('div', {class:'row', style:'margin-top:8px'},
       field('Experiment', select([['','Choose experiment…']].concat(S.ds.experiments.map(e => [e.exp_id, e.exp_id + ' · ' + (e.fuel || 'NASA record')])), S.sel || '', v => { if (v) selectExp(v, true); }), 'Focus the selected experiment')
     );
