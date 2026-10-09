@@ -1,5 +1,5 @@
 import http from "node:http";
-import { searchNasaEvidence, getExperiment, compareExperiments, getSource } from "./evidence.mjs";
+import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset } from "./evidence.mjs";
 
 const PORT = Number(process.env.PORT || 8787);
 const MODEL = process.env.PROMETHEUS_MODEL;
@@ -35,6 +35,7 @@ function runTool(name,args) {
   if(name==="get_experiment") return getExperiment(args.exp_id);
   if(name==="compare_experiments") return compareExperiments(args.a_id,args.b_id);
   if(name==="get_source") return getSource(args.source_id);
+  if(name==="analyze_dataset") return analyzeDataset(args.operation,args.variable,args.experiment_ids);
   return {error:"Unknown tool"};
 }
 
@@ -47,8 +48,8 @@ async function callLLM(payload) {
 }
 
 async function runAgent(body) {
-  if(!process.env.OPENAI_API_KEY || !MODEL) return {ok:false,code:"AI_NOT_CONFIGURED",message:"Cloud AI is not configured."};
   if(body?.consent?.cloud_ai!==true) return {ok:false,code:"CONSENT_REQUIRED",message:"Cloud AI requires explicit user acknowledgement."};
+  if(!process.env.OPENAI_API_KEY || !MODEL) return {ok:false,code:"AI_NOT_CONFIGURED",message:"Cloud AI is not configured on this server."};
 
   const history=Array.isArray(body.history)?body.history.slice(-12):[];
   let response=await callLLM({model:MODEL,instructions:SYSTEM,input:[...history,{role:"user",content:String(body.message||"")}],tools,tool_choice:"auto"});
