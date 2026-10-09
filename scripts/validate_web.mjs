@@ -23,7 +23,7 @@ if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Err
 if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) throw new Error("AI launcher position persistence missing");
 if(!ai.includes('document.querySelectorAll("#pm-ai-panel, #pm-ai-fab")')) throw new Error("AI overlay singleton cleanup missing");
 if(ai.includes("DRAG TO MOVE")) throw new Error("obsolete draggable AI panel affordance remains");
-if(!ai.includes('fab.addEventListener("pointerdown"')) throw new Error("movable AI launcher pointer handling missing");
+if(!html.includes("aiworkspacebtn")) throw new Error("dedicated AI workspace control missing");
 if(!ai.includes('panel.classList.add("open","fullscreen")')) throw new Error("full-screen AI open lifecycle missing");
 if(!ai.includes("#pm-ai-panel.fullscreen") || !ai.includes('document.addEventListener("keydown"')) throw new Error("full-screen AI or Escape-close behavior missing");
 if(html.includes("top:calc(env(safe-area-inset-top,0px) + 8px)!important;bottom:calc(132px")) throw new Error("old full-height mobile AI override still present");
