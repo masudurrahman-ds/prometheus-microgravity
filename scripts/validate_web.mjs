@@ -80,3 +80,6 @@ if(!ai.includes('const fields=["pressure_kpa","o2_fraction","gravity_g","flow_ve
 if(!ai.includes('return c.source_id ? "REPORTED" : "UNKNOWN"')) throw new Error("source-reported conditions must not default to NASA OBSERVED");
 if(!ai.includes('String(c.value)+(c.unit ? " "+String(c.unit) : "")')) throw new Error("comparison must preserve source-reported units");
 if(!ai.includes('" ("+ea.label+" / "+eb.label+")"')) throw new Error("comparison must classify each record's condition evidence separately");
+
+if(!ai.includes('const normalizedQuestion=low.replace(/[^a-z0-9]/g,"")')) throw new Error("explicitly named experiment IDs must scope scientific charts");
+if(!ai.includes('if(namedRecords.length) rs=namedRecords;')) throw new Error("chart records must be narrowed to named experiment IDs when present");
