@@ -1,13 +1,9 @@
 name: Publish signed PROMETHEUS update
 
+# Deliberately manual until production signing and release publication are verified.
+# The debug APK build and scientific-agent tests run independently on every PR.
+
 on:
-  push:
-    paths-ignore:
-      - update/update.json
-  pull_request:
-    branches: [main]
-    paths-ignore:
-      - update/update.json
   workflow_dispatch: {}
 
 permissions:
@@ -15,7 +11,7 @@ permissions:
 
 jobs:
   release:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
