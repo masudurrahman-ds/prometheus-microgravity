@@ -207,7 +207,6 @@
       return visualShell("Graph not generated","No numeric observations in matched evidence",
         '<div style="padding:14px;color:#aab2c8;font-size:12px">The retrieved NASA records do not contain numeric measurements suitable for this request. PROMETHEUS will not substitute metadata, fabricate a series, or draw a misleading line.</div>',"no-measurements");
     }
-    const wanted=/(burn|duration|time)/.test(low)?/burn|duration|time/.test.bind(/burn|duration|time/):null;
     const terms=low.match(/oxygen|o2|pressure|velocity|flow|burn|duration|time|spread|soot|smoke|extinction|ignition|temperature|diameter|length|mass|fuel/gi)||[];
     let selected=observations;
     if(terms.length) {
