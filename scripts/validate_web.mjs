@@ -21,7 +21,7 @@ if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;
 if(!ai.includes("#pm-ai-panel.fullscreen") || !ai.includes("height:100dvh!important")) throw new Error("full-screen AI workspace styles missing");
 if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("global touch/pointer drag handling missing");
 if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) throw new Error("AI floating position persistence missing");
-if(!ai.includes("DRAG TO MOVE")) throw new Error("visible AI panel drag affordance missing");
+if(ai.includes("DRAG TO MOVE")) throw new Error("obsolete draggable AI panel affordance remains");
 if(!ai.includes('fab.addEventListener("pointerdown"')) throw new Error("movable AI launcher pointer handling missing");
 if(!ai.includes('panel.querySelector("#pm-ai-head").addEventListener("pointerdown"')) throw new Error("movable AI panel header handling missing");
 if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel sizing missing");
