@@ -37,11 +37,23 @@ export function searchNasaEvidence(query, limit = 8) {
 export function getExperiment(id) {
   const e = experiments.find((x) => x.exp_id === id);
   if (!e) return { error: "Experiment not found in indexed NASA corpus.", exp_id: id };
+  const hasReportedMeasurement = (e.observations || []).some((o) =>
+    o.measurement && Number.isFinite(Number(o.measurement.canonical_value ?? o.measurement.value))
+  );
+  const linkedSources = (e.source_ids || []).map((sourceId) => sourceMap.get(sourceId)).filter(Boolean);
+  const metadataOnly = linkedSources.length > 0 && linkedSources.every((s) => s.metadata_only === true);
+  const recordClass = hasReportedMeasurement
+    ? "reported_measurements"
+    : metadataOnly ? "metadata_only" : "documented_configuration";
   return {
     exp_id: e.exp_id, title: e.title, platform: e.platform, fuel: e.fuel,
     conditions: e.conditions, observations: e.observations, text: e.text,
-    evidence_state: "NASA_OBSERVED",
-    sources: (e.source_ids || []).map((id) => sourceView(sourceMap.get(id)))
+    evidence_state: hasReportedMeasurement ? "NASA_REPORTED" : "UNKNOWN",
+    record_class: recordClass,
+    evidence_state_note: hasReportedMeasurement
+      ? "The indexed record contains source-attributed reported measurements; this response does not assert raw instrument-level observation."
+      : "This record contains descriptive metadata or documented conditions but no indexed numeric outcome measurement. Do not treat it as a measured result.",
+    sources: linkedSources.map(sourceView)
   };
 }
 
@@ -58,8 +70,13 @@ export function compareExperiments(aid, bid) {
 
 export function getSource(id) {
   const s = sourceMap.get(id);
-  return s ? { ...sourceView(s), evidence_state: s.metadata_only ? "NASA_REPORTED" : "NASA_OBSERVED" }
-           : { error: "Source not found in indexed NASA catalogue.", source_id: id };
+  return s ? {
+    ...sourceView(s),
+    evidence_state: "NASA_REPORTED",
+    record_class: "source_metadata",
+    metadata_only: s.metadata_only === true,
+    evidence_state_note: "This is source/catalogue metadata. Its existence does not make every linked claim or record an experimental observation."
+  } : { error: "Source not found in indexed NASA catalogue.", source_id: id };
 }
 
 
