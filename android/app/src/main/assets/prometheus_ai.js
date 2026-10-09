@@ -563,7 +563,14 @@
   function answer(q) {
     const originalQuestion=q;
     q=resolveFollowUp(q);
-    const rs=records();
+    const allRecords=records();
+    const normalizedQuestion=q.toLowerCase().replace(/[^a-z0-9]/g,"");
+    const namedRecords=allRecords.filter(e=>normalizedQuestion.includes(String(e.exp_id||"").toLowerCase().replace(/[^a-z0-9]/g,"")));
+    const hasNamedExperimentScope=namedRecords.length>0;
+    // An explicit experiment ID scopes the entire answer, not just its chart.
+    // Otherwise broad variable retrieval can answer a PSI-98 question using
+    // unrelated PMMA/NTRS records with the same variable name.
+    const rs=hasNamedExperimentScope ? namedRecords : allRecords;
     if(!rs.length) return {
       title:"AI · Evidence unavailable", text:"The NASA PSI dataset is not loaded, so I cannot make a scientific claim. Load a provenance-tracked NASA PSI dataset and ask again.",
       evidence:"UNKNOWN", score:0, ids:[], audit:["Dataset gate: FAIL","Answer gate: BLOCKED"]
@@ -677,8 +684,13 @@
     if(/pressure|pressur/.test(low)) {
       const rows=rs.map(e=>({e,v:rawval(e,"pressure_kpa"),ev:evidenceForCondition(e,"pressure_kpa")})).filter(r=>r.v!=null);
       rows.forEach(r=>srcIds(r.e).forEach(x=>ids.add(x)));
-      const context=sources().filter(s=>/pressure|atmosphere|atm/i.test((s.note||"")+" "+(s.title||"")));
-      context.forEach(s=>ids.add(s.source_id));
+      // Broad pressure context is useful for corpus-wide questions, but
+      // must not attach unrelated investigations to an explicitly named pair.
+      if(hasNamedExperimentScope) rs.forEach(e=>srcIds(e).forEach(x=>ids.add(x)));
+      else {
+        const context=sources().filter(s=>/pressure|atmosphere|atm/i.test((s.note||"")+" "+(s.title||"")));
+        context.forEach(s=>ids.add(s.source_id));
+      }
       audit.push("Variable retrieval: pressure","Measurement-vs-metadata separation applied");
       if(!rows.length) return {title:"AI · Pressure evidence gap",text:"The loaded measurement rows do not contain a pressure field. PROMETHEUS will not manufacture one from the investigation-level metadata. Some NASA PSI investigation context may describe pressure ranges, but that is not equivalent to a pressure measurement for these S1/S2 rows.",evidence:"UNKNOWN for loaded measurement rows",score:.99,ids:[...ids],audit,visual};
       return {title:"AI · Pressure evidence",text:"The loaded corpus contains pressure-bearing records. They must be analyzed within their investigation and experimental context; a pressure range in a NASA investigation description is not automatically a measured value for every experiment.",evidence:"NASA REPORTED / NASA OBSERVED depending on record",score:.94,ids:[...ids],audit};
