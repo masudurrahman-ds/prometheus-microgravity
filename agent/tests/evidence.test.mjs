@@ -37,7 +37,7 @@ test("source lookup is explicitly source metadata, not an observation", () => {
   assert.equal(r.evidence_state, "UNKNOWN");
   assert.equal(r.record_class, "source_metadata");
   assert.equal(r.metadata_only, true);
-  assert.match(r.evidence_state_note, /does not make every linked claim/i);
+  assert.match(r.evidence_state_note, /not an experiment measurement/i);
 });
 
 test("comparison explicitly blocks causal inference", () => {
