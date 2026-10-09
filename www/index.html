@@ -416,6 +416,9 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   body:has(#pm-ai-panel.open) #pm-ai-fab{display:none}
 }
 
+
+/* Evidence dashboard: responsive, source-first and explicitly not a fire-risk score. */
+.ai-dashboard{display:grid;gap:16px}.ai-dashboard .dash-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}.ai-dashboard .dash-kpi{padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--glass)}.ai-dashboard .dash-kpi strong{display:block;font:600 29px var(--serif);color:var(--gold)}.ai-dashboard .dash-kpi span{font-size:12px;color:var(--dim)}.ai-dashboard .dash-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px}.ai-dashboard .dash-bars{display:grid;gap:10px}.ai-dashboard .dash-bar{display:grid;grid-template-columns:minmax(90px,1fr) minmax(70px,2fr) auto;align-items:center;gap:10px}.ai-dashboard .dash-bar-track{height:9px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}.ai-dashboard .dash-bar-fill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--mod),var(--gold))}.ai-dashboard .dash-study{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--glass)}.ai-dashboard .dash-study h4{margin:0 0 6px;font:600 19px var(--serif)}.ai-dashboard .dash-note{border-left:2px solid var(--gold);padding:10px 13px;background:rgba(230,203,147,.06);color:var(--dim);font-size:13px}@media(max-width:480px){.ai-dashboard .dash-bar{grid-template-columns:90px minmax(48px,1fr) auto;gap:7px}.ai-dashboard .dash-kpi strong{font-size:24px}}
 </style>
 </head>
 <body>
@@ -1416,8 +1419,8 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   }
   function render() {
     dispose(); chrome(); stage.replaceChildren();
-    const V = {landing: viewIntelligenceHome, universe: viewUniverse, lab: viewLab, gaps: viewGaps, research: viewResearch, mission: viewMission, data: viewData}[S.tab];
-    const needs = ['universe', 'lab', 'gaps', 'research', 'mission'].includes(S.tab);
+    const V = {landing: viewIntelligenceHome, dashboard: viewDashboard, universe: viewUniverse, lab: viewLab, gaps: viewGaps, research: viewResearch, mission: viewMission, data: viewData}[S.tab];
+    const needs = ['dashboard', 'universe', 'lab', 'gaps', 'research', 'mission'].includes(S.tab);
     if (needs && (!S.ds || !S.ds.experiments.length)) stage.append(h('div', {class: 'page view-enter'}, needData())); else V(stage);
     renderTour();
   }
@@ -1472,6 +1475,7 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
         h('span',{class:'int-chevron'},'→')),
       h('div',{class:'int-section-title'},'YOUR WORKSPACE'),
       h('div',{class:'int-actions'},
+        action('AI Fire-Safety Dashboard','Summarize, rank and interpret NASA study evidence','dashboard','✦'),
         action('Virtual Lab','Adjust conditions and evaluate evidence','lab','⚗'),
         action('Evidence Universe','Explore relationships in 3D','universe','◎'),
         action('Research Intelligence','Patterns, anomalies and comparisons','research','◇'),
@@ -1535,6 +1539,37 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   function selectExp(id, fly) { S.sel = id; showMoreData = false; if (galaxy) { galaxy.setSel(id, fly); galaxy.links = id ? nnIds(id) : []; } openDrawer(id ? 'exp' : null); }
   function toggleCmp(id) { const i = S.cmp.indexOf(id); if (i >= 0) S.cmp.splice(i, 1); else if (S.cmp.length < 3) S.cmp.push(id); else UI.toast('Compare up to three experiments'); if (galaxy) galaxy.cmp = S.cmp; if (S.drawer) renderDrawer(); }
 
+  // Interactive, dataset-backed fire-safety evidence dashboard. Coverage is not hazard risk.
+  function viewDashboard(root) {
+    const ds=S.ds, fuels=[...new Set(ds.experiments.map(e=>e.fuel).filter(Boolean))].sort();
+    const phen=F.NUM_PHEN.filter(p=>ds.experiments.some(e=>F.numObs(e,p)!=null));
+    const f={fuel:'all',phen:'all',gravity:'all'};
+    const wrap=h('div',{class:'page view-enter ai-dashboard'+(ds.hasSynthetic?' rib':'')});
+    const head=h('div',{class:'head'},h('div',null,h('div',{class:'eyebrow'},'PROMETHEUS · AI-POWERED EVIDENCE SYNTHESIS'),h('h2',null,'Microgravity Fire-Safety Intelligence'),h('p',{class:'lead'},'Summarize NASA combustion studies, rank records by evidence coverage, and interpret what the available research can—and cannot—support.')));
+    const note=h('div',{class:'dash-note'},'Safety boundary: rankings measure record coverage and traceability, not fire danger, crew risk, or mission readiness. This is decision support for expert review, not a validated safety assessment.');
+    const controls=h('div',{class:'glass stack'},h('h3',null,'Explore the evidence'),h('div',{class:'dash-filters'},
+      field('Fuel',select([['all','All fuels'],...fuels.map(x=>[x,x])],f.fuel,v=>{f.fuel=v;update();})),
+      field('Measured phenomenon',select([['all','All outcomes'],...phen.map(x=>[x,F.PHEN[x]?.label||x])],f.phen,v=>{f.phen=v;update();})),
+      field('Gravity context',select([['all','All gravity contexts'],['micro','Microgravity (< 0.1 g)'],['partial','Partial gravity (0.1–0.8 g)'],['earth','Earth-like (≥ 0.8 g)'],['unknown','Not recorded']],f.gravity,v=>{f.gravity=v;update();}))));
+    const kpis=h('div',{class:'dash-kpis'});
+    const summary=h('div',{class:'glass stack'});
+    const rank=h('div',{class:'glass stack'},h('div',{class:'eyebrow'},'EVIDENCE COVERAGE RANKING'),h('h3',null,'Most informative records'),h('p',{class:'small dim'},'Coverage score is a transparent heuristic based on observations, documented conditions and linked sources—not hazard severity.'),h('div',{class:'dash-bars'}));
+    const studies=h('div',{class:'glass stack'},h('h3',null,'Study-level interpretation'),h('div',{class:'stack s12'}));
+    function update(){
+      const all=ds.experiments.filter(e=>{if(f.fuel!=='all'&&e.fuel!==f.fuel)return false;if(f.gravity!=='all'){const g=Number(e.conditions?.gravity_g??e.conditions?.gravity??e.conditions?.gravity_level_g);if(f.gravity==='unknown'&&Number.isFinite(g))return false;if(f.gravity==='micro'&&!(Number.isFinite(g)&&g<.1))return false;if(f.gravity==='partial'&&!(Number.isFinite(g)&&g>=.1&&g<.8))return false;if(f.gravity==='earth'&&!(Number.isFinite(g)&&g>=.8))return false;}return true;});
+      const matched=f.phen==='all'?all:all.filter(e=>F.numObs(e,f.phen)!=null);
+      const nobs=matched.reduce((n,e)=>n+(e.observations||[]).length,0), sources=new Set(matched.flatMap(e=>e.source_ids||[])), fuelsN=new Set(matched.map(e=>e.fuel).filter(Boolean)).size;
+      kpis.replaceChildren(...[[matched.length,'Matching studies'],[nobs,'Recorded observations'],[sources.size,'Linked source IDs'],[fuelsN,'Fuel types represented']].map(([n,l])=>h('div',{class:'dash-kpi'},h('strong',null,String(n)),h('span',null,l))));
+      const vals=matched.flatMap(e=>(e.observations||[]).filter(o=>f.phen==='all'||o.phenomenon===f.phen).map(o=>o.measurement?.canonical_value)).filter(v=>v!=null&&Number.isFinite(Number(v))).map(Number);
+      const pl=f.phen==='all'?'recorded outcomes':(F.PHEN[f.phen]?.label||f.phen);
+      const msg=!matched.length?'No records match these filters. Relax a filter; an empty result is not evidence of safety.':'The selected evidence set contains '+matched.length+' studies and '+nobs+' recorded observations across '+fuelsN+' fuel type(s). '+(vals.length?vals.length+' numeric measurements for '+pl+' are available; observed range '+Math.min(...vals).toPrecision(4)+'–'+Math.max(...vals).toPrecision(4)+' in canonical units.':'No numeric measurements for '+pl+' are available in this selection.')+' Differences may reflect setup and reporting coverage; associations are not causal effects.';
+      summary.replaceChildren(h('div',{class:'eyebrow'},'AI SYNTHESIS'),h('h3',null,'What the records say'),h('p',{class:'lead',style:'margin:0'},msg),h('p',{class:'small faint'},'Computed from the loaded dataset and selected filters. Check source documents and units before engineering use.'));
+      const ranked=matched.map(e=>{const obs=(e.observations||[]).filter(o=>f.phen==='all'||o.phenomenon===f.phen),cond=Object.keys(e.conditions||{}).length,src=(e.source_ids||[]).length,score=Math.min(100,Math.round(Math.min(obs.length,10)*6+Math.min(cond,6)*5+Math.min(src,4)*5));return {e,obs,cond,src,score};}).sort((a,b)=>b.score-a.score||b.obs.length-a.obs.length).slice(0,5);
+      const bh=rank.querySelector('.dash-bars');bh.replaceChildren(...(ranked.length?ranked.map(x=>h('div',{class:'dash-bar'},h('span',{class:'small'},x.e.exp_id||'Study'),h('div',{class:'dash-bar-track','aria-label':'Coverage score '+x.score+' of 100'},h('div',{class:'dash-bar-fill',style:'width:'+x.score+'%'})),h('strong',{class:'small'},x.score+'/100'))):[h('p',{class:'dim'},'No matching studies to rank.')]));
+      const host=studies.querySelector('.stack');host.replaceChildren(...(ranked.length?ranked.map(x=>{const labels=[...new Set(x.obs.map(o=>F.PHEN[o.phenomenon]?.label||o.phenomenon))].slice(0,4);return h('article',{class:'dash-study'},h('div',{class:'row',style:'justify-content:space-between;align-items:start'},h('h4',null,x.e.exp_id||'Unidentified study'),h('span',{class:'tag gold'},'Coverage '+x.score+'/100')),h('p',{class:'small dim'},(x.e.fuel||'Fuel not recorded')+' · '+x.obs.length+' matching observation(s) · '+x.cond+' condition field(s) · '+x.src+' linked source ID(s)'),h('p',{class:'small'},x.obs.length?'Recorded outcomes: '+labels.join(', ')+'.':'No matching measurement for this phenomenon.'),h('p',{class:'small faint'},'Interpretation: useful for evidence review only; this record alone cannot establish fire risk or predict an untested spacecraft scenario.'),h('button',{class:'btn sm',type:'button',disabled:!x.e.exp_id,on:{click:()=>{S.sel=x.e.exp_id;go('universe');}}},'Inspect in Evidence Universe →'));}):[h('p',{class:'dim'},'No studies match the current filters.')]));
+    }
+    wrap.append(head,note,controls,kpis,summary,rank,studies);root.append(wrap);update();
+  }
   function viewUniverse(root) {
     const plot = buildPlot(), canvas = h('canvas'), tip = h('div', {class: 'tip'});
     const vp = h('div', {class: 'viewport tall'}, canvas, tip);
