@@ -221,7 +221,9 @@
     else if(/pressure|pressur/.test(low)) { metric="pressure_kpa"; label="Pressure (kPa)"; }
     else if(/flow|velocity|co-flow/.test(low)) { metric="flow_velocity_mm_s"; label="Flow velocity (mm/s)"; }
 
-    if((asksForVisual||asksForComparison) && metric) {
+    // A comparison or causal question alone is not a request for a chart.
+    // Only attach visual output when the user explicitly asks to plot/graph/chart.
+    if(asksForVisual && metric) {
       const rows=rs.map(e=>{
         if(metric==="burn") {
           const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&finiteNumericValue(x.measurement.canonical_value)!==null);
@@ -239,7 +241,7 @@
       return "";
     }
 
-    if(asksForComparison) {
+    if(asksForVisual && asksForComparison) {
       const rows=rs.map(e=>{
         const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&finiteNumericValue(x.measurement.canonical_value)!==null);
         return o?{label:e.exp_id,y:finiteNumericValue(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;
