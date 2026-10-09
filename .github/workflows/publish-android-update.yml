@@ -96,23 +96,23 @@ jobs:
           VERSION_CODE: ${{ format('{0}', 100000 + github.run_number) }}
           VERSION_NAME: ${{ format('1.1.{0}', github.run_number) }}
           APK_URL: https://github.com/masudurrahman-ds/prometheus-microgravity/releases/download/auto-${{ github.run_number }}/prometheus-release.apk
-          RELEASE_NOTES: Automatic PROMETHEUS production update from GitHub Actions.
+          RELEASE_NOTES: Signed PROMETHEUS release with evidence-grounded laboratory improvements.
         run: |
           SHA256="$(cut -d' ' -f1 prometheus-release.sha256)"
-          cat > update/update.json <<EOF
-          {
-            "schema_version": 1,
-            "enabled": true,
-            "package_name": "org.crowncouncil.prometheus",
-            "version_code": $VERSION_CODE,
-            "version_name": "$VERSION_NAME",
-            "apk_url": "$APK_URL",
-            "sha256": "$SHA256",
-            "release_notes": "$RELEASE_NOTES"
-          }
-          EOF
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const path = 'data/update.json';
+          const manifest = JSON.parse(fs.readFileSync(path, 'utf8'));
+          manifest.app_version = process.env.VERSION_NAME;
+          manifest.version_code = Number(process.env.VERSION_CODE);
+          manifest.apk_url = process.env.APK_URL;
+          manifest.release_url = 'https://github.com/masudurrahman-ds/prometheus-microgravity/releases/latest';
+          manifest.sha256 = process.env.SHA256;
+          manifest.release_notes = process.env.RELEASE_NOTES;
+          fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + '\\n');
+          NODE
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add update/update.json
+          git add data/update.json
           git commit -m "chore: publish PROMETHEUS update manifest [skip ci]"
           git push
