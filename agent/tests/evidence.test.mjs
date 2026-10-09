@@ -9,10 +9,27 @@ test("NASA corpus search returns provenance", () => {
   assert.ok(r.matches[0].sources.some(s => s.source_id === "PSI-98"));
 });
 
-test("experiment retrieval preserves evidence state", () => {
+test("experiment retrieval labels source-attributed measurements without overstating raw observation", () => {
   const r = getExperiment("PSI98-S1");
-  assert.equal(r.evidence_state, "NASA_OBSERVED");
+  assert.equal(r.evidence_state, "NASA_REPORTED");
+  assert.equal(r.record_class, "reported_measurements");
+  assert.match(r.evidence_state_note, /does not assert raw instrument-level observation/i);
   assert.ok(r.sources.length > 0);
+});
+
+test("documented configurations without numeric outcome measurements are not labelled observed", () => {
+  const r = getExperiment("PSI107-MET-low");
+  assert.equal(r.evidence_state, "UNKNOWN");
+  assert.equal(r.record_class, "documented_configuration");
+  assert.match(r.evidence_state_note, /no indexed numeric outcome measurement/i);
+});
+
+test("source lookup is explicitly source metadata, not an observation", () => {
+  const r = getSource("NASA-FLARE");
+  assert.equal(r.evidence_state, "NASA_REPORTED");
+  assert.equal(r.record_class, "source_metadata");
+  assert.equal(r.metadata_only, true);
+  assert.match(r.evidence_state_note, /does not make every linked claim/i);
 });
 
 test("comparison explicitly blocks causal inference", () => {
