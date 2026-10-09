@@ -34,13 +34,17 @@ function sourceRecord(c, id) {
   };
 }
 
+export function finiteNumericValue(raw) {
+  if (raw === null || raw === undefined || (typeof raw === "string" && raw.trim() === "")) return null;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
 export function hasReportedMeasurement(e) {
   return (e?.observations || []).some(o => {
     const measurement = o?.measurement;
     if (!measurement) return false;
-    const raw = measurement.canonical_value ?? measurement.value;
-    if (raw === null || raw === undefined || (typeof raw === "string" && raw.trim() === "")) return false;
-    return Number.isFinite(Number(raw));
+    return finiteNumericValue(measurement.canonical_value ?? measurement.value) !== null;
   });
 }
 
