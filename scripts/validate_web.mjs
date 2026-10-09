@@ -24,7 +24,7 @@ if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) thr
 if(!ai.includes("DRAG TO MOVE")) throw new Error("visible AI panel drag affordance missing");
 if(!ai.includes('fab.addEventListener("pointerdown"')) throw new Error("movable AI launcher pointer handling missing");
 if(!ai.includes('panel.querySelector("#pm-ai-head").addEventListener("pointerdown"')) throw new Error("movable AI panel header handling missing");
-if(!ai.includes("height:min(66dvh,590px)")) throw new Error("compact mobile AI panel sizing missing");
+if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel sizing missing");
 if(html.includes("top:calc(env(safe-area-inset-top,0px) + 8px)!important;bottom:calc(132px")) throw new Error("old full-height mobile AI override still present");
 
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
