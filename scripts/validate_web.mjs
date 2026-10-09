@@ -26,6 +26,8 @@ if(!ai.includes("https://your-domain/v1/agent")) throw new Error("cloud AI endpo
 if(!ai.includes('trace.map(t=>t?.result?.visualization)')) throw new Error("cloud AI tool charts are not rendered in the assistant response");
 if(!ai.includes("pending3DResult=rows")) throw new Error("3D evidence visualization ignores the requested scientific variable");
 if(!ai.includes("function finiteNumericValue(raw)")) throw new Error("strict chart numeric parser missing");
+if(ai.includes("chart.rows.filter(r=>r&&Number.isFinite(Number(r.y)))")) throw new Error("cloud chart renderer must reject null/blank values before numeric coercion");
+if(ai.includes("filter(r=>Number.isFinite(Number(r.y)))")) throw new Error("3D evidence fallback must reject null/blank values before numeric coercion");
 if(ai.includes("<polyline")) throw new Error("scientific chart must not connect independent experiments with a line");
 if(!ai.includes("Categorical experiment values; not a time series")) throw new Error("chart must disclose categorical comparison semantics");
 const agentServer=fs.readFileSync("agent/server.mjs","utf8");
