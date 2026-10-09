@@ -75,3 +75,8 @@ if(mainActivity.includes("window.__prometheusAIStatus='injecting'")) throw new E
 if(!ai.includes("if(asksForVisual && metric)")) throw new Error("scientific charts must require an explicit visualization request");
 if(!ai.includes("if(asksForVisual && asksForComparison)")) throw new Error("comparison fallback must not attach unsolicited charts");
 if(!ai.includes('String(r.label).length>12?String(r.label).slice(0,11)+"…"')) throw new Error("categorical chart labels must be abbreviated for narrow screens while preserving full labels in title");
+
+if(!ai.includes('const fields=["pressure_kpa","o2_fraction","gravity_g","flow_velocity_mm_s"]')) throw new Error("controlled comparison must explicitly check pressure alongside shared conditions");
+if(!ai.includes('return c.source_id ? "REPORTED" : "UNKNOWN"')) throw new Error("source-reported conditions must not default to NASA OBSERVED");
+if(!ai.includes('String(c.value)+(c.unit ? " "+String(c.unit) : "")')) throw new Error("comparison must preserve source-reported units");
+if(!ai.includes('" ("+ea.label+" / "+eb.label+")"')) throw new Error("comparison must classify each record's condition evidence separately");
