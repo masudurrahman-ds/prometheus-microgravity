@@ -418,11 +418,9 @@
   function evidenceForCondition(e,k) {
     const c=condition(e,k);
     if(!c) return "UNKNOWN";
-    if(/proxy/i.test(c.canonical_note||"")) return "INFERRED";
-    if(/midpoint/i.test(c.canonical_note||"")) return "DERIVED";
-    // Experimental-table conditions are source-reported conditions, not
-    // automatically direct observations by PROMETHEUS or raw instrument data.
-    return c.source_id ? "REPORTED" : "UNKNOWN";
+    // This labels the source's original textual condition, not its canonical
+    // numeric plotting field. Midpoint/proxy notes apply only to canonical plots.
+    return c.source_id && c.value!=null && c.value!=="" ? "REPORTED" : "UNKNOWN";
   }
   function formatCondition(e,k) {
     const c=condition(e,k);
