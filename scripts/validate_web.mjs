@@ -31,8 +31,8 @@ if(!agentServer.includes('name:"analyze_dataset"') || !agentServer.includes("ana
 if(!agentEvidence.includes("export function analyzeDataset")) throw new Error("deterministic chart-ready evidence analysis is missing");
 if(!fs.existsSync("render.yaml")) throw new Error("cloud agent deployment blueprint missing");
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
-if(!ai.includes("#pm-ai-panel{position:fixed!important;inset:0!important")) throw new Error("AI chat must use a full-screen viewport layout");
-if(!ai.includes("height:100dvh!important")) throw new Error("AI chat must fill dynamic mobile viewport height");
+if(!ai.includes("#pm-ai-panel{position:fixed!important;inset:28px 0 0 0!important")) throw new Error("AI chat must use a status-bar-safe full-screen viewport layout");
+if(!ai.includes("height:calc(100dvh - max(28px,env(safe-area-inset-top,0px)))!important")) throw new Error("AI chat must fill the status-bar-safe dynamic mobile viewport");
 if(!ai.includes("top:max(28px,env(safe-area-inset-top,0px))")) throw new Error("AI chat must stay clear of Android status-bar controls");
 if(!ai.includes("min-width:48px;min-height:48px")) throw new Error("AI close control must have a reliable touch target");
 if(!ai.includes("window.__prometheusBack = function()")) throw new Error("Android Back must close the AI chat before navigating or exiting");
