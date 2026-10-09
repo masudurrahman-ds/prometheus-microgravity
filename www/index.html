@@ -416,6 +416,64 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   body:has(#pm-ai-panel.open) #pm-ai-fab{display:none}
 }
 
+
+/* Fire-safety intelligence dashboard */
+.fs-dashboard{gap:22px}
+.fs-hero{position:relative;overflow:hidden;border:1px solid rgba(230,203,147,.22);border-radius:26px;padding:clamp(20px,4vw,42px);background:radial-gradient(ellipse at 90% 0%,rgba(111,177,255,.12),transparent 42%),linear-gradient(145deg,rgba(20,29,56,.88),rgba(5,8,17,.92));box-shadow:var(--shadow)}
+.fs-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,220px);gap:24px;align-items:center}
+.fs-title{font:500 clamp(35px,6vw,66px)/.98 var(--serif);letter-spacing:-.02em;margin:12px 0}
+.fs-subtitle{font:400 clamp(16px,2.4vw,23px)/1.4 var(--serif);max-width:690px;color:var(--text)}
+.fs-disclaimer{font-size:11px;color:var(--faint);max-width:650px}
+.fs-orb-panel{display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--gold);font-size:9px;letter-spacing:.13em;text-align:center}
+.fs-orb{display:grid;place-items:center;width:clamp(80px,12vw,132px);aspect-ratio:1;border:1px solid rgba(230,203,147,.6);border-radius:50%;font-size:36px;color:#171106;background:radial-gradient(circle at 32% 25%,#fff8df,#e6cb93 32%,#544326 72%,#080b14);box-shadow:0 0 55px rgba(230,203,147,.2),inset 0 0 0 8px rgba(8,11,20,.24)}
+.fs-orb-panel small{color:var(--faint);letter-spacing:0;font-size:10px}
+.fs-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fs-metric{display:flex;flex-direction:column;gap:6px;padding:17px;border-radius:16px;min-width:0}
+.fs-metric-value{font:500 clamp(25px,3.5vw,37px)/1 var(--serif);color:var(--gold)}
+.fs-metric-label{font-size:12px;font-weight:650}
+.fs-metric-note{font-size:10px;color:var(--faint);line-height:1.4}
+.fs-synthesis,.fs-card{padding:clamp(16px,2.5vw,25px);border-radius:20px;min-width:0}
+.fs-synthesis h2,.fs-card h2,.fs-section-head h2{font:500 clamp(22px,3vw,32px)/1.12 var(--serif);margin:5px 0 10px}
+.fs-synthesis-head{align-items:flex-start;justify-content:space-between;gap:12px}
+.fs-local-badge{border:1px solid rgba(79,227,160,.35);color:var(--obs);border-radius:999px;padding:6px 9px;font-size:9px;letter-spacing:.12em;white-space:nowrap}
+.fs-brief-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.fs-brief{padding:13px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.025)}
+.fs-brief b{font-size:11px;color:var(--gold)}
+.fs-brief p{font-size:12px;line-height:1.55;color:var(--dim);margin:7px 0 0}
+.fs-hypothesis{margin-top:13px;padding:14px;border-left:2px solid var(--ana);background:rgba(255,176,103,.055);border-radius:0 12px 12px 0}
+.fs-hypothesis b{font-size:11px;color:var(--ana)}
+.fs-hypothesis p{font-size:12px;line-height:1.55;margin:7px 0;color:var(--text)}
+.fs-synthesis-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+.fs-two-col{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:12px;align-items:stretch}
+.fs-phen-row{margin-top:14px}
+.fs-phen-title{display:flex;justify-content:space-between;gap:12px;font-size:11px;margin-bottom:6px}
+.fs-phen-title b{color:var(--gold);font-weight:500;white-space:nowrap}
+.fs-bar{height:5px;border-radius:9px;overflow:hidden;background:rgba(255,255,255,.07)}
+.fs-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#6FB1FF,#E6CB93)}
+.fs-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px}
+.fs-section-head h2{margin-bottom:5px}
+.fs-section-head p{font-size:11px;line-height:1.5;max-width:760px;margin:8px 0 0}
+.fs-result-count{font-size:10px;color:var(--gold);white-space:nowrap}
+.fs-filters{display:flex;gap:7px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:thin}
+.fs-filter{flex:0 0 auto;border:1px solid var(--line2);border-radius:999px;background:rgba(255,255,255,.035);color:var(--dim);padding:9px 12px;font-size:11px;cursor:pointer}
+.fs-filter.active{border-color:var(--gold);background:rgba(230,203,147,.12);color:var(--gold)}
+.fs-study-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fs-study{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;padding:16px;border-radius:16px;min-width:0}
+.fs-rank{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(230,203,147,.3);border-radius:50%;color:var(--gold);font:500 13px var(--serif)}
+.fs-study-main{min-width:0}
+.fs-study-top{justify-content:space-between;gap:8px;flex-wrap:wrap}
+.fs-study-top .eyebrow{font-size:9px}
+.fs-score{font-size:9px;color:var(--gold);border:1px solid rgba(230,203,147,.2);border-radius:999px;padding:4px 6px}
+.fs-study h3{font:500 19px/1.2 var(--serif);margin:9px 0}
+.fs-study-meta{font-size:10px;color:var(--dim);line-height:1.5}
+.fs-study-note{font-size:10px;line-height:1.5;color:var(--faint)}
+.fs-study-actions{gap:7px;flex-wrap:wrap;margin-top:11px}
+.fs-study-actions .btn{white-space:normal}
+.fs-study-actions a{text-decoration:none}
+.fs-footer-note{font-size:10px;line-height:1.6;color:var(--faint);padding:4px 2px 16px}
+@media(max-width:760px){.fs-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.fs-two-col{grid-template-columns:1fr}.fs-study-list{grid-template-columns:1fr}.fs-hero-grid{grid-template-columns:minmax(0,1fr) 100px}.fs-orb{width:76px}.fs-brief-grid{grid-template-columns:1fr}}
+@media(max-width:460px){.fs-hero-grid{grid-template-columns:1fr}.fs-orb-panel{display:none}.fs-metrics{gap:7px}.fs-metric{padding:13px}.fs-study{padding:13px;grid-template-columns:29px minmax(0,1fr);gap:9px}.fs-rank{width:28px;height:28px}.fs-section-head{align-items:flex-start;flex-direction:column}.fs-synthesis-head{align-items:flex-start}}
+
 </style>
 </head>
 <body>
@@ -1449,35 +1507,108 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   const slideOf = (eyebrow, title, text, viz) => h('div', {class: 'glass hud'}, h('div', null, h('div', {class: 'eyebrow'}, eyebrow), h('h3', null, title), h('p', null, text)), h('div', {class: 'viz'}, viz));
 
   // ------------------------------------------------------------------ LANDING
+  // ------------------------------------------------------------------ FIRE-SAFETY INTELLIGENCE DASHBOARD
+  let dashboardFilter = 'all';
   function viewIntelligenceHome(root) {
-    const ds=S.ds, n=ds?.experiments?.length||0;
-    const launchAI=()=>{
-      if(window.__prometheusAIOpen){ window.__prometheusAIOpen(); return; }
-      const ai=document.getElementById('pm-ai-fab');
-      if(ai) ai.click();
-      else setTimeout(()=>{ if(window.__prometheusAIOpen) window.__prometheusAIOpen(); },1000);
+    const ds = S.ds, exps = ds?.experiments || [], srcs = ds ? Object.values(ds.sources || {}) : [];
+    if (!ds || !exps.length) {
+      root.append(h('div', {class:'page view-enter int-home'}, h('div',{class:'eyebrow'},'NASA FIRE-SAFETY INTELLIGENCE'),
+        h('h1',{class:'int-title gold-text'},'PROMETHEUS'),h('p',{class:'int-intro'},'Load a NASA combustion dataset to build the evidence dashboard.'),dropZone()));
+      return;
+    }
+    const phenLabel = p => (F.PHEN[p] && F.PHEN[p].label) || p.replace(/_/g,' ');
+    const expHas = (e, id) => (e.source_ids || []).includes(id) || (e.observations || []).some(o => o.source_id === id) ||
+      Object.values(e.conditions || {}).some(c => c.source_id === id);
+    const studies = srcs.map(src => {
+      const rows = exps.filter(e => expHas(e, src.source_id));
+      const obs = rows.flatMap(e => (e.observations || []).map(o => ({...o, exp_id:e.exp_id})));
+      const phenomena = [...new Set(obs.map(o => o.phenomenon))];
+      const vars = [...new Set(rows.flatMap(e => Object.keys(e.conditions || {})))];
+      const numeric = obs.filter(o => o.measurement && o.measurement.canonical_value != null).length;
+      // A transparent corpus-coverage score, NOT a scientific quality or hazard score.
+      const score = rows.length * 4 + numeric * 3 + phenomena.length * 2 + vars.length;
+      const title = src.title || src.source_id;
+      const text = (title + ' ' + (src.note || '') + ' ' + rows.map(e=>e.title+' '+e.fuel+' '+(e.observations||[]).map(o=>o.phenomenon).join(' ')).join(' ')).toLowerCase();
+      const matches = key => {
+        if (key === 'all') return true;
+        if (key === 'indexed') return rows.length > 0;
+        if (key === 'smoke') return phenomena.some(p=>['soot','morphology'].includes(p)) || /smoke|soot|spice/i.test(text);
+        if (key === 'spread') return phenomena.includes('flame_spread_rate') || /bass|pmma|sofie|fm²|luci|flame spread/i.test(text);
+        if (key === 'extinction') return phenomena.includes('extinction') || /flex|flare|extinction|flammability limit/i.test(text);
+        return true;
+      };
+      return {src, title, rows, obs, phenomena, vars, numeric, score, text, matches};
+    }).sort((a,b)=>b.score-a.score || b.rows.length-a.rows.length || a.title.localeCompare(b.title));
+    const totalObs = exps.reduce((n,e)=>n+(e.observations||[]).length,0);
+    const numericObs = exps.reduce((n,e)=>n+(e.observations||[]).filter(o=>o.measurement&&o.measurement.canonical_value!=null).length,0);
+    const phenomenonCounts = {};
+    exps.forEach(e => [...new Set((e.observations||[]).map(o=>o.phenomenon))].forEach(p => phenomenonCounts[p]=(phenomenonCounts[p]||0)+1));
+    const phenRows = Object.entries(phenomenonCounts).sort((a,b)=>b[1]-a[1]);
+    const sparse = [...phenRows].sort((a,b)=>a[1]-b[1]).slice(0,3);
+    let hypotheses = [];
+    try { hypotheses = F.hypotheses(ds) || []; } catch (_) {}
+    const association = hypotheses.find(x=>x.kind==='association');
+    const filtered = studies.filter(x=>x.matches(dashboardFilter));
+    const fmt = n => Number(n||0).toLocaleString();
+    const launchAI = question => {
+      if (window.__prometheusAIOpen) window.__prometheusAIOpen();
+      else { const fab=document.getElementById('pm-ai-fab'); if(fab) fab.click(); }
+      if (question && window.PROMETHEUS_AI && typeof window.PROMETHEUS_AI.ask==='function') {
+        setTimeout(()=>window.PROMETHEUS_AI.ask(question),80);
+      }
     };
-    const action=(title,desc,tab,mark)=>h('button',{class:'int-action',type:'button',on:{click:()=>go(tab)}},
-      h('span',{class:'int-mark'},mark),h('span',{class:'int-action-copy'},h('strong',null,title),h('small',null,desc)),h('span',{class:'int-chevron'},'›'));
-    root.append(h('div',{class:'page view-enter int-home'},
-      h('div',{class:'int-orb','aria-hidden':'true'},'✦'),
-      h('div',{class:'eyebrow'},'NASA MICROGRAVITY COMBUSTION · SCIENTIFIC INTELLIGENCE'),
-      h('h1',{class:'int-title gold-text'},'PROMETHEUS'),
-      h('p',{class:'int-intro'},'Ask scientific questions. Explore evidence. Test scenarios. Every conclusion traceable to its source.'),
-      h('button',{class:'int-ask',type:'button',on:{click:launchAI}},
-        h('span',{class:'int-ask-icon'},'✦'),
-        h('span',null,h('strong',null,'Ask PROMETHEUS'),h('small',null,'What does NASA evidence tell us about fire in microgravity?')),
-        h('span',{class:'int-chevron'},'→')),
-      h('div',{class:'int-section-title'},'YOUR WORKSPACE'),
-      h('div',{class:'int-actions'},
-        action('Virtual Lab','Adjust conditions and evaluate evidence','lab','⚗'),
-        action('Evidence Universe','Explore relationships in 3D','universe','◎'),
-        action('Research Intelligence','Patterns, anomalies and comparisons','research','◇'),
-        action('Evidence Gaps','See what is not yet known','gaps','◌'),
-        action('Future Missions','Apply evidence to engineering questions','mission','✧'),
-        action('Sources & Datasets','NASA PSI provenance and citations','data','▤')),
-      h('div',{class:'int-evidence'},h('strong',null,'NASA EVIDENCE ENGINE'),h('p',null,n+' indexed records · '+(ds?Object.keys(ds.sources||{}).length:0)+' sources. AI findings are limited by the available data.'),h('button',{class:'btn sm',on:{click:()=>go('data')}},'View sources →'))
-    ));
+    const metric = (value,label,note) => h('div',{class:'glass fs-metric'},h('span',{class:'fs-metric-value'},value),h('span',{class:'fs-metric-label'},label),h('span',{class:'fs-metric-note'},note));
+    const bar = (value,max) => h('div',{class:'fs-bar'},h('i',{style:'width:'+Math.max(3,100*value/(max||1))+'%'}));
+    const filters = [['all','All studies'],['indexed','With indexed records'],['smoke','Smoke & flame shape'],['spread','Material flame spread'],['extinction','Ignition & extinction']];
+    const filterBar = h('div',{class:'fs-filters','aria-label':'Filter ranked NASA studies'},filters.map(([key,label])=>
+      h('button',{type:'button',class:'fs-filter'+(dashboardFilter===key?' active':''),'aria-pressed':String(dashboardFilter===key),on:{click:()=>{dashboardFilter=key;render();}},},label)));
+    const rankedCards = filtered.slice(0,10).map((study,index)=>{
+      const src=study.src, records=study.rows.length;
+      const depth=records ? (src.metadata_only ? 'Catalog-backed entries' : (study.numeric ? 'Includes numeric observations' : 'Indexed descriptions')) : 'Source catalog only';
+      return h('article',{class:'glass fs-study'},
+        h('div',{class:'fs-rank'},String(studies.indexOf(study)+1).padStart(2,'0')),
+        h('div',{class:'fs-study-main'},
+          h('div',{class:'row fs-study-top'},h('span',{class:'eyebrow'},src.source_id),h('span',{class:'fs-score'},'Coverage score '+study.score)),
+          h('h3',null,study.title),
+          h('p',{class:'fs-study-meta'},records+' indexed record'+(records===1?'':'s')+' · '+study.phenomena.length+' phenomenon types · '+study.vars.length+' condition variables'),
+          h('p',{class:'fs-study-note'},depth+'; rank reflects how this seed corpus represents the source, not the study’s quality or safety importance.'),
+          h('div',{class:'row fs-study-actions'},
+            src.url ? h('a',{class:'btn sm ghost',href:src.url,target:'_blank',rel:'noopener noreferrer'},'Open source ↗') : null,
+            h('button',{class:'btn sm',type:'button',on:{click:()=>launchAI('Interpret NASA source '+src.source_id+' — '+study.title+'. Summarize what this PROMETHEUS corpus actually records, distinguish measured values from descriptive metadata, explain the relevance to spacecraft fire safety, and list limitations with citations.')}},'Ask local AI ↗'))));
+    });
+    const maxPhen = Math.max(1,...phenRows.map(x=>x[1]));
+    const coverageCard = h('section',{class:'glass fs-card'},h('div',{class:'eyebrow'},'Evidence coverage'),h('h2',null,'What the corpus actually tracks'),
+      phenRows.length ? phenRows.map(([p,n])=>h('div',{class:'fs-phen-row'},h('div',{class:'fs-phen-title'},h('span',null,phenLabel(p)),h('b',null,n+' records')),bar(n,maxPhen))) : h('p',{class:'dim'},'No phenomenon observations are loaded.'));
+    const gapText = sparse.length ? sparse.map(([p,n])=>phenLabel(p)+' ('+n+')').join(', ') : 'No phenomenon categories are indexed yet.';
+    const synthesis = h('section',{class:'glass fs-synthesis'},
+      h('div',{class:'row fs-synthesis-head'},h('div',null,h('div',{class:'eyebrow'},'Local AI · evidence-grounded interpretation'),h('h2',null,'Fire-safety briefing')),h('span',{class:'fs-local-badge'},'ON-DEVICE')),
+      h('p',null,'This dashboard ranks source representation and summarizes the currently loaded corpus. It does not rank studies by scientific merit, predict a fire outcome, or certify a design.'),
+      h('div',{class:'fs-brief-grid'},
+        h('div',{class:'fs-brief'},h('b',null,'Strongest coverage'),h('p',null,phenRows.length ? phenLabel(phenRows[0][0])+' appears in '+phenRows[0][1]+' indexed experiment records.' : 'No phenomenon data available.')),
+        h('div',{class:'fs-brief'},h('b',null,'Thin coverage'),h('p',null,'Lowest represented categories: '+gapText+'. Treat these as evidence gaps to review, not proof of low risk.')),
+        h('div',{class:'fs-brief'},h('b',null,'Fire-safety implication'),h('p',null,'Use flame shape and smoke/soot studies to frame sensor-detection questions; use material flame-spread and extinction studies to frame ignition, propagation and suppression questions. The available corpus alone cannot set operational thresholds.'))),
+      association ? h('div',{class:'fs-hypothesis'},h('b',null,'Unvalidated statistical signal'),h('p',null,association.statement),h('span',{class:'fs-study-note'},association.status+' · '+(association.limitations||[]).join(' '))) :
+        h('div',{class:'fs-hypothesis'},h('b',null,'No association promoted'),h('p',null,'No statistical association currently passed the local analysis thresholds. That does not establish that no physical relationship exists.')),
+      h('div',{class:'fs-synthesis-actions'},h('button',{class:'btn gold',type:'button',on:{click:()=>launchAI('Prepare a NASA-evidence-grounded microgravity fire-safety briefing from the currently loaded PROMETHEUS dataset. Summarize strongest observations, rank represented studies using transparent corpus coverage, distinguish measurements from metadata and hypotheses, identify evidence gaps, and cite sources. Do not provide safety certification or invent values.')}},'Generate cited AI briefing'),
+        h('button',{class:'btn ghost',type:'button',on:{click:()=>go('research')}},'Open research analysis →')));
+    const rankHeader = h('div',{class:'fs-section-head'},h('div',null,h('div',{class:'eyebrow'},'Study navigator'),h('h2',null,'Ranked NASA studies'),h('p',{class:'dim'},'Transparent representation score: indexed records × 4 + numeric observations × 3 + distinct phenomena × 2 + distinct recorded condition variables. Metadata-only entries remain visibly labeled.')),
+      h('span',{class:'fs-result-count'},filtered.length+' sources'));
+    const rankingSection = h('section',{class:'stack fs-ranking'},rankHeader,filterBar,
+      filtered.length ? h('div',{class:'fs-study-list'},rankedCards) : h('div',{class:'glass fs-card'},h('p',{class:'dim'},'No studies match this filter in the current corpus.')));
+    root.append(h('div',{class:'page view-enter fs-dashboard'},
+      h('section',{class:'fs-hero'},
+        h('div',{class:'eyebrow'},'PROMETHEUS · NASA MICROGRAVITY COMBUSTION INTELLIGENCE'),
+        h('div',{class:'fs-hero-grid'},h('div',null,h('h1',{class:'fs-title gold-text'},'Fire Safety Intelligence'),
+          h('p',{class:'fs-subtitle'},'Summarize. Rank. Interpret. Trace every insight to NASA evidence.'),
+          h('p',{class:'fs-disclaimer'},'Research support for human space exploration — not a fire-safety certification or operational decision system.')),
+          h('div',{class:'fs-orb-panel'},h('div',{class:'fs-orb'},'✦'),h('span',null,'LOCAL EVIDENCE ENGINE'),h('small',null,'No cloud AI required for this dashboard')))),
+      h('div',{class:'fs-metrics'},metric(fmt(exps.length),'Indexed experiment records','Current dataset'),metric(fmt(srcs.length),'Catalogued sources','NASA PSI / NASA NTRS and related NASA material'),metric(fmt(phenRows.length),'Phenomenon categories','Present in records'),metric(fmt(numericObs),'Numeric observations','Measurements with canonical values')),
+      synthesis,
+      h('div',{class:'fs-two-col'},coverageCard,h('section',{class:'glass fs-card'},h('div',{class:'eyebrow'},'Research coverage gap'),h('h2',null,'Where evidence is thin'),
+        h('p',null,'Least represented categories in this corpus: '+gapText+'.'),h('p',{class:'fs-study-note'},'Counts describe this curated seed corpus only. Some sources are metadata-only; do not interpret record counts as the full scale of NASA research.'),
+        h('button',{class:'btn sm',type:'button',on:{click:()=>go('gaps')}},'Explore evidence gaps →'))),
+      rankingSection,
+      h('div',{class:'fs-footer-note'},'Evidence boundary: '+exps.length+' indexed records from a provenance-tracked seed corpus. Values marked as proxies, documented configurations or metadata are not treated as direct measured outcomes. Each source link opens the cited source; use the AI assistant to request a claim-by-claim citation audit.')));
   }
 
   function viewLanding(root) {
