@@ -109,3 +109,16 @@ test("chart-ready dataset values contain finite numeric outcomes only", () => {
   assert.ok(r.visualization.rows.every(row => Number.isFinite(row.y)));
   assert.deepEqual(r.visualization.rows.map(row => row.label), r.rows.map(row => row.label));
 });
+
+test("evidence search ranks experiment IDs and scientific fields above incidental text matches", () => {
+  const exact = searchNasaEvidence("PSI98-S1", 20).matches;
+  assert.equal(exact[0]?.exp_id, "PSI98-S1");
+  const burn = searchNasaEvidence("SAFFIRE burn duration", 20).matches;
+  assert.equal(burn[0]?.exp_id, "PSI98-S1");
+  assert.ok(burn.some(item => item.exp_id === "PSI98-S2"));
+});
+
+test("evidence search ignores stop-word-only queries and normalizes separators", () => {
+  assert.equal(searchNasaEvidence("why is it in the").matches.length, 0);
+  assert.equal(searchNasaEvidence("PSI98 S1", 20).matches[0]?.exp_id, "PSI98-S1");
+});
