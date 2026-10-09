@@ -15,13 +15,17 @@ const sourceView = (s) => s ? ({
   license: s.license || null
 }) : null;
 
+export function finiteNumericValue(raw) {
+  if (raw === null || raw === undefined || (typeof raw === "string" && raw.trim() === "")) return null;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
 export function hasReportedMeasurement(e) {
   return (e?.observations || []).some((o) => {
     const measurement = o?.measurement;
     if (!measurement) return false;
-    const raw = measurement.canonical_value ?? measurement.value;
-    if (raw === null || raw === undefined || (typeof raw === "string" && raw.trim() === "")) return false;
-    return Number.isFinite(Number(raw));
+    return finiteNumericValue(measurement.canonical_value ?? measurement.value) !== null;
   });
 }
 
@@ -108,17 +112,17 @@ function valueFor(e, variable) {
   if (variable === "burn_duration") {
     const o = (e.observations || []).find(x =>
       /burn|duration/i.test((x.phenomenon || "") + " " + (x.description || "")) &&
-      x.measurement && Number.isFinite(Number(x.measurement.canonical_value)));
+      x.measurement && finiteNumericValue(x.measurement.canonical_value) !== null);
     return o ? {
-      value:Number(o.measurement.canonical_value), raw:o.measurement.value,
+      value:finiteNumericValue(o.measurement.canonical_value), raw:o.measurement.value,
       unit:o.measurement.canonical_unit || o.measurement.unit, source_id:o.source_id,
       locator:o.locator, note:""
     } : null;
   }
   const c = e.conditions && e.conditions[variable];
-  if (!c || !Number.isFinite(Number(c.canonical_value))) return null;
+  if (!c || finiteNumericValue(c.canonical_value) === null) return null;
   return {
-    value:Number(c.canonical_value), raw:c.value, unit:c.canonical_unit || c.unit,
+    value:finiteNumericValue(c.canonical_value), raw:c.value, unit:c.canonical_unit || c.unit,
     source_id:c.source_id, locator:c.locator, note:c.canonical_note || ""
   };
 }
