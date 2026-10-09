@@ -18,7 +18,7 @@ const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
 if(!html.includes("window, '__prometheusDataset'")) throw new Error("stable local-AI dataset provider missing");
 if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
-if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel height missing");
+if(!ai.includes("#pm-ai-panel.fullscreen") || !ai.includes("height:100dvh!important")) throw new Error("full-screen AI workspace styles missing");
 if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("global touch/pointer drag handling missing");
 if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) throw new Error("AI floating position persistence missing");
 if(!ai.includes("DRAG TO MOVE")) throw new Error("visible AI panel drag affordance missing");
