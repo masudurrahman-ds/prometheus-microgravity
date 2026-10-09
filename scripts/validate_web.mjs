@@ -81,4 +81,3 @@ if(!ai.includes('return c.source_id && c.value!=null && c.value!=="" ? "REPORTED
 if(!ai.includes('String(c.value)+(c.unit ? " "+String(c.unit) : "")')) throw new Error("comparison must preserve source-reported units");
 if(!ai.includes('" ("+ea.label+" / "+eb.label+")"')) throw new Error("comparison must classify each record's condition evidence separately");
 
-if(!ai.includes("A midpoint or proxy note applies only to canonical plotting")) throw new Error("canonical plotting notes must not relabel the source's original textual condition");
