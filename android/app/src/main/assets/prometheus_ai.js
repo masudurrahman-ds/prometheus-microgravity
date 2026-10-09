@@ -74,7 +74,7 @@
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
     #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
-    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:calc(96px + env(safe-area-inset-bottom,0px))}#pm-ai-panel{top:auto;left:auto;right:10px;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:calc(100vw - 20px);height:min(66dvh,590px);max-height:calc(100dvh - 148px);border-radius:20px}}
+    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px))}#pm-ai-panel{top:auto;left:auto;right:10px;bottom:calc(108px + env(safe-area-inset-bottom,0px));width:calc(100vw - 20px);height:min(48dvh,460px);max-height:calc(100dvh - 176px);border-radius:20px}#pm-ai-head{position:relative;padding-top:18px}#pm-ai-head:after{content:'DRAG TO MOVE';display:block;position:absolute;right:52px;top:5px;color:#737c96;font:8px IBM Plex Sans,system-ui;letter-spacing:.13em}#pm-ai-head>div{padding-top:8px}}
   `;
   document.head.appendChild(style);
 
@@ -644,14 +644,35 @@
   // The AI orb and assistant card are both draggable so they can be moved away
   // from Research controls and content. Clamp the panel inside the visible viewport.
   let fabMoved=false, panelMoved=false, dragState=null;
+  const POSITION_KEY="prometheus_ai_floating_positions_v1";
   function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
+  function savePositions(){
+    try{
+      localStorage.setItem(POSITION_KEY,JSON.stringify({
+        fab:fab.style.left?{left:fab.style.left,top:fab.style.top}:null,
+        panel:panel.style.left?{left:panel.style.left,top:panel.style.top}:null
+      }));
+    }catch(_){}
+  }
+  function restorePositions(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(POSITION_KEY)||"null");
+      for(const [kind,el] of [["fab",fab],["panel",panel]]){
+        const p=saved&&saved[kind];if(!p||!Number.isFinite(parseFloat(p.left))||!Number.isFinite(parseFloat(p.top)))continue;
+        const w=el.getBoundingClientRect().width|| (kind==="fab"?54:Math.min(window.innerWidth-20,420));
+        const h=el.getBoundingClientRect().height|| (kind==="fab"?54:460);
+        el.style.left=clamp(parseFloat(p.left),8,Math.max(8,window.innerWidth-w-8))+"px";
+        el.style.top=clamp(parseFloat(p.top),8,Math.max(8,window.innerHeight-h-8))+"px";
+        el.style.right="auto";el.style.bottom="auto";
+      }
+    }catch(_){}
+  }
   function startDrag(el,e,kind){
     if(e.button!==undefined&&e.button!==0)return;
     if(kind==="panel"&&e.target.closest("button"))return;
     dragState={el,kind,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,
       rect:el.getBoundingClientRect(),moved:false};
-    if(kind==="fab")fabMoved=false;
-    else panelMoved=false;
+    if(kind==="fab")fabMoved=false;else panelMoved=false;
     try{el.setPointerCapture(e.pointerId);}catch(_){}
     e.preventDefault();
   }
@@ -668,16 +689,18 @@
   }
   function endDrag(e){
     if(!dragState||e.pointerId!==dragState.pointerId)return;
-    if(dragState.kind==="fab")fabMoved=dragState.moved;
-    else panelMoved=dragState.moved;
-    dragState=null;
+    const d=dragState;
+    if(d.kind==="fab")fabMoved=d.moved;else panelMoved=d.moved;
+    dragState=null;if(d.moved)savePositions();
   }
   fab.addEventListener("pointerdown",e=>startDrag(fab,e,"fab"));
-  fab.addEventListener("pointermove",moveDrag);fab.addEventListener("pointerup",endDrag);fab.addEventListener("pointercancel",endDrag);
   panel.querySelector("#pm-ai-head").addEventListener("pointerdown",e=>startDrag(panel,e,"panel"));
-  panel.addEventListener("pointermove",moveDrag);
-  panel.addEventListener("pointerup",endDrag);
-  panel.addEventListener("pointercancel",endDrag);
+  // Listen on window as Android WebView can retarget touch/pointer events after capture.
+  window.addEventListener("pointermove",moveDrag,{passive:false});
+  window.addEventListener("pointerup",endDrag);
+  window.addEventListener("pointercancel",endDrag);
+  window.addEventListener("resize",()=>{restorePositions();});
+  restorePositions();
   function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
   function closeAI(){panel.classList.remove("open");}
   fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});

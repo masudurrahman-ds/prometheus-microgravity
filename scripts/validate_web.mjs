@@ -18,9 +18,13 @@ const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
 if(!html.includes("window, '__prometheusDataset'")) throw new Error("stable local-AI dataset provider missing");
 if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
+if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel height missing");
+if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("global touch/pointer drag handling missing");
+if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) throw new Error("AI floating position persistence missing");
+if(!ai.includes("DRAG TO MOVE")) throw new Error("visible AI panel drag affordance missing");
 if(!ai.includes('fab.addEventListener("pointerdown"')) throw new Error("movable AI launcher pointer handling missing");
 if(!ai.includes('panel.querySelector("#pm-ai-head").addEventListener("pointerdown"')) throw new Error("movable AI panel header handling missing");
-if(!ai.includes("height:min(66dvh,590px)")) throw new Error("compact mobile AI panel sizing missing");
+if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel sizing missing");
 if(html.includes("top:calc(env(safe-area-inset-top,0px) + 8px)!important;bottom:calc(132px")) throw new Error("old full-height mobile AI override still present");
 
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
