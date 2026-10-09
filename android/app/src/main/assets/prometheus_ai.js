@@ -675,9 +675,9 @@
   fab.addEventListener("pointerdown",e=>startDrag(fab,e,"fab"));
   fab.addEventListener("pointermove",moveDrag);fab.addEventListener("pointerup",endDrag);fab.addEventListener("pointercancel",endDrag);
   panel.querySelector("#pm-ai-head").addEventListener("pointerdown",e=>startDrag(panel,e,"panel"));
-  panel.querySelector("#pm-ai-head").addEventListener("pointermove",moveDrag);
-  panel.querySelector("#pm-ai-head").addEventListener("pointerup",endDrag);
-  panel.querySelector("#pm-ai-head").addEventListener("pointercancel",endDrag);
+  panel.addEventListener("pointermove",moveDrag);
+  panel.addEventListener("pointerup",endDrag);
+  panel.addEventListener("pointercancel",endDrag);
   function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
   function closeAI(){panel.classList.remove("open");}
   fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});
