@@ -48,7 +48,7 @@ scripts.forEach(({attrs,source,index})=>{
 console.log("PROMETHEUS web/data validation passed:", fixture.experiments.length, "experiments;", fixture.sources.length, "sources;");
 
 if(!html.includes("function viewDashboard(root)")) throw new Error("interactive AI fire-safety dashboard missing");
-if(!html.includes("Evidence coverage ranking")) throw new Error("dashboard evidence ranking missing");
+if(!html.includes("EVIDENCE COVERAGE RANKING")) throw new Error("dashboard evidence ranking missing");
 if(!html.includes("not fire danger")) throw new Error("dashboard must disclose that coverage is not hazard severity");
 if(!html.includes("Measured phenomenon")) throw new Error("dashboard phenomenon filter missing");
 if(!html.includes("Inspect in Evidence Universe")) throw new Error("dashboard study drill-down missing");
