@@ -91,7 +91,19 @@
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
     #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
-    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px))}#pm-ai-panel{top:auto;left:auto;right:10px;bottom:calc(108px + env(safe-area-inset-bottom,0px));width:calc(100vw - 20px);height:min(48dvh,460px);max-height:calc(100dvh - 176px);border-radius:20px}#pm-ai-head{position:relative;padding-top:18px}#pm-ai-head:after{content:'DRAG TO MOVE';display:block;position:absolute;right:52px;top:5px;color:#737c96;font:8px IBM Plex Sans,system-ui;letter-spacing:.13em}#pm-ai-head>div{padding-top:8px}}
+    /* Full-screen conversational workspace: no floating mini-window. */
+    #pm-ai-panel{position:fixed!important;inset:0!important;right:auto!important;bottom:auto!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:none!important;min-height:0!important;border-radius:0!important;border:0!important;z-index:100000!important;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:#050812;}
+    #pm-ai-panel.open{display:flex;}
+    #pm-ai-panel #pm-ai-head{flex:none;padding:calc(14px + env(safe-area-inset-top,0px)) 18px 13px;cursor:default;touch-action:manipulation;}
+    #pm-ai-panel #pm-ai-head:after{content:none!important}
+    #pm-ai-body{min-height:0;overscroll-behavior:contain;padding:18px clamp(14px,4vw,36px);}
+    #pm-ai-suggest{flex:none;padding:8px clamp(14px,4vw,36px) 10px;}
+    #pm-ai-form{flex:none;padding:12px clamp(14px,4vw,36px) calc(12px + env(safe-area-inset-bottom,0px));}
+    #pm-ai-clear{touch-action:manipulation}
+    #pm-ai-fab{transition:opacity .15s ease}
+    body.pm-ai-fullscreen-open{overflow:hidden!important;touch-action:pan-y;}
+    body.pm-ai-fullscreen-open #pm-ai-fab{display:none!important;}
+    @media(min-width:760px){#pm-ai-panel #pm-ai-body{padding-left:max(24px,calc((100vw - 900px)/2));padding-right:max(24px,calc((100vw - 900px)/2));}#pm-ai-panel #pm-ai-head{padding-left:max(24px,calc((100vw - 980px)/2));padding-right:max(24px,calc((100vw - 980px)/2));}#pm-ai-panel #pm-ai-form,#pm-ai-panel #pm-ai-suggest{padding-left:max(24px,calc((100vw - 900px)/2));padding-right:max(24px,calc((100vw - 900px)/2));}}
   `;
   document.head.appendChild(style);
 
@@ -745,17 +757,12 @@
   const POSITION_KEY="prometheus_ai_floating_positions_v1";
   function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
   function savePositions(){
-    try{
-      localStorage.setItem(POSITION_KEY,JSON.stringify({
-        fab:fab.style.left?{left:fab.style.left,top:fab.style.top}:null,
-        panel:panel.style.left?{left:panel.style.left,top:panel.style.top}:null
-      }));
-    }catch(_){}
+    try{localStorage.setItem(POSITION_KEY,JSON.stringify({fab:fab.style.left?{left:fab.style.left,top:fab.style.top}:null}));}catch(_){}
   }
   function restorePositions(){
     try{
       const saved=JSON.parse(localStorage.getItem(POSITION_KEY)||"null");
-      for(const [kind,el] of [["fab",fab],["panel",panel]]){
+      for(const [kind,el] of [["fab",fab]]){
         const p=saved&&saved[kind];if(!p||!Number.isFinite(parseFloat(p.left))||!Number.isFinite(parseFloat(p.top)))continue;
         const w=el.getBoundingClientRect().width|| (kind==="fab"?54:Math.min(window.innerWidth-20,420));
         const h=el.getBoundingClientRect().height|| (kind==="fab"?54:460);
@@ -792,25 +799,26 @@
     dragState=null;if(d.moved)savePositions();
   }
   fab.addEventListener("pointerdown",e=>startDrag(fab,e,"fab"));
-  panel.querySelector("#pm-ai-head").addEventListener("pointerdown",e=>startDrag(panel,e,"panel"));
+  // The chat is a full-screen workspace; its header is not draggable.
   // Listen on window as Android WebView can retarget touch/pointer events after capture.
   window.addEventListener("pointermove",moveDrag,{passive:false});
   window.addEventListener("pointerup",endDrag);
   window.addEventListener("pointercancel",endDrag);
   window.addEventListener("resize",()=>{restorePositions();});
   restorePositions();
-  function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
-  function closeAI(){panel.classList.remove("open");}
+  function openAI(){panel.classList.add("open");document.body.classList.add("pm-ai-fullscreen-open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
+  function closeAI(){panel.classList.remove("open");document.body.classList.remove("pm-ai-fullscreen-open");}
   fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});
   document.getElementById("pm-ai-clear").onclick=()=>{conversationMemory=[];try{localStorage.removeItem(MEMORY_KEY);}catch(_){}body.replaceChildren();readyMessage();saveMemory();};
 
-  panel.querySelector("#pm-ai-close").onclick=()=>panel.classList.remove("open");
+  panel.querySelector("#pm-ai-close").onclick=closeAI;
+  window.addEventListener("keydown",e=>{if(e.key==="Escape"&&panel.classList.contains("open"))closeAI();});
   panel.querySelector("#pm-ai-form").onsubmit=e=>{e.preventDefault();ask(input.value);input.value="";};
   panel.querySelectorAll(".pm-chip").forEach(b=>b.onclick=()=>{input.value=b.textContent;ask(input.value);input.value="";});
 
   saveMemory();
   window.__prometheusAIStatus = "ready";
-  window.__prometheusAIOpen = ()=>{ panel.classList.add("open"); if(!body.childElementCount) readyMessage(); input.focus(); };
+  window.__prometheusAIOpen = openAI;
 
   window.PROMETHEUS_AI = {
     version:"2.0.0",
