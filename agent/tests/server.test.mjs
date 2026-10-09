@@ -29,14 +29,14 @@ test("agent health exposes safe configuration status", async()=>{
   assert.equal(health.evidence_policy,"NASA indexed corpus only");
 });
 
-test("agent rejects missing cloud consent before inference", async()=>{
+test("agent rejects missing cloud consent before checking cloud configuration", async()=>{
   const r=await fetch("http://127.0.0.1:"+port+"/v1/agent",{
     method:"POST",headers:{"content-type":"application/json"},
     body:JSON.stringify({message:"Compare PSI98-S1 and PSI98-S2.",consent:{cloud_ai:false}})
   });
   const body=await r.json();
-  assert.equal(r.status,503);
-  assert.equal(body.code,"AI_NOT_CONFIGURED");
+  assert.equal(r.status,403);
+  assert.equal(body.code,"CONSENT_REQUIRED");
 });
 
 test("agent validates request JSON and message", async()=>{
