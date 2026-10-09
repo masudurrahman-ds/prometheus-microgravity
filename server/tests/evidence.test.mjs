@@ -50,3 +50,16 @@ test("numeric parsing rejects null and blank values instead of coercing them to 
   assert.equal(finiteNumericValue(0), 0);
   assert.equal(finiteNumericValue("420"), 420);
 });
+
+test("evidence search ranks exact IDs and topic-specific terms above incidental matches", () => {
+  const exact = searchNASAEvidence("PSI98-S1", 20).evidence;
+  assert.equal(exact[0]?.exp_id, "PSI98-S1");
+  const burn = searchNASAEvidence("SAFFIRE burn duration", 20).evidence;
+  assert.equal(burn[0]?.exp_id, "PSI98-S1");
+  assert.ok(burn.some(item => item.exp_id === "PSI98-S2"));
+});
+
+test("evidence search ignores stop-word-only queries and normalizes separators", () => {
+  assert.equal(searchNASAEvidence("why is it in the", 20).count, 0);
+  assert.equal(searchNASAEvidence("PSI98 S1", 20).evidence[0]?.exp_id, "PSI98-S1");
+});
