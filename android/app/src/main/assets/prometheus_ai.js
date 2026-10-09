@@ -673,7 +673,7 @@
     if(visual3d) {
       const holder=el.querySelector(".pm-3d");
       if(holder) {
-        const rows=pending3DResult || records().map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
+        const rows=pending3DResult || records().map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&finiteNumericValue(o.measurement?.canonical_value)!==null)?.measurement?.canonical_value})).map(r=>({...r,y:finiteNumericValue(r.y)})).filter(r=>r.y!==null);
         const fresh=build3DResult(rows); holder.replaceWith(fresh);
         pending3DResult=null;
       }
@@ -712,7 +712,7 @@
       let visualHtml = "";
       if(charts.length) {
         const chart=charts[charts.length-1];
-        const rows=chart.rows.filter(r=>r&&Number.isFinite(Number(r.y))).slice(0,12);
+        const rows=chart.rows.map(r=>{const y=finiteNumericValue(r?.y);return y===null?null:{...r,y};}).filter(Boolean).slice(0,12);
         if(rows.length) visualHtml=visualShell(chart.title||"Deterministic scientific analysis","DERIVED · indexed NASA seed corpus",barChartSVG(rows,chart.yLabel||"Value",chart.title||"Scientific analysis"),"cloud-analysis");
       }
       rememberTurn({role:"assistant",text,title:"AI · Cloud evidence synthesis",evidence:evidenceState,ids});
