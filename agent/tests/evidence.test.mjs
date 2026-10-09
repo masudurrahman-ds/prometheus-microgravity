@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset } from "../evidence.mjs";
+import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset, hasReportedMeasurement } from "../evidence.mjs";
 
 test("NASA corpus search returns provenance", () => {
   const r = searchNasaEvidence("SAFFIRE S1 burn duration");
@@ -34,7 +34,7 @@ test("search results carry the same evidence classification as exact lookup", ()
 
 test("source lookup is explicitly source metadata, not an observation", () => {
   const r = getSource("NASA-FLARE");
-  assert.equal(r.evidence_state, "NASA_REPORTED");
+  assert.equal(r.evidence_state, "UNKNOWN");
   assert.equal(r.record_class, "source_metadata");
   assert.equal(r.metadata_only, true);
   assert.match(r.evidence_state_note, /does not make every linked claim/i);
@@ -77,4 +77,16 @@ test("unsupported scientific variable is rejected instead of fabricated", () => 
   const r = analyzeDataset("distribution", "made_up_variable");
   assert.ok(r.error);
   assert.ok(r.supported_variables.includes("burn_duration"));
+});
+
+test("null, blank, and non-finite measurement fields are not numeric observations", () => {
+  for (const measurement of [
+    { canonical_value: null, value: null },
+    { canonical_value: "", value: "" },
+    { canonical_value: "not available", value: "not available" },
+    {}
+  ]) {
+    assert.equal(hasReportedMeasurement({ observations: [{ measurement }] }), false);
+  }
+  assert.equal(hasReportedMeasurement({ observations: [{ measurement: { canonical_value: 0 } }] }), true);
 });
