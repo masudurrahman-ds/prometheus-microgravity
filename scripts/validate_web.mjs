@@ -17,6 +17,14 @@ if(data.update_version!=="2026.10.07.3") throw new Error("dataset update version
 const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
 if(!html.includes("window, '__prometheusDataset'")) throw new Error("stable local-AI dataset provider missing");
 if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
+if(!ai.includes("https://your-domain/v1/agent")) throw new Error("cloud AI endpoint guidance does not match the agent API route");
+if(!ai.includes('trace.map(t=>t?.result?.visualization)')) throw new Error("cloud AI tool charts are not rendered in the assistant response");
+if(!ai.includes("pending3DResult=rows")) throw new Error("3D evidence visualization ignores the requested scientific variable");
+const agentServer=fs.readFileSync("agent/server.mjs","utf8");
+const agentEvidence=fs.readFileSync("agent/evidence.mjs","utf8");
+if(!agentServer.includes('name:"analyze_dataset"') || !agentServer.includes("analyzeDataset(args.operation")) throw new Error("scientific analysis tool is not wired into the LLM agent");
+if(!agentEvidence.includes("export function analyzeDataset")) throw new Error("deterministic chart-ready evidence analysis is missing");
+if(!fs.existsSync("render.yaml")) throw new Error("cloud agent deployment blueprint missing");
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
 if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel height missing");
 if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("global touch/pointer drag handling missing");

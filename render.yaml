@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: prometheus-scientific-agent
+    runtime: node
+    plan: starter
+    buildCommand: cd agent && npm install --omit=dev --no-audit --no-fund
+    startCommand: cd agent && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PROMETHEUS_MODEL
+        sync: false
+      - key: ALLOWED_ORIGIN
+        value: "*"
+      - key: MAX_TOOL_ROUNDS
+        value: "8"
+      - key: MAX_BODY_BYTES
+        value: "65536"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "20"

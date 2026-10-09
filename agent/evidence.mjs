@@ -61,3 +61,82 @@ export function getSource(id) {
   return s ? { ...sourceView(s), evidence_state: s.metadata_only ? "NASA_REPORTED" : "NASA_OBSERVED" }
            : { error: "Source not found in indexed NASA catalogue.", source_id: id };
 }
+
+
+const VARIABLE_LABELS = {
+  o2_fraction: {label:"Reported oxygen fraction", unit:"fraction"},
+  gravity_g: {label:"Gravity regime proxy", unit:"g (proxy; not measured)"},
+  flow_velocity_mm_s: {label:"Flow velocity", unit:"mm/s"},
+  pressure_kpa: {label:"Pressure", unit:"kPa"},
+  burn_duration: {label:"Burn duration", unit:"s"}
+};
+
+function valueFor(e, variable) {
+  if (variable === "burn_duration") {
+    const o = (e.observations || []).find(x =>
+      /burn|duration/i.test((x.phenomenon || "") + " " + (x.description || "")) &&
+      x.measurement && Number.isFinite(Number(x.measurement.canonical_value)));
+    return o ? {
+      value:Number(o.measurement.canonical_value), raw:o.measurement.value,
+      unit:o.measurement.canonical_unit || o.measurement.unit, source_id:o.source_id,
+      locator:o.locator, note:""
+    } : null;
+  }
+  const c = e.conditions && e.conditions[variable];
+  if (!c || !Number.isFinite(Number(c.canonical_value))) return null;
+  return {
+    value:Number(c.canonical_value), raw:c.value, unit:c.canonical_unit || c.unit,
+    source_id:c.source_id, locator:c.locator, note:c.canonical_note || ""
+  };
+}
+
+export function analyzeDataset(operation = "coverage", variable = "burn_duration", experimentIds = []) {
+  const op = String(operation || "coverage").toLowerCase();
+  const key = String(variable || "burn_duration");
+  const meta = VARIABLE_LABELS[key];
+  if (op === "coverage") {
+    const variables = Object.keys(VARIABLE_LABELS);
+    const rows = variables.map(k => {
+      const n = experiments.filter(e => valueFor(e, k)).length;
+      return {label:k, y:n, total:experiments.length, missing:experiments.length-n};
+    });
+    return {
+      operation:"coverage", dataset_id:corpus.dataset_id,
+      title:"Measurement coverage", evidence_state:"DERIVED",
+      summary:"Coverage counts describe the currently indexed seed corpus only; they do not imply full NASA PSI archive coverage.",
+      rows, sources:[...new Set(experiments.flatMap(e=>e.source_ids||[]))].map(id=>sourceView(sourceMap.get(id))).filter(Boolean),
+      visualization:{type:"bar",title:"Measurement coverage across indexed records",xLabel:"Variable",yLabel:"Records with usable values",rows}
+    };
+  }
+  if (!meta) return {error:"Unsupported variable.", supported_variables:Object.keys(VARIABLE_LABELS)};
+  let selected = experiments;
+  if (Array.isArray(experimentIds) && experimentIds.length) {
+    const wanted = new Set(experimentIds.map(String));
+    selected = experiments.filter(e => wanted.has(e.exp_id));
+  }
+  const rows = selected.map(e => {
+    const v = valueFor(e, key);
+    return v ? {label:e.exp_id,y:v.value,raw:v.raw,unit:v.unit,source_id:v.source_id,locator:v.locator,note:v.note} : null;
+  }).filter(Boolean);
+  if (op === "distribution" || op === "compare") {
+    const sorted = rows.map(r=>r.y).sort((a,b)=>a-b);
+    const mean = sorted.length ? sorted.reduce((a,b)=>a+b,0)/sorted.length : null;
+    const median = sorted.length ? (sorted.length%2 ? sorted[(sorted.length-1)/2] : (sorted[sorted.length/2-1]+sorted[sorted.length/2])/2) : null;
+    const flags = rows.filter(r=>/proxy|midpoint/i.test(r.note)).map(r=>({experiment:r.label,note:r.note}));
+    return {
+      operation:op, dataset_id:corpus.dataset_id, variable:key, variable_label:meta.label,
+      unit:meta.unit, n:rows.length, summary:rows.length ? {
+        min:sorted[0], max:sorted[sorted.length-1], mean, median
+      } : null,
+      rows, evidence_state:flags.length ? "DERIVED_WITH_PROXY_WARNINGS" : "DERIVED",
+      warnings:[
+        "Statistics describe only the selected records in the indexed seed corpus.",
+        ...(flags.length ? ["Some canonical values are explicitly documented as midpoints or visualization proxies; see proxy_warnings."] : [])
+      ],
+      proxy_warnings:flags,
+      sources:[...new Set(rows.map(r=>r.source_id).filter(Boolean))].map(id=>sourceView(sourceMap.get(id))).filter(Boolean),
+      visualization:rows.length ? {type:"bar",title:meta.label+" by experiment",xLabel:"Experiment ID",yLabel:meta.label+" ("+meta.unit+")",rows:rows.map(r=>({label:r.label,y:r.y}))} : null
+    };
+  }
+  return {error:"Unsupported analysis operation.", supported_operations:["coverage","distribution","compare"]};
+}
