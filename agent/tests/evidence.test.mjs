@@ -24,6 +24,14 @@ test("documented configurations without numeric outcome measurements are not lab
   assert.match(r.evidence_state_note, /no indexed numeric outcome measurement/i);
 });
 
+test("search results carry the same evidence classification as exact lookup", () => {
+  const r = searchNasaEvidence("PSI107-MET-low SPICE methane", 20);
+  const record = r.matches.find(item => item.exp_id === "PSI107-MET-low");
+  assert.ok(record);
+  assert.equal(record.evidence_state, "UNKNOWN");
+  assert.equal(record.record_class, "documented_configuration");
+});
+
 test("source lookup is explicitly source metadata, not an observation", () => {
   const r = getSource("NASA-FLARE");
   assert.equal(r.evidence_state, "NASA_REPORTED");
