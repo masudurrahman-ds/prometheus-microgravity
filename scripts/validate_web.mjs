@@ -16,6 +16,10 @@ if(data.update_version!=="2026.10.07.3") throw new Error("dataset update version
 
 const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
 if(!html.includes("window, '__prometheusDataset'")) throw new Error("stable local-AI dataset provider missing");
+if(!html.includes("S.form.on = {o2:false, p:false, g:false, t:false, f:false}")) throw new Error("dataset load does not clear stale virtual-lab constraints");
+if(!html.includes("Reset scenario · no stale conditions retained")) throw new Error("virtual-lab reset action missing");
+if(!html.includes("RETRIEVED EVIDENCE · '+numericFinding.level")) throw new Error("virtual-lab evidence chart missing");
+if(!html.includes("not a physical combustion simulation")) throw new Error("virtual-lab scientific disclosure missing");
 if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
 if(!ai.includes("https://your-domain/v1/agent")) throw new Error("cloud AI endpoint guidance does not match the agent API route");
 if(!ai.includes('trace.map(t=>t?.result?.visualization)')) throw new Error("cloud AI tool charts are not rendered in the assistant response");
