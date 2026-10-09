@@ -228,11 +228,13 @@
           return o?{label:e.exp_id,y:finiteNumericValue(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;
         }
         const c=e.conditions&&e.conditions[metric];
-        return c&&finiteNumericValue(c.canonical_value)!==null?{label:e.exp_id,y:finiteNumericValue(c.canonical_value),source:c.source_id,locator:c.locator}:null;
+        return c&&finiteNumericValue(c.canonical_value)!==null?{label:e.exp_id,y:finiteNumericValue(c.canonical_value),source:c.source_id,locator:c.locator,note:c.canonical_note||""}:null;
       }).filter(r=>r&&finiteNumericValue(r.y)!==null);
       if(rows.length>=2) {
         const chart=barChartSVG(rows.slice(0,8),label,"Evidence-backed experiment comparison");
-        return visualShell(label+" · evidence-backed comparison","Categorical experiment values; not a time series",chart,metric);
+        const notes=[...new Set(rows.map(r=>r.note).filter(Boolean))];
+        const disclosure="Categorical experiment values; not a time series"+(notes.length?" · DERIVED PLOTTING VALUE: "+notes.join("; "):"");
+        return visualShell(label+" · evidence-backed comparison",disclosure,chart,metric);
       }
       return "";
     }
@@ -574,6 +576,33 @@
       audit.push("Source retrieval: matched NASA PSI registry");
       const relevant=explicit.length?explicit:sources().slice(0,8).map(s=>s.source_id);
       return {title:"AI · NASA source ledger",text:"PROMETHEUS is currently grounded in "+rs.length+" loaded experiment records and "+sources().length+" registered NASA PSI sources. Each source below is traceable to its NASA PSI investigation record and DOI.",evidence:"NASA PSI provenance is primary evidence · "+sources().length+" source records",score:.98,ids:relevant,audit,visual};
+    }
+
+    // A missingness request naming a specific variable must report that
+    // variable's coverage, not the globally sparsest field. Otherwise the
+    // narrative can describe gravity while the attached graph plots oxygen.
+    if(/missing|gap|unknown|not know|insufficient|coverage/.test(low)) {
+      let requestedKey=null, requestedLabel=null;
+      if(/oxygen|o2(?:_fraction)?|oxygen concentration/.test(low)) { requestedKey="o2_fraction"; requestedLabel="oxygen fraction"; }
+      else if(/gravity|microgravity level|g[- ]?level/.test(low)) { requestedKey="gravity_g"; requestedLabel="gravity level"; }
+      else if(/pressure|pressur/.test(low)) { requestedKey="pressure_kpa"; requestedLabel="pressure"; }
+      else if(/flow velocity|velocity|co-flow/.test(low)) { requestedKey="flow_velocity_mm_s"; requestedLabel="flow velocity"; }
+      if(requestedKey) {
+        const available=rs.filter(e=>condition(e,requestedKey));
+        const missing=rs.filter(e=>!condition(e,requestedKey));
+        const lines=available.slice(0,10).map(e=>{
+          const value=rawval(e,requestedKey);
+          return esc(e.exp_id)+": "+esc(value==null?"reported, value unavailable":value);
+        }).join("<br>");
+        const idsForVariable=[...new Set(available.flatMap(srcIds))];
+        audit.push("Variable-specific coverage: "+requestedKey,"Missing values remain unknown");
+        return {title:"AI · Variable coverage: "+requestedLabel,
+          text:"The requested variable is <b>"+esc(requestedLabel)+"</b> ("+esc(requestedKey)+"). It is present in "+available.length+" of "+rs.length+" loaded experiment records; "+missing.length+" records do not have a usable value in this field."+
+          (lines?"<br><br><b>Available indexed values:</b><br>"+lines:"")+
+          (missing.length?"<br><br><b>Records with no usable value:</b> "+missing.slice(0,12).map(e=>esc(e.exp_id)).join(", ")+(missing.length>12?" …":""):"")+
+          "<br><br>Coverage counts describe this variable only. A missing field is not a measured zero. Any canonical plotting value derived from a reported range is disclosed in the attached chart.",
+          evidence:"UNKNOWN for missing fields · source-backed values for available fields",score:null,ids:idsForVariable,audit,visual};
+      }
     }
 
     if(/missing|gap|unknown|not know|insufficient|coverage/.test(low)) {
