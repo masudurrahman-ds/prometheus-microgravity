@@ -1298,6 +1298,9 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
     lab: null, labErr: '', form: {fuel: '', on: {o2: true, p: true, g: true, t: false, f: false}, v: {o2: 25, p: 101.3, g: 1e-5, t: 294, f: 0}},
     mission: {ctx: 'lunar_habitat', fuel: '', o2: '', p: ''}, gapX: 'o2_fraction', gapY: 'pressure_kpa', resPh: 'flame_spread_rate', tour: null, cache: {}, msg: '',
   };
+  // Stable read-only data bridge for the on-device AI, independent of the active tab.
+  // The old bridge was created only while rendering the Evidence universe view.
+  Object.defineProperty(window, '__prometheusDataset', {configurable: true, value: () => S.ds});
   let galaxy = null, miniGal = null, stopOrb = null, carousel = null, stage = null, showMoreData = false;
   const cached = (k, fn) => (k in S.cache ? S.cache[k] : (S.cache[k] = fn()));
   const fuelsOf = () => [...new Set(S.ds.experiments.map(e => e.fuel).filter(Boolean))].sort();
