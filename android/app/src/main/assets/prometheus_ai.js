@@ -704,7 +704,7 @@
   function add(role,title,text,evidence,score,ids,audit,visual,visual3d) {
     const el=document.createElement("div");
     el.className="pm-msg "+role;
-    const pct=score==null?"":'<span class="pm-confidence">'+confidence(score)+"% evidence fit</span>";
+    const pct=""; // Heuristic scores are not calibrated evidence-confidence estimates; do not display them.
     const ev=EVIDENCE[evidence]||EVIDENCE.UNKNOWN;
     const sourcesHtml=ids&&ids.length?sourceCards(ids):"";
     const visualHtml=visual||"";
