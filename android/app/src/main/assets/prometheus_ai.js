@@ -415,7 +415,14 @@
     if(!c) return "UNKNOWN";
     if(/proxy/i.test(c.canonical_note||"")) return "INFERRED";
     if(/midpoint/i.test(c.canonical_note||"")) return "DERIVED";
-    return "OBSERVED";
+    // Experimental-table conditions are source-reported conditions, not
+    // automatically direct observations by PROMETHEUS or raw instrument data.
+    return c.source_id ? "REPORTED" : "UNKNOWN";
+  }
+  function formatCondition(e,k) {
+    const c=condition(e,k);
+    if(!c || c.value==null || c.value==="") return "not reported";
+    return String(c.value)+(c.unit ? " "+String(c.unit) : "");
   }
   function evidenceForObservation(o) { return o && o.measurement ? "OBSERVED" : "REPORTED"; }
 
@@ -635,10 +642,16 @@
       const a=rs.find(e=>/s1/i.test(e.exp_id)), b=rs.find(e=>/s2/i.test(e.exp_id));
       if(a&&b) {
         [...srcIds(a),...srcIds(b)].forEach(x=>ids.add(x));
-        const fields=["o2_fraction","gravity_g","flow_velocity_mm_s"];
+        const fields=["pressure_kpa","o2_fraction","gravity_g","flow_velocity_mm_s"];
         const rows=fields.map(k=>{
-          const av=rawval(a,k),bv=rawval(b,k);
-          return av!=null&&bv!=null ? "<b>"+esc(k)+"</b>: "+esc(av)+" vs "+esc(bv)+" ("+EVIDENCE[evidenceForCondition(a,k)].label+")" : "<b>"+esc(k)+"</b>: not reported for both";
+          const av=condition(a,k),bv=condition(b,k);
+          if(!av || av.value==null || !bv || bv.value==null) {
+            return "<b>"+esc(k)+"</b>: not reported for both records";
+          }
+          const ea=EVIDENCE[evidenceForCondition(a,k)]||EVIDENCE.UNKNOWN;
+          const eb=EVIDENCE[evidenceForCondition(b,k)]||EVIDENCE.UNKNOWN;
+          return "<b>"+esc(k)+"</b>: "+esc(formatCondition(a,k))+" vs "+esc(formatCondition(b,k))+
+            " ("+ea.label+" / "+eb.label+")";
         }).join("<br>");
         const am=measurement(a,["burn","duration","time"]), bm=measurement(b,["burn","duration","time"]);
         let extra="";
