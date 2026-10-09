@@ -1,7 +1,16 @@
 (() => {
   "use strict";
-  if (window.__prometheusAIStatus === "ready") return;
+  if (window.__prometheusAIStatus === "ready") {
+    // Defensive cleanup for stale duplicate overlays from prior hot reloads / repeated script injection.
+    for (const selector of ["#pm-ai-panel", "#pm-ai-fab"]) {
+      const nodes = document.querySelectorAll(selector);
+      nodes.forEach((node, index) => { if (index > 0) node.remove(); });
+    }
+    return;
+  }
   if (window.__prometheusAIStatus === "loading" && window.__prometheusAIInjected) return;
+  // Remove stale elements left by an interrupted previous initialization before creating the singleton.
+  document.querySelectorAll("#pm-ai-panel, #pm-ai-fab").forEach(node => node.remove());
   window.__prometheusAIStatus = "loading";
   window.__prometheusAIInjected = true;
 
