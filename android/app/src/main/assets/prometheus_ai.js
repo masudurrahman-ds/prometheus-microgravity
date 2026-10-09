@@ -124,6 +124,10 @@
   `;
   document.body.appendChild(panel);
   document.body.appendChild(fab);
+  // AI is opened from the app's top navigation, never as a floating overlay.
+  fab.style.display = "none";
+  fab.setAttribute("aria-hidden", "true");
+  fab.tabIndex = -1;
 
   const body = panel.querySelector("#pm-ai-body");
   const CLOUD_ENDPOINT_KEY = "prometheus_cloud_ai_endpoint";
@@ -721,7 +725,7 @@
     if(!body.childElementCount){readyMessage();restoreConversation();}
     requestAnimationFrame(()=>input.focus());
   }
-  function closeAI(){panel.classList.remove("open","fullscreen");fab.style.display="";}
+  function closeAI(){panel.classList.remove("open","fullscreen");fab.style.display="none";}
   fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});
   document.getElementById("pm-ai-clear").onclick=()=>{conversationMemory=[];try{localStorage.removeItem(MEMORY_KEY);}catch(_){}body.replaceChildren();readyMessage();saveMemory();};
 
