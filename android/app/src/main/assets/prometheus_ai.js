@@ -156,16 +156,29 @@
   }
 
   function chartSVG(rows, xLabel, yLabel, title) {
-    const w=390,h=205,p={l:42,r:16,t:18,b:38};
+    // Record-level measurements are categories, not a time series. Use bars and
+    // never connect independent experiments with an invented trend line.
+    const w=460,rowH=34,p={l:48,r:56,t:30,b:36};
+    const h=Math.max(150,p.t+p.b+rows.length*rowH);
     const vals=rows.map(r=>Number(r.y)).filter(Number.isFinite);
     if(!vals.length) return "";
-    const min=Math.min(...vals),max=Math.max(...vals),span=max-min||1;
-    const x=i=>p.l+(i/(Math.max(1,rows.length-1)))*(w-p.l-p.r);
-    const y=v=>p.t+(1-(v-min)/span)*(h-p.t-p.b);
-    const points=rows.map((r,i)=>x(i)+","+y(Number(r.y))).join(" ");
-    const circles=rows.map((r,i)=>'<circle cx="'+x(i)+'" cy="'+y(Number(r.y))+'" r="4" fill="#e6cb93"><title>'+esc(r.label)+': '+esc(r.y)+'</title></circle>').join("");
-    const labels=rows.map((r,i)=>'<text x="'+x(i)+'" y="'+(h-18)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(r.label)+'</text>').join("");
-    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+'"><line x1="'+p.l+'" y1="'+p.t+'" x2="'+p.l+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><line x1="'+p.l+'" y1="'+(h-p.b)+'" x2="'+(w-p.r)+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><polyline fill="none" stroke="#e6cb93" stroke-width="2.5" points="'+points+'"/>'+circles+labels+'<text x="'+p.l+'" y="12" fill="#eef0f7" font-size="10">'+esc(yLabel)+'</text><text x="'+(w/2)+'" y="'+(h-3)+'" fill="#737c96" font-size="9" text-anchor="middle">'+esc(xLabel)+'</text></svg>';
+    const max=Math.max(...vals.map(v=>Math.abs(v)),1);
+    const plotW=w-p.l-p.r;
+    const ticks=4;
+    let grid="";
+    for(let i=0;i<=ticks;i++){
+      const xx=p.l+plotW*i/ticks, value=max*i/ticks;
+      grid+='<line x1="'+xx+'" y1="'+p.t+'" x2="'+xx+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.10)"/>';
+      grid+='<text x="'+xx+'" y="'+(h-18)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(formatNum(value))+'</text>';
+    }
+    const bars=rows.map((r,i)=>{
+      const v=Number(r.y), yy=p.t+i*rowH+5, bw=Math.max(1,Math.abs(v)/max*plotW);
+      const label=String(r.label||"Record").slice(0,22);
+      return '<text x="'+(p.l-8)+'" y="'+(yy+12)+'" fill="#cbd2e3" font-size="9" text-anchor="end">'+esc(label)+'</text>'+
+        '<rect x="'+p.l+'" y="'+yy+'" width="'+bw+'" height="17" rx="3" fill="#e6cb93" opacity=".88"><title>'+esc(label)+': '+esc(v)+' '+esc(r.unit||"")+'</title></rect>'+
+        '<text x="'+Math.min(w-p.r+4,p.l+bw+5)+'" y="'+(yy+12)+'" fill="#eef0f7" font-size="9">'+esc(formatNum(v))+' '+esc(r.unit||"")+'</text>';
+    }).join("");
+    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+'"><text x="'+p.l+'" y="15" fill="#eef0f7" font-size="10">'+esc(yLabel)+'</text>'+grid+bars+'<text x="'+(w/2)+'" y="'+(h-3)+'" fill="#737c96" font-size="9" text-anchor="middle">'+esc(xLabel)+'</text></svg>';
   }
 
   function flameSVG(rows) {
@@ -181,16 +194,44 @@
 
   function scientificVisual(q, rs) {
     const low=q.toLowerCase();
-    if(/graph|plot|chart|trend|correlat|relationship|compare|difference|burn time|flame/.test(low)) {
-      const s1=rs.find(e=>/s1/i.test(e.exp_id)), s2=rs.find(e=>/s2/i.test(e.exp_id));
-      const rows=[s1,s2].filter(Boolean).map(e=>({label:e.exp_id.replace("PSI98-",""),y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
-      if(rows.length>=2) return visualShell("Observed burn-time comparison","NASA PSI-98",chartSVG(rows,"Experiment","Burn time (s)","NASA observed burn time"),"burn");
+    if(!/graph|plot|chart|trend|correlat|relationship|compare|difference|burn time|flame|duration|measurement|spread rate|soot/.test(low)) return "";
+    const observations=rs.flatMap(e=>(e.observations||[]).filter(o=>o.measurement&&o.measurement.canonical_value!=null&&Number.isFinite(Number(o.measurement.canonical_value))).map(o=>({
+      label:e.exp_id,
+      y:Number(o.measurement.canonical_value),
+      unit:o.measurement.canonical_unit||o.measurement.unit||"",
+      phenomenon:String(o.phenomenon||""),
+      description:String(o.description||""),
+      source_id:o.source_id||""
+    })));
+    if(!observations.length) {
+      return visualShell("Graph not generated","No numeric observations in matched evidence",
+        '<div style="padding:14px;color:#aab2c8;font-size:12px">The retrieved NASA records do not contain numeric measurements suitable for this request. PROMETHEUS will not substitute metadata, fabricate a series, or draw a misleading line.</div>',"no-measurements");
     }
-    if(/image|visual|flame|fire|render|picture|look like/.test(low)) {
-      const rows=rs.map(e=>({label:e.exp_id.replace("PSI98-",""),y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
-      if(rows.length) return visualShell("Scientific flame rendering","Geometry is illustrative; values are NASA-derived",flameSVG(rows),"flame");
+    const wanted=/(burn|duration|time)/.test(low)?/burn|duration|time/.test.bind(/burn|duration|time/):null;
+    const terms=low.match(/oxygen|o2|pressure|velocity|flow|burn|duration|time|spread|soot|smoke|extinction|ignition|temperature|diameter|length|mass|fuel/gi)||[];
+    let selected=observations;
+    if(terms.length) {
+      const scored=observations.map(r=>({...r,match:terms.reduce((n,t)=>n+((r.phenomenon+" "+r.description).toLowerCase().includes(t.toLowerCase())?1:0),0)}));
+      const best=Math.max(...scored.map(r=>r.match));
+      if(best>0) selected=scored.filter(r=>r.match===best);
     }
-    return "";
+    const byRecord=new Map();
+    selected.forEach(r=>{const key=r.label+"|"+r.phenomenon;if(!byRecord.has(key))byRecord.set(key,r);});
+    const rows=[...byRecord.values()].slice(0,12);
+    if(rows.length<2) {
+      const label=rows[0] ? rows[0].phenomenon.replace(/_/g," ") : "requested variable";
+      return visualShell("Insufficient numeric coverage","No comparison inferred",
+        '<div style="padding:14px;color:#aab2c8;font-size:12px">Only '+rows.length+' distinct numeric record(s) matched '+esc(label)+'. A comparative graph needs at least two compatible measured records; a relationship analysis needs a larger paired sample. No line or trend has been invented.</div>',"insufficient-data");
+    }
+    const phen=rows[0].phenomenon||"numeric observation";
+    const unit=rows[0].unit;
+    const compatible=rows.filter(r=>r.unit===unit);
+    if(compatible.length<2) {
+      return visualShell("Insufficient comparable measurements","Units / variables differ",
+        '<div style="padding:14px;color:#aab2c8;font-size:12px">The matching records do not provide at least two observations in a compatible unit. PROMETHEUS will not put unlike quantities on the same axis.</div>',"incompatible-data");
+    }
+    return visualShell(phen.replace(/_/g," ")+" · record comparison","NASA-indexed numeric observations · categorical bars",
+      chartSVG(compatible,"Experiment record",phen.replace(/_/g," ")+" ("+unit+")","NASA indexed numeric observations"),"measurements");
   }
 
   function build3DResult(rows) {
