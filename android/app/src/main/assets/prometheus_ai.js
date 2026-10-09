@@ -208,6 +208,11 @@
 
   function scientificVisual(q, rs) {
     const low=q.toLowerCase();
+    // If the question names indexed experiment IDs, scope every plotted value
+    // to those records. Never attach a dataset-wide chart to a two-record claim.
+    const normalizedQuestion=low.replace(/[^a-z0-9]/g,"");
+    const namedRecords=rs.filter(e=>normalizedQuestion.includes(String(e.exp_id||"").toLowerCase().replace(/[^a-z0-9]/g,"")));
+    if(namedRecords.length) rs=namedRecords;
     const asksForVisual=/(graph|plot|chart|visuali[sz]e|visual|image|picture|render|show me a flame)/.test(low);
     const asksForComparison=/(compare|comparison|difference|versus|\bvs\b)/.test(low);
     const asksForTrend=/(trend|over time|time series|correlat|relationship|association)/.test(low);
