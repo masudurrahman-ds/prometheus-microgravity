@@ -15,19 +15,27 @@ const sourceView = (s) => s ? ({
   license: s.license || null
 }) : null;
 
+export function hasReportedMeasurement(e) {
+  return (e?.observations || []).some((o) => {
+    const measurement = o?.measurement;
+    if (!measurement) return false;
+    const raw = measurement.canonical_value ?? measurement.value;
+    if (raw === null || raw === undefined || (typeof raw === "string" && raw.trim() === "")) return false;
+    return Number.isFinite(Number(raw));
+  });
+}
+
 function classifyExperiment(e) {
-  const hasReportedMeasurement = (e.observations || []).some((o) =>
-    o.measurement && Number.isFinite(Number(o.measurement.canonical_value ?? o.measurement.value))
-  );
+  const hasMeasurement = hasReportedMeasurement(e);
   const linkedSources = (e.source_ids || []).map((sourceId) => sourceMap.get(sourceId)).filter(Boolean);
   const metadataOnly = linkedSources.length > 0 && linkedSources.every((s) => s.metadata_only === true);
-  const recordClass = hasReportedMeasurement
+  const recordClass = hasMeasurement
     ? "reported_measurements"
     : metadataOnly ? "metadata_only" : "documented_configuration";
   return {
-    evidence_state: hasReportedMeasurement ? "NASA_REPORTED" : "UNKNOWN",
+    evidence_state: hasMeasurement ? "NASA_REPORTED" : "UNKNOWN",
     record_class: recordClass,
-    evidence_state_note: hasReportedMeasurement
+    evidence_state_note: hasMeasurement
       ? "The indexed record contains source-attributed reported measurements; this response does not assert raw instrument-level observation."
       : "This record contains descriptive metadata or documented conditions but no indexed numeric outcome measurement. Do not treat it as a measured result."
   };
@@ -80,10 +88,10 @@ export function getSource(id) {
   const s = sourceMap.get(id);
   return s ? {
     ...sourceView(s),
-    evidence_state: "NASA_REPORTED",
+    evidence_state: "UNKNOWN",
     record_class: "source_metadata",
     metadata_only: s.metadata_only === true,
-    evidence_state_note: "This is source/catalogue metadata. Its existence does not make every linked claim or record an experimental observation."
+    evidence_state_note: "This is source/catalogue metadata, not an experiment measurement. Follow the linked record and its locator before assigning a claim-level evidence state."
   } : { error: "Source not found in indexed NASA catalogue.", source_id: id };
 }
 
