@@ -32,7 +32,7 @@ if(!html.includes("Transparent representation score: indexed records")) throw ne
 if(!html.includes("Generate cited AI briefing")) throw new Error("interactive AI briefing action missing");
 if(!html.includes("No cloud AI required for this dashboard")) throw new Error("local-first dashboard disclosure missing");
 if(!html.includes("Strongest coverage") || !html.includes("Thin coverage")) throw new Error("evidence coverage interpretation missing");
-if(!html.includes("study.matches(dashboardFilter)")) throw new Error("dashboard study filters missing");
+if(!html.includes("studies.filter(x=>x.matches(dashboardFilter))")) throw new Error("dashboard study filters missing");
 if(!html.includes("Ask local AI ↗")) throw new Error("per-study AI interpretation action missing");
 if(!html.includes("ranked NASA studies")) throw new Error("ranked study navigator missing");
 
