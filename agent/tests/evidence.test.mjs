@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset, hasReportedMeasurement } from "../evidence.mjs";
+import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset, hasReportedMeasurement, finiteNumericValue } from "../evidence.mjs";
 
 test("NASA corpus search returns provenance", () => {
   const r = searchNasaEvidence("SAFFIRE S1 burn duration");
@@ -89,4 +89,23 @@ test("null, blank, and non-finite measurement fields are not numeric observation
     assert.equal(hasReportedMeasurement({ observations: [{ measurement }] }), false);
   }
   assert.equal(hasReportedMeasurement({ observations: [{ measurement: { canonical_value: 0 } }] }), true);
+});
+
+test("numeric parsing rejects null and blank values instead of coercing them to zero", () => {
+  assert.equal(finiteNumericValue(null), null);
+  assert.equal(finiteNumericValue(undefined), null);
+  assert.equal(finiteNumericValue(""), null);
+  assert.equal(finiteNumericValue("   "), null);
+  assert.equal(finiteNumericValue("not available"), null);
+  assert.equal(finiteNumericValue("0"), 0);
+  assert.equal(finiteNumericValue(0), 0);
+  assert.equal(finiteNumericValue("420"), 420);
+});
+
+test("chart-ready dataset values contain finite numeric outcomes only", () => {
+  const r = analyzeDataset("distribution", "burn_duration", ["PSI98-S1", "PSI98-S2"]);
+  assert.ok(r.rows.length > 0);
+  assert.ok(r.rows.every(row => Number.isFinite(row.y)));
+  assert.ok(r.visualization.rows.every(row => Number.isFinite(row.y)));
+  assert.deepEqual(r.visualization.rows.map(row => row.label), r.rows.map(row => row.label));
 });
