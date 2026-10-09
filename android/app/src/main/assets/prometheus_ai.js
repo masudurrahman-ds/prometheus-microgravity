@@ -124,7 +124,7 @@
       updateCloudButton(); UI.toast("Cloud AI disabled · local mode remains available");
       return;
     }
-    const endpoint = window.prompt("Enter your PROMETHEUS AI server endpoint (for example https://your-domain/api/ask). Your question will leave this device only after you enable Cloud AI.");
+    const endpoint = window.prompt("Enter your PROMETHEUS AI server endpoint (use the full URL ending in /v1/agent, for example https://your-domain/v1/agent). Your question and recent conversation will leave this device only after you enable Cloud AI.");
     if (!endpoint) return;
     try { localStorage.setItem(CLOUD_ENDPOINT_KEY, endpoint.replace(/\/+$/, "")); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
     updateCloudButton(); UI.toast("Cloud AI enabled with explicit consent");
@@ -646,8 +646,14 @@
       const payload = await res.json();
       const answerText = typeof payload.answer === "string" ? payload.answer : (payload.answer?.answer || "");
       const trace = Array.isArray(payload.trace) ? payload.trace : [];
-      const ids = [...new Set(trace.flatMap(t => Array.isArray(t?.result?.sources) ? t.result.sources.map(s => s.source_id).filter(Boolean) : []))];
-      const evidenceState = payload.evidence_state || "REPORTED";
+      const ids = [...new Set(trace.flatMap(t => {
+        const result=t?.result||{};
+        const direct=Array.isArray(result.sources)?result.sources:[];
+        const nested=Array.isArray(result.matches)?result.matches.flatMap(m=>Array.isArray(m.sources)?m.sources:[]):[];
+        const pair=[result.experiment_a,result.experiment_b].filter(Boolean).flatMap(e=>Array.isArray(e.sources)?e.sources:[]);
+        return [...direct,...nested,...pair].map(s=>s?.source_id).filter(Boolean);
+      }))];
+      const evidenceState = payload.evidence_state || (ids.length ? "REPORTED" : "UNKNOWN");
       const sourceText = ids.length ? "<br><br><b>Cloud evidence trace:</b> " + ids.map(id => esc(id)).join(" · ") : "";
       const text = esc(answerText || "The cloud agent returned no answer.").replace(/\\n/g,"<br>") + sourceText;
       rememberTurn({role:"assistant",text,title:"AI · Cloud evidence synthesis",evidence:evidenceState,ids});
