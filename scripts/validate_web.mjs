@@ -14,6 +14,11 @@ if(!psi98 || !(psi98.observations||[]).some(o=>o.phenomenon==="burn_duration" &&
 const data=JSON.parse(fs.readFileSync("data/prometheus_nasa_psi.json","utf8"));
 if(data.update_version!=="2026.10.07.3") throw new Error("dataset update version mismatch");
 
+const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
+if(!html.includes("window, '__prometheusDataset'")) throw new Error("stable local-AI dataset provider missing");
+if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
+if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
+
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
 scripts.forEach(({attrs,source,index})=>{
   if(/type=["']application\/json["']/i.test(attrs)) return;
