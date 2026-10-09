@@ -370,7 +370,7 @@ select,input,button,.field>label,.lbl{font-variant-numeric:tabular-nums lining-n
 html{height:100%;min-height:100%;-webkit-text-size-adjust:100%}
 body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
 #root{min-height:100dvh}
-.top{top:0;padding-top:env(safe-area-inset-top,0px)}
+.top{top:max(env(safe-area-inset-top,0px),24px);padding-top:env(safe-area-inset-top,0px)}
 .top-in{min-width:0}
 @media(max-width:980px){
   .top-in{gap:6px}
