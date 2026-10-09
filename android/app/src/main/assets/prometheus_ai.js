@@ -161,16 +161,67 @@
     return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="NASA-derived flame comparison"><rect width="100%" height="100%" fill="#070b15"/><text x="16" y="22" fill="#e6cb93" font-size="11" letter-spacing="1.4">NASA OBSERVED · FLAME BEHAVIOUR</text>'+flames+'</svg>';
   }
 
+  function barChartSVG(rows, yLabel, title) {
+    const w=390,h=220,p={l:42,r:16,t:24,b:48};
+    const vals=rows.map(r=>Number(r.y)).filter(Number.isFinite);
+    if(!vals.length) return "";
+    const max=Math.max(...vals,0), min=Math.min(...vals,0), span=max-min||1;
+    const plotH=h-p.t-p.b, base=p.t+(max/span)*plotH;
+    const slot=(w-p.l-p.r)/rows.length, bw=Math.min(42,slot*.58);
+    const bars=rows.map((r,i)=>{
+      const v=Number(r.y), bh=Math.abs(v/span*plotH), x=p.l+i*slot+(slot-bw)/2, y=v>=0?base-bh:base;
+      return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+Math.max(1,bh)+'" rx="3" fill="#e6cb93" opacity=".9"><title>'+esc(r.label)+': '+esc(v)+'</title></rect>'+
+        '<text x="'+(x+bw/2)+'" y="'+Math.max(14,y-5)+'" fill="#eef0f7" font-size="9" text-anchor="middle">'+esc(formatNum(v))+'</text>'+
+        '<text x="'+(p.l+i*slot+slot/2)+'" y="'+(h-28)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(r.label)+'</text>';
+    }).join("");
+    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+'"><line x1="'+p.l+'" y1="'+p.t+'" x2="'+p.l+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><line x1="'+p.l+'" y1="'+base+'" x2="'+(w-p.r)+'" y2="'+base+'" stroke="rgba(255,255,255,.24)"/>'+bars+'<text x="'+p.l+'" y="14" fill="#eef0f7" font-size="10">'+esc(yLabel)+'</text><text x="'+(w/2)+'" y="'+(h-6)+'" fill="#737c96" font-size="9" text-anchor="middle">Experiment record · categorical comparison</text></svg>';
+  }
+
   function scientificVisual(q, rs) {
     const low=q.toLowerCase();
-    if(/graph|plot|chart|trend|correlat|relationship|compare|difference|burn time|flame/.test(low)) {
-      const s1=rs.find(e=>/s1/i.test(e.exp_id)), s2=rs.find(e=>/s2/i.test(e.exp_id));
-      const rows=[s1,s2].filter(Boolean).map(e=>({label:e.exp_id.replace("PSI98-",""),y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
-      if(rows.length>=2) return visualShell("Observed burn-time comparison","NASA PSI-98",chartSVG(rows,"Experiment","Burn time (s)","NASA observed burn time"),"burn");
+    const asksForVisual=/(graph|plot|chart|visuali[sz]e|visual|image|picture|render|show me a flame)/.test(low);
+    const asksForComparison=/(compare|comparison|difference|versus|\\bvs\\b)/.test(low);
+    const asksForTrend=/(trend|over time|time series|correlat|relationship|association)/.test(low);
+    // The corpus is experiment-level, not a temporal sequence. Never connect
+    // unrelated experiments with a line and label it a trend.
+    if(asksForTrend) return "";
+
+    let metric=null, label="";
+    if(/burn|duration|burn time|time taken/.test(low)) { metric="burn"; label="Burn duration (s)"; }
+    else if(/oxygen|o2_fraction|o2 concentration/.test(low)) { metric="o2_fraction"; label="Reported oxygen fraction"; }
+    else if(/pressure|pressur/.test(low)) { metric="pressure_kpa"; label="Pressure (kPa)"; }
+    else if(/flow|velocity|co-flow/.test(low)) { metric="flow_velocity_mm_s"; label="Flow velocity (mm/s)"; }
+
+    if((asksForVisual||asksForComparison) && metric) {
+      const rows=rs.map(e=>{
+        if(metric==="burn") {
+          const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&x.measurement.canonical_value!=null);
+          return o?{label:e.exp_id,y:Number(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;
+        }
+        const c=e.conditions&&e.conditions[metric];
+        return c&&c.canonical_value!=null?{label:e.exp_id,y:Number(c.canonical_value),source:c.source_id,locator:c.locator}:null;
+      }).filter(r=>r&&Number.isFinite(r.y));
+      if(rows.length>=2) {
+        const chart=barChartSVG(rows.slice(0,8),label,"Evidence-backed experiment comparison");
+        return visualShell(label+" · evidence-backed comparison","Categorical experiment values; not a time series",chart,metric);
+      }
+      return "";
     }
-    if(/image|visual|flame|fire|render|picture|look like/.test(low)) {
-      const rows=rs.map(e=>({label:e.exp_id.replace("PSI98-",""),y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
-      if(rows.length) return visualShell("Scientific flame rendering","Geometry is illustrative; values are NASA-derived",flameSVG(rows),"flame");
+
+    if(asksForComparison) {
+      const rows=rs.map(e=>{
+        const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&x.measurement.canonical_value!=null);
+        return o?{label:e.exp_id,y:Number(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;
+      }).filter(r=>r&&Number.isFinite(r.y));
+      if(rows.length>=2) return visualShell("Observed burn-duration comparison","NASA PSI · categorical comparison, not a trend",barChartSVG(rows.slice(0,8),"Burn duration (s)","NASA-observed burn duration"),"burn");
+    }
+
+    if(/image|visual|render|picture|look like|show me a flame/.test(low)) {
+      const rows=rs.map(e=>{
+        const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&x.measurement.canonical_value!=null);
+        return o?{label:e.exp_id,y:Number(o.measurement.canonical_value)}:null;
+      }).filter(r=>r&&Number.isFinite(r.y));
+      if(rows.length) return visualShell("Illustrative flame geometry","Size is scaled from reported burn duration; not a NASA image or measured flame shape",flameSVG(rows.slice(0,3)),"flame");
     }
     return "";
   }
