@@ -26,13 +26,13 @@
 
   const style = document.createElement("style");
   style.textContent = `
-    #pm-ai-fab{position:fixed;right:18px;bottom:22px;z-index:99999;width:62px;height:62px;border-radius:50%;border:1px solid rgba(230,203,147,.8);background:radial-gradient(circle at 35% 27%,#fff8df 0 8%,#e6cb93 25%,#6f5830 62%,#090c15 100%);box-shadow:0 14px 40px rgba(0,0,0,.62),0 0 30px rgba(230,203,147,.28);color:#161108;font:700 12px IBM Plex Sans,system-ui;cursor:pointer}
+    #pm-ai-fab{position:fixed;right:18px;bottom:22px;z-index:99999;width:62px;height:62px;border-radius:50%;border:1px solid rgba(230,203,147,.8);background:radial-gradient(circle at 35% 27%,#fff8df 0 8%,#e6cb93 25%,#6f5830 62%,#090c15 100%);box-shadow:0 14px 40px rgba(0,0,0,.62),0 0 30px rgba(230,203,147,.28);color:#161108;font:700 12px IBM Plex Sans,system-ui;cursor:grab;touch-action:none;user-select:none}
     #pm-ai-fab .pm-orbit{position:absolute;inset:8px;border:1px solid rgba(20,16,8,.42);border-radius:50%;transform:rotate(-23deg)}
     #pm-ai-fab .pm-spark{font-size:17px;line-height:13px;display:block}
     #pm-ai-fab span{display:block;font-size:9px;letter-spacing:.16em;margin-top:2px}
     #pm-ai-panel{position:fixed;right:18px;bottom:94px;z-index:99998;width:min(455px,calc(100vw - 28px));height:min(720px,calc(100vh - 112px));display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(230,203,147,.35);border-radius:24px;background:rgba(5,8,17,.965);backdrop-filter:blur(24px);box-shadow:0 35px 90px rgba(0,0,0,.72),inset 0 1px rgba(255,255,255,.06);color:#eef0f7}
     #pm-ai-panel.open{display:flex}
-    #pm-ai-head{padding:16px 18px 13px;border-bottom:1px solid rgba(255,255,255,.09);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    #pm-ai-head{padding:16px 18px 13px;border-bottom:1px solid rgba(255,255,255,.09);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;cursor:grab;touch-action:none;user-select:none} #pm-ai-head:active{cursor:grabbing} #pm-ai-head button{touch-action:manipulation}
     #pm-ai-head strong{font:500 23px Cormorant Garamond,Georgia,serif;letter-spacing:.08em}
     #pm-ai-head small{display:block;color:#aab2c8;font:10.5px IBM Plex Sans,system-ui;margin-top:2px}
     #pm-ai-status{display:inline-flex;align-items:center;gap:6px;margin-top:8px;color:#4fe3a0;font:10px IBM Plex Sans,system-ui;letter-spacing:.08em;text-transform:uppercase}
@@ -74,7 +74,7 @@
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
     #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
-    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:16px}#pm-ai-panel{right:9px;bottom:84px;width:calc(100vw - 18px);height:calc(100vh - 102px);border-radius:20px}}
+    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:calc(96px + env(safe-area-inset-bottom,0px))}#pm-ai-panel{top:auto;left:auto;right:10px;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:calc(100vw - 20px);height:min(66dvh,590px);max-height:calc(100dvh - 148px);border-radius:20px}}
   `;
   document.head.appendChild(style);
 
@@ -641,9 +641,46 @@
     if(body.childElementCount || !conversationMemory.length)return;
     recentMemory(8).forEach(x=>add(x.role==="user"?"user":"ai",x.title||"AI · Recalled context",esc(x.text),x.evidence||null,.86,x.ids||[],["Restored from local device memory"]));
   }
+  // The AI orb and assistant card are both draggable so they can be moved away
+  // from Research controls and content. Clamp the panel inside the visible viewport.
+  let fabMoved=false, panelMoved=false, dragState=null;
+  function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
+  function startDrag(el,e,kind){
+    if(e.button!==undefined&&e.button!==0)return;
+    if(kind==="panel"&&e.target.closest("button"))return;
+    dragState={el,kind,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,
+      rect:el.getBoundingClientRect(),moved:false};
+    if(kind==="fab")fabMoved=false;
+    else panelMoved=false;
+    try{el.setPointerCapture(e.pointerId);}catch(_){}
+    e.preventDefault();
+  }
+  function moveDrag(e){
+    if(!dragState||e.pointerId!==dragState.pointerId)return;
+    const d=dragState,dx=e.clientX-d.startX,dy=e.clientY-d.startY;
+    if(Math.abs(dx)+Math.abs(dy)>5)d.moved=true;
+    if(!d.moved)return;
+    const w=d.rect.width,h=d.rect.height;
+    const left=clamp(d.rect.left+dx,8,Math.max(8,window.innerWidth-w-8));
+    const top=clamp(d.rect.top+dy,8,Math.max(8,window.innerHeight-h-8));
+    d.el.style.left=left+"px";d.el.style.top=top+"px";d.el.style.right="auto";d.el.style.bottom="auto";
+    if(d.kind==="fab")fabMoved=true;else panelMoved=true;
+  }
+  function endDrag(e){
+    if(!dragState||e.pointerId!==dragState.pointerId)return;
+    if(dragState.kind==="fab")fabMoved=dragState.moved;
+    else panelMoved=dragState.moved;
+    dragState=null;
+  }
+  fab.addEventListener("pointerdown",e=>startDrag(fab,e,"fab"));
+  fab.addEventListener("pointermove",moveDrag);fab.addEventListener("pointerup",endDrag);fab.addEventListener("pointercancel",endDrag);
+  panel.querySelector("#pm-ai-head").addEventListener("pointerdown",e=>startDrag(panel,e,"panel"));
+  panel.addEventListener("pointermove",moveDrag);
+  panel.addEventListener("pointerup",endDrag);
+  panel.addEventListener("pointercancel",endDrag);
   function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
   function closeAI(){panel.classList.remove("open");}
-  fab.onclick=()=>{panel.classList.contains("open")?closeAI():openAI();};
+  fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});
   document.getElementById("pm-ai-clear").onclick=()=>{conversationMemory=[];try{localStorage.removeItem(MEMORY_KEY);}catch(_){}body.replaceChildren();readyMessage();saveMemory();};
 
   panel.querySelector("#pm-ai-close").onclick=()=>panel.classList.remove("open");
