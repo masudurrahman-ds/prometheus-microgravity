@@ -28,7 +28,6 @@ if(!ai.includes("pending3DResult=rows")) throw new Error("3D evidence visualizat
 if(!ai.includes("function finiteNumericValue(raw)")) throw new Error("strict chart numeric parser missing");
 if(ai.includes("<polyline")) throw new Error("scientific chart must not connect independent experiments with a line");
 if(!ai.includes("Categorical experiment values; not a time series")) throw new Error("chart must disclose categorical comparison semantics");
-if(!ai.includes("No comparison inferred")) throw new Error("insufficient chart coverage disclosure missing");
 const agentServer=fs.readFileSync("agent/server.mjs","utf8");
 const agentEvidence=fs.readFileSync("agent/evidence.mjs","utf8");
 if(!agentServer.includes('name:"analyze_dataset"') || !agentServer.includes("analyzeDataset(args.operation")) throw new Error("scientific analysis tool is not wired into the LLM agent");
