@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset } from "../evidence.mjs";
+import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset, hasReportedMeasurement } from "../evidence.mjs";
 
 test("NASA corpus search returns provenance", () => {
   const r = searchNasaEvidence("SAFFIRE S1 burn duration");
@@ -9,10 +9,35 @@ test("NASA corpus search returns provenance", () => {
   assert.ok(r.matches[0].sources.some(s => s.source_id === "PSI-98"));
 });
 
-test("experiment retrieval preserves evidence state", () => {
+test("experiment retrieval labels source-attributed measurements without overstating raw observation", () => {
   const r = getExperiment("PSI98-S1");
-  assert.equal(r.evidence_state, "NASA_OBSERVED");
+  assert.equal(r.evidence_state, "NASA_REPORTED");
+  assert.equal(r.record_class, "reported_measurements");
+  assert.match(r.evidence_state_note, /does not assert raw instrument-level observation/i);
   assert.ok(r.sources.length > 0);
+});
+
+test("documented configurations without numeric outcome measurements are not labelled observed", () => {
+  const r = getExperiment("PSI107-MET-low");
+  assert.equal(r.evidence_state, "UNKNOWN");
+  assert.equal(r.record_class, "documented_configuration");
+  assert.match(r.evidence_state_note, /no indexed numeric outcome measurement/i);
+});
+
+test("search results carry the same evidence classification as exact lookup", () => {
+  const r = searchNasaEvidence("PSI107-MET-low SPICE methane", 20);
+  const record = r.matches.find(item => item.exp_id === "PSI107-MET-low");
+  assert.ok(record);
+  assert.equal(record.evidence_state, "UNKNOWN");
+  assert.equal(record.record_class, "documented_configuration");
+});
+
+test("source lookup is explicitly source metadata, not an observation", () => {
+  const r = getSource("NASA-FLARE");
+  assert.equal(r.evidence_state, "UNKNOWN");
+  assert.equal(r.record_class, "source_metadata");
+  assert.equal(r.metadata_only, true);
+  assert.match(r.evidence_state_note, /not an experiment measurement/i);
 });
 
 test("comparison explicitly blocks causal inference", () => {
@@ -52,4 +77,16 @@ test("unsupported scientific variable is rejected instead of fabricated", () => 
   const r = analyzeDataset("distribution", "made_up_variable");
   assert.ok(r.error);
   assert.ok(r.supported_variables.includes("burn_duration"));
+});
+
+test("null, blank, and non-finite measurement fields are not numeric observations", () => {
+  for (const measurement of [
+    { canonical_value: null, value: null },
+    { canonical_value: "", value: "" },
+    { canonical_value: "not available", value: "not available" },
+    {}
+  ]) {
+    assert.equal(hasReportedMeasurement({ observations: [{ measurement }] }), false);
+  }
+  assert.equal(hasReportedMeasurement({ observations: [{ measurement: { canonical_value: 0 } }] }), true);
 });

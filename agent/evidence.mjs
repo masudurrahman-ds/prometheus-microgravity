@@ -15,6 +15,32 @@ const sourceView = (s) => s ? ({
   license: s.license || null
 }) : null;
 
+export function hasReportedMeasurement(e) {
+  return (e?.observations || []).some((o) => {
+    const measurement = o?.measurement;
+    if (!measurement) return false;
+    const raw = measurement.canonical_value ?? measurement.value;
+    if (raw === null || raw === undefined || (typeof raw === "string" && raw.trim() === "")) return false;
+    return Number.isFinite(Number(raw));
+  });
+}
+
+function classifyExperiment(e) {
+  const hasMeasurement = hasReportedMeasurement(e);
+  const linkedSources = (e.source_ids || []).map((sourceId) => sourceMap.get(sourceId)).filter(Boolean);
+  const metadataOnly = linkedSources.length > 0 && linkedSources.every((s) => s.metadata_only === true);
+  const recordClass = hasMeasurement
+    ? "reported_measurements"
+    : metadataOnly ? "metadata_only" : "documented_configuration";
+  return {
+    evidence_state: hasMeasurement ? "NASA_REPORTED" : "UNKNOWN",
+    record_class: recordClass,
+    evidence_state_note: hasMeasurement
+      ? "The indexed record contains source-attributed reported measurements; this response does not assert raw instrument-level observation."
+      : "This record contains descriptive metadata or documented conditions but no indexed numeric outcome measurement. Do not treat it as a measured result."
+  };
+}
+
 export function searchNasaEvidence(query, limit = 8) {
   const terms = String(query || "").toLowerCase().split(/\s+/).filter(Boolean);
   const matches = experiments
@@ -28,6 +54,7 @@ export function searchNasaEvidence(query, limit = 8) {
     source_policy: "NASA indexed evidence only",
     matches: matches.map(({ e, score }) => ({
       score, exp_id: e.exp_id, title: e.title, fuel: e.fuel, platform: e.platform,
+      ...classifyExperiment(e),
       conditions: e.conditions, observations: e.observations, text: e.text,
       sources: (e.source_ids || []).map((id) => sourceView(sourceMap.get(id)))
     }))
@@ -37,11 +64,12 @@ export function searchNasaEvidence(query, limit = 8) {
 export function getExperiment(id) {
   const e = experiments.find((x) => x.exp_id === id);
   if (!e) return { error: "Experiment not found in indexed NASA corpus.", exp_id: id };
+  const linkedSources = (e.source_ids || []).map((sourceId) => sourceMap.get(sourceId)).filter(Boolean);
   return {
     exp_id: e.exp_id, title: e.title, platform: e.platform, fuel: e.fuel,
     conditions: e.conditions, observations: e.observations, text: e.text,
-    evidence_state: "NASA_OBSERVED",
-    sources: (e.source_ids || []).map((id) => sourceView(sourceMap.get(id)))
+    ...classifyExperiment(e),
+    sources: linkedSources.map(sourceView)
   };
 }
 
@@ -58,8 +86,13 @@ export function compareExperiments(aid, bid) {
 
 export function getSource(id) {
   const s = sourceMap.get(id);
-  return s ? { ...sourceView(s), evidence_state: s.metadata_only ? "NASA_REPORTED" : "NASA_OBSERVED" }
-           : { error: "Source not found in indexed NASA catalogue.", source_id: id };
+  return s ? {
+    ...sourceView(s),
+    evidence_state: "UNKNOWN",
+    record_class: "source_metadata",
+    metadata_only: s.metadata_only === true,
+    evidence_state_note: "This is source/catalogue metadata, not an experiment measurement. Follow the linked record and its locator before assigning a claim-level evidence state."
+  } : { error: "Source not found in indexed NASA catalogue.", source_id: id };
 }
 
 

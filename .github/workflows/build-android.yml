@@ -35,6 +35,9 @@ jobs:
           node --check server.mjs
           node --check evidence.mjs
           npm test
+          cd ../server
+          node --check src/evidence.mjs
+          node --test tests/evidence.test.mjs
       - name: Sync Capacitor Android project
         run: npx cap sync android
       - name: Build debug APK
