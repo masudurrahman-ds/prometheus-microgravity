@@ -656,8 +656,15 @@
       const evidenceState = payload.evidence_state || (ids.length ? "REPORTED" : "UNKNOWN");
       const sourceText = ids.length ? "<br><br><b>Cloud evidence trace:</b> " + ids.map(id => esc(id)).join(" · ") : "";
       const text = esc(answerText || "The cloud agent returned no answer.").replace(/\\n/g,"<br>") + sourceText;
+      const charts = trace.map(t=>t?.result?.visualization).filter(v=>v&&v.type==="bar"&&Array.isArray(v.rows));
+      let visualHtml = "";
+      if(charts.length) {
+        const chart=charts[charts.length-1];
+        const rows=chart.rows.filter(r=>r&&Number.isFinite(Number(r.y))).slice(0,12);
+        if(rows.length) visualHtml=visualShell(chart.title||"Deterministic scientific analysis","DERIVED · indexed NASA seed corpus",barChartSVG(rows,chart.yLabel||"Value",chart.title||"Scientific analysis"),"cloud-analysis");
+      }
       rememberTurn({role:"assistant",text,title:"AI · Cloud evidence synthesis",evidence:evidenceState,ids});
-      add("ai","AI · Cloud evidence synthesis",text,evidenceState,.98,ids,["Explicit cloud-AI consent","NASA evidence retrieval on server","Structured scientific response","store:false"]);
+      add("ai","AI · Cloud evidence synthesis",text,evidenceState,.98,ids,["Explicit cloud-AI consent","NASA evidence retrieval on server","Deterministic analysis tool available","Evidence/citation trace attached"],visualHtml);
       return true;
     } catch (error) {
       UI.toast("Cloud AI unavailable · using local evidence engine");
