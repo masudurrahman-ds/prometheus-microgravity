@@ -572,7 +572,24 @@
       return {title:"AI · Logical reasoning mode",text:"I will separate the question into <b>known evidence</b>, <b>assumptions</b>, and <b>conclusions</b>. If a premise conflicts with the NASA corpus, I will point out the conflict without treating the question as foolish. If the question is intentionally impossible or contradictory, I will explain why and state what additional evidence would make it answerable.",evidence:"UNKNOWN until premises are grounded",score:.99,ids:[...new Set(rs.flatMap(srcIds))],audit,visual:visual||""};
     }
 
-    if(/source|citation|doi|reference|where.*data|data source/.test(low)) {
+    if(/what.*establish|what.*do not establish|establish.*do not|explain.*(records|evidence)|what.*(support|show).*(flame|microgravity)|what.*records.*establish/.test(low)) {
+      const s1=rs.find(e=>e.exp_id==="PSI98-S1"), s2=rs.find(e=>e.exp_id==="PSI98-S2");
+      const m1=s1&&measurement(s1,["burn","duration","time"]), m2=s2&&measurement(s2,["burn","duration","time"]);
+      if(s1&&s2) {
+        [...srcIds(s1),...srcIds(s2)].forEach(id=>ids.add(id));
+        const oxygen1=rawval(s1,"o2_fraction"), oxygen2=rawval(s2,"o2_fraction");
+        audit.push("Evidence synthesis: PSI-98 S1/S2","Reported outcomes separated from conditions","Generalization and causal gates applied");
+        return {title:"AI · What the indexed evidence establishes",
+          text:"<b>What the indexed records establish:</b><br>"+
+          "• PSI98-S1 and PSI98-S2 are separate NASA PSI-98 SAFFIRE-I experiment records.<br>"+
+          (m1&&m2?"• The indexed corpus attributes burn-duration values of "+formatNum(m1.value)+" "+esc(m1.unit||"s")+" (S1) and "+formatNum(m2.value)+" "+esc(m2.unit||"s")+" (S2) to their NASA source records. These are source-attributed reported values, not a claim that raw instrument files were independently reprocessed.<br>":"")+
+          (oxygen1!=null&&oxygen2!=null?"• The indexed oxygen-condition fields are S1: "+esc(oxygen1)+" and S2: "+esc(oxygen2)+". Where a chart uses a canonical midpoint of a reported range, that value is a derived plotting value and must not be read as a more precise NASA measurement.<br>":"")+
+          "<br><b>What they do not establish:</b><br>• Two records do not establish a general trend across all microgravity combustion experiments.<br>• A difference between S1 and S2 alone does not prove which condition caused an outcome difference.<br>• This small indexed seed corpus is not the complete NASA PSI archive, and its source metadata is not a substitute for raw experimental data.<br><br>These conclusions are limited to the records and source attributions currently indexed in PROMETHEUS.",
+          evidence:"NASA-reported context · limited indexed evidence",score:null,ids:[...ids],audit,visual};
+      }
+    }
+
+    if(/source|citation|doi|reference|where.*data|data source/.test(low) && !/explain|establish|what.*(show|support|mean)|evidence.*(establish|show)|flame behavior|flame behaviour/.test(low)) {
       audit.push("Source retrieval: matched NASA PSI registry");
       const relevant=explicit.length?explicit:sources().slice(0,8).map(s=>s.source_id);
       return {title:"AI · NASA source ledger",text:"PROMETHEUS is currently grounded in "+rs.length+" loaded experiment records and "+sources().length+" registered NASA PSI sources. Each source below is traceable to its NASA PSI investigation record and DOI.",evidence:"NASA PSI provenance is primary evidence · "+sources().length+" source records",score:.98,ids:relevant,audit,visual};
