@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchNASAEvidence } from "../src/evidence.mjs";
+import { searchNASAEvidence, hasReportedMeasurement } from "../src/evidence.mjs";
 
 test("reported measurement records are distinguished from documented configurations", () => {
   const measured = searchNASAEvidence("PSI98-S1 SAFFIRE burn duration", 20).evidence
@@ -26,4 +26,16 @@ test("metadata-only sources stay visibly marked as metadata", () => {
   assert.ok(record, "expected the FLARE metadata record");
   assert.ok(record.sources.some(source => source.source_id === "NASA-NTRS-20170000230" && source.metadata_only === true));
   assert.notEqual(record.evidence_state, "NASA_OBSERVED");
+});
+
+test("null, blank, and non-finite measurement fields are not numeric observations", () => {
+  for (const measurement of [
+    { canonical_value: null, value: null },
+    { canonical_value: "", value: "" },
+    { canonical_value: "not available", value: "not available" },
+    {}
+  ]) {
+    assert.equal(hasReportedMeasurement({ observations: [{ measurement }] }), false);
+  }
+  assert.equal(hasReportedMeasurement({ observations: [{ measurement: { canonical_value: 0 } }] }), true);
 });
