@@ -1,7 +1,18 @@
 (() => {
   "use strict";
-  if (window.__prometheusAIStatus === "ready") return;
+  const pruneDuplicateAIElements = selector => {
+    const nodes = [...document.querySelectorAll(selector)];
+    nodes.slice(1).forEach(node => node.remove());
+  };
+  if (window.__prometheusAIStatus === "ready") {
+    pruneDuplicateAIElements("#pm-ai-fab");
+    pruneDuplicateAIElements("#pm-ai-panel");
+    return;
+  }
   if (window.__prometheusAIStatus === "loading" && window.__prometheusAIInjected) return;
+  // Recover cleanly from a previous partial injection without cloning launchers.
+  pruneDuplicateAIElements("#pm-ai-fab");
+  pruneDuplicateAIElements("#pm-ai-panel");
   window.__prometheusAIStatus = "loading";
   window.__prometheusAIInjected = true;
 
@@ -30,9 +41,9 @@
     #pm-ai-fab .pm-orbit{position:absolute;inset:8px;border:1px solid rgba(20,16,8,.42);border-radius:50%;transform:rotate(-23deg)}
     #pm-ai-fab .pm-spark{font-size:17px;line-height:13px;display:block}
     #pm-ai-fab span{display:block;font-size:9px;letter-spacing:.16em;margin-top:2px}
-    #pm-ai-panel{position:fixed;right:18px;bottom:94px;z-index:99998;width:min(455px,calc(100vw - 28px));height:min(720px,calc(100vh - 112px));display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(230,203,147,.35);border-radius:24px;background:rgba(5,8,17,.965);backdrop-filter:blur(24px);box-shadow:0 35px 90px rgba(0,0,0,.72),inset 0 1px rgba(255,255,255,.06);color:#eef0f7}
+    #pm-ai-panel{position:fixed;inset:max(8px,env(safe-area-inset-top,0px)) max(8px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));z-index:99998;width:auto;height:auto;max-width:none;max-height:none;display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(230,203,147,.35);border-radius:24px;background:rgba(5,8,17,.965);backdrop-filter:blur(24px);box-shadow:0 35px 90px rgba(0,0,0,.72),inset 0 1px rgba(255,255,255,.06);color:#eef0f7}
     #pm-ai-panel.open{display:flex}
-    #pm-ai-head{padding:16px 18px 13px;border-bottom:1px solid rgba(255,255,255,.09);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;cursor:grab;touch-action:none;user-select:none} #pm-ai-head:active{cursor:grabbing} #pm-ai-head button{touch-action:manipulation}
+    #pm-ai-head{padding:16px 18px 13px;border-bottom:1px solid rgba(255,255,255,.09);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex:0 0 auto} #pm-ai-head button{touch-action:manipulation}
     #pm-ai-head strong{font:500 23px Cormorant Garamond,Georgia,serif;letter-spacing:.08em}
     #pm-ai-head small{display:block;color:#aab2c8;font:10.5px IBM Plex Sans,system-ui;margin-top:2px}
     #pm-ai-status{display:inline-flex;align-items:center;gap:6px;margin-top:8px;color:#4fe3a0;font:10px IBM Plex Sans,system-ui;letter-spacing:.08em;text-transform:uppercase}
@@ -74,7 +85,7 @@
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
     #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
-    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px))}#pm-ai-panel{top:auto;left:auto;right:10px;bottom:calc(108px + env(safe-area-inset-bottom,0px));width:calc(100vw - 20px);height:min(48dvh,460px);max-height:calc(100dvh - 176px);border-radius:20px}#pm-ai-head{position:relative;padding-top:18px}#pm-ai-head:after{content:'DRAG TO MOVE';display:block;position:absolute;right:52px;top:5px;color:#737c96;font:8px IBM Plex Sans,system-ui;letter-spacing:.13em}#pm-ai-head>div{padding-top:8px}}
+    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px));width:54px;height:54px}#pm-ai-panel{inset:max(6px,env(safe-area-inset-top,0px)) 6px max(6px,env(safe-area-inset-bottom,0px)) 6px;border-radius:18px}#pm-ai-head{padding:12px 14px 10px}#pm-ai-head strong{font-size:21px}#pm-ai-body{padding:10px}#pm-ai-form{padding:10px}}
   `;
   document.head.appendChild(style);
 
@@ -641,66 +652,51 @@
     if(body.childElementCount || !conversationMemory.length)return;
     recentMemory(8).forEach(x=>add(x.role==="user"?"user":"ai",x.title||"AI · Recalled context",esc(x.text),x.evidence||null,.86,x.ids||[],["Restored from local device memory"]));
   }
-  // The AI orb and assistant card are both draggable so they can be moved away
-  // from Research controls and content. Clamp the panel inside the visible viewport.
-  let fabMoved=false, panelMoved=false, dragState=null;
-  const POSITION_KEY="prometheus_ai_floating_positions_v1";
+  // Only the AI launcher orb is movable. The chat window is screen-fitted.
+  let fabMoved=false, dragState=null;
+  const POSITION_KEY="prometheus_ai_launcher_position_v1";
   function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
-  function savePositions(){
-    try{
-      localStorage.setItem(POSITION_KEY,JSON.stringify({
-        fab:fab.style.left?{left:fab.style.left,top:fab.style.top}:null,
-        panel:panel.style.left?{left:panel.style.left,top:panel.style.top}:null
-      }));
-    }catch(_){}
+  function saveFabPosition(){
+    try { if(fab.style.left&&fab.style.top) localStorage.setItem(POSITION_KEY,JSON.stringify({left:fab.style.left,top:fab.style.top})); } catch(_){}
   }
-  function restorePositions(){
-    try{
-      const saved=JSON.parse(localStorage.getItem(POSITION_KEY)||"null");
-      for(const [kind,el] of [["fab",fab],["panel",panel]]){
-        const p=saved&&saved[kind];if(!p||!Number.isFinite(parseFloat(p.left))||!Number.isFinite(parseFloat(p.top)))continue;
-        const w=el.getBoundingClientRect().width|| (kind==="fab"?54:Math.min(window.innerWidth-20,420));
-        const h=el.getBoundingClientRect().height|| (kind==="fab"?54:460);
-        el.style.left=clamp(parseFloat(p.left),8,Math.max(8,window.innerWidth-w-8))+"px";
-        el.style.top=clamp(parseFloat(p.top),8,Math.max(8,window.innerHeight-h-8))+"px";
-        el.style.right="auto";el.style.bottom="auto";
-      }
-    }catch(_){}
+  function restoreFabPosition(){
+    try {
+      const p=JSON.parse(localStorage.getItem(POSITION_KEY)||"null");
+      if(!p||!Number.isFinite(parseFloat(p.left))||!Number.isFinite(parseFloat(p.top)))return;
+      const r=fab.getBoundingClientRect(),w=r.width||54,h=r.height||54;
+      fab.style.left=clamp(parseFloat(p.left),8,Math.max(8,innerWidth-w-8))+"px";
+      fab.style.top=clamp(parseFloat(p.top),8,Math.max(8,innerHeight-h-8))+"px";
+      fab.style.right="auto";fab.style.bottom="auto";
+    } catch(_){}
   }
-  function startDrag(el,e,kind){
+  function startFabDrag(e){
     if(e.button!==undefined&&e.button!==0)return;
-    if(kind==="panel"&&e.target.closest("button"))return;
-    dragState={el,kind,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,
-      rect:el.getBoundingClientRect(),moved:false};
-    if(kind==="fab")fabMoved=false;else panelMoved=false;
-    try{el.setPointerCapture(e.pointerId);}catch(_){}
+    dragState={pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,rect:fab.getBoundingClientRect(),moved:false};
+    fabMoved=false;
+    try{fab.setPointerCapture(e.pointerId);}catch(_){}
     e.preventDefault();
   }
-  function moveDrag(e){
+  function moveFabDrag(e){
     if(!dragState||e.pointerId!==dragState.pointerId)return;
     const d=dragState,dx=e.clientX-d.startX,dy=e.clientY-d.startY;
     if(Math.abs(dx)+Math.abs(dy)>5)d.moved=true;
     if(!d.moved)return;
     const w=d.rect.width,h=d.rect.height;
-    const left=clamp(d.rect.left+dx,8,Math.max(8,window.innerWidth-w-8));
-    const top=clamp(d.rect.top+dy,8,Math.max(8,window.innerHeight-h-8));
-    d.el.style.left=left+"px";d.el.style.top=top+"px";d.el.style.right="auto";d.el.style.bottom="auto";
-    if(d.kind==="fab")fabMoved=true;else panelMoved=true;
+    fab.style.left=clamp(d.rect.left+dx,8,Math.max(8,innerWidth-w-8))+"px";
+    fab.style.top=clamp(d.rect.top+dy,8,Math.max(8,innerHeight-h-8))+"px";
+    fab.style.right="auto";fab.style.bottom="auto";
   }
-  function endDrag(e){
+  function endFabDrag(e){
     if(!dragState||e.pointerId!==dragState.pointerId)return;
-    const d=dragState;
-    if(d.kind==="fab")fabMoved=d.moved;else panelMoved=d.moved;
-    dragState=null;if(d.moved)savePositions();
+    fabMoved=dragState.moved;dragState=null;
+    if(fabMoved)saveFabPosition();
   }
-  fab.addEventListener("pointerdown",e=>startDrag(fab,e,"fab"));
-  panel.querySelector("#pm-ai-head").addEventListener("pointerdown",e=>startDrag(panel,e,"panel"));
-  // Listen on window as Android WebView can retarget touch/pointer events after capture.
-  window.addEventListener("pointermove",moveDrag,{passive:false});
-  window.addEventListener("pointerup",endDrag);
-  window.addEventListener("pointercancel",endDrag);
-  window.addEventListener("resize",()=>{restorePositions();});
-  restorePositions();
+  fab.addEventListener("pointerdown",startFabDrag);
+  window.addEventListener("pointermove",moveFabDrag,{passive:false});
+  window.addEventListener("pointerup",endFabDrag);
+  window.addEventListener("pointercancel",endFabDrag);
+  window.addEventListener("resize",restoreFabPosition);
+  restoreFabPosition();
   function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
   function closeAI(){panel.classList.remove("open");}
   fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});
