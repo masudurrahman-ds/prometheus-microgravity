@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchNasaEvidence, getExperiment, compareExperiments, getSource } from "../evidence.mjs";
+import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset } from "../evidence.mjs";
 
 test("NASA corpus search returns provenance", () => {
   const r = searchNasaEvidence("SAFFIRE S1 burn duration");
@@ -29,4 +29,27 @@ test("source lookup preserves DOI/URL metadata", () => {
   const r = getSource("PSI-98");
   assert.equal(r.source_id, "PSI-98");
   assert.ok(r.doi || r.url);
+});
+
+test("dataset analysis returns reproducible chart-ready values and source metadata", () => {
+  const r = analyzeDataset("distribution", "burn_duration", ["PSI98-S1", "PSI98-S2"]);
+  assert.equal(r.n, 2);
+  assert.equal(r.summary.min, 70);
+  assert.equal(r.summary.max, 420);
+  assert.equal(r.visualization.type, "bar");
+  assert.deepEqual(r.rows.map(x => x.label), ["PSI98-S1", "PSI98-S2"]);
+  assert.ok(r.sources.some(x => x.source_id === "PSI-98"));
+});
+
+test("coverage analysis reports the selected seed corpus rather than implying archive completeness", () => {
+  const r = analyzeDataset("coverage");
+  assert.equal(r.operation, "coverage");
+  assert.match(r.summary, /seed corpus only/i);
+  assert.ok(r.rows.some(x => x.label === "burn_duration"));
+});
+
+test("unsupported scientific variable is rejected instead of fabricated", () => {
+  const r = analyzeDataset("distribution", "made_up_variable");
+  assert.ok(r.error);
+  assert.ok(r.supported_variables.includes("burn_duration"));
 });
