@@ -30,6 +30,9 @@ if(ai.includes("chart.rows.filter(r=>r&&Number.isFinite(Number(r.y)))")) throw n
 if(ai.includes("filter(r=>Number.isFinite(Number(r.y)))")) throw new Error("3D evidence fallback must reject null/blank values before numeric coercion");
 if(ai.includes("<polyline")) throw new Error("scientific chart must not connect independent experiments with a line");
 if(!ai.includes("Categorical experiment values; not a time series")) throw new Error("chart must disclose categorical comparison semantics");
+if(!ai.includes('Variable coverage: "+requestedLabel')) throw new Error("specific-variable missingness requests must not fall through to global coverage");
+if(!ai.includes('DERIVED PLOTTING VALUE: '+String.fromCharCode(34)+'+notes.join')) throw new Error("chart must disclose derived canonical plotting values");
+if(!ai.includes('note:c.canonical_note||""')) throw new Error("chart rows must retain canonical-value caveats");
 const agentServer=fs.readFileSync("agent/server.mjs","utf8");
 const agentEvidence=fs.readFileSync("agent/evidence.mjs","utf8");
 if(!agentServer.includes('name:"analyze_dataset"') || !agentServer.includes("analyzeDataset(args.operation")) throw new Error("scientific analysis tool is not wired into the LLM agent");
