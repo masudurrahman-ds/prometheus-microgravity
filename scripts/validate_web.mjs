@@ -83,3 +83,7 @@ if(!ai.includes('" ("+ea.label+" / "+eb.label+")"')) throw new Error("comparison
 
 if(!ai.includes('const normalizedQuestion=low.replace(/[^a-z0-9]/g,"")')) throw new Error("explicitly named experiment IDs must scope scientific charts");
 if(!ai.includes('if(namedRecords.length) rs=namedRecords;')) throw new Error("chart records must be narrowed to named experiment IDs when present");
+
+if(!ai.includes("const hasNamedExperimentScope=namedRecords.length>0;")) throw new Error("named experiment IDs must scope the complete scientific answer");
+if(!ai.includes("const rs=hasNamedExperimentScope ? namedRecords : allRecords;")) throw new Error("answer retrieval must not mix unrelated experiments into a named-record question");
+if(!ai.includes("if(hasNamedExperimentScope) rs.forEach(e=>srcIds(e).forEach(x=>ids.add(x)));")) throw new Error("named-record evidence gaps must cite the named experiment's source, not unrelated pressure context");
