@@ -230,7 +230,7 @@
     const id="pm3d-"+Math.random().toString(36).slice(2,9);
     const card=document.createElement("div");
     card.className="pm-3d";
-    card.innerHTML='<div class="pm-3d-hud"><span>NASA DATA · 3D RESULT</span><span>Drag · rotate · scroll · zoom</span></div><canvas width="780" height="540"></canvas><div class="pm-3d-controls"><button data-rotate>Auto rotate</button><button data-video>Generate video</button><button data-reset>Reset</button></div><div class="pm-video-note">Rendered from loaded NASA-derived values. Geometry is a scientific visualization, not a NASA image or measurement.</div>';
+    card.innerHTML='<div class="pm-3d-hud"><span>DERIVED · 3D VISUALIZATION</span><span>Not NASA footage · drag / rotate / zoom</span></div><canvas width="780" height="540"></canvas><div class="pm-3d-controls"><button data-rotate>Auto rotate</button><button data-video>Generate video</button><button data-reset>Reset</button></div><div class="pm-video-note">Reproducible illustrative geometry scaled from available reported values; not experimental footage, a NASA image, or a measured flame shape.</div>';
     const canvas=card.querySelector("canvas"), ctx=canvas.getContext("2d");
     let yaw=-.35,pitch=-.18,zoom=1.0,running=true,raf=0,recording=false;
     let lastX=0,lastY=0,drag=false;
@@ -240,7 +240,8 @@
       const burn=Number(r.y)||0, radius=20+52*(burn/max);
       for(let i=0;i<44;i++){
         const a=i/44*Math.PI*2+idx*.7, h=(i%11)/10*2-1;
-        pts.push({x:Math.cos(a)*radius*(.55+.45*Math.random()),y:h*radius,z:Math.sin(a)*radius*(.55+.45*Math.random()),g:idx});
+        const radial=.72+.28*Math.sin((i+1)*(idx+2)*1.618);
+        pts.push({x:Math.cos(a)*radius*radial,y:h*radius,z:Math.sin(a)*radius*radial,g:idx});
       }
     });
     function project(p) {
@@ -310,7 +311,7 @@
 
   function scientific3DVisual(q, rs) {
     const low=q.toLowerCase();
-    if(!/3d|three.?d|spatial|volume|surface|model|visualize|visualise/.test(low)) return "";
+    if(!/3d|three.?d|spatial|volume|surface|model|visualize|visualise|video|animate|animation|motion/.test(low)) return "";
     const rows=rs.map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
     if(rows.length<1) return "";
     return build3DResult(rows).outerHTML;
