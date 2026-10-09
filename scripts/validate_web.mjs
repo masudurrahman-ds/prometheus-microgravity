@@ -25,6 +25,9 @@ if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does no
 if(!ai.includes("https://your-domain/v1/agent")) throw new Error("cloud AI endpoint guidance does not match the agent API route");
 if(!ai.includes('trace.map(t=>t?.result?.visualization)')) throw new Error("cloud AI tool charts are not rendered in the assistant response");
 if(!ai.includes("pending3DResult=rows")) throw new Error("3D evidence visualization ignores the requested scientific variable");
+if(!ai.includes("function finiteNumericValue(raw)")) throw new Error("strict chart numeric parser missing");
+if(ai.includes("<polyline")) throw new Error("scientific chart must not connect independent experiments with a line");
+if(!ai.includes("Categorical experiment values; not a time series")) throw new Error("chart must disclose categorical comparison semantics");
 const agentServer=fs.readFileSync("agent/server.mjs","utf8");
 const agentEvidence=fs.readFileSync("agent/evidence.mjs","utf8");
 if(!agentServer.includes('name:"analyze_dataset"') || !agentServer.includes("analyzeDataset(args.operation")) throw new Error("scientific analysis tool is not wired into the LLM agent");

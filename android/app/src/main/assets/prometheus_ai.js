@@ -168,23 +168,21 @@
   }
 
   function chartSVG(rows, xLabel, yLabel, title) {
-    const w=390,h=205,p={l:42,r:16,t:18,b:38};
-    const vals=rows.map(r=>Number(r.y)).filter(Number.isFinite);
-    if(!vals.length) return "";
-    const min=Math.min(...vals),max=Math.max(...vals),span=max-min||1;
-    const x=i=>p.l+(i/(Math.max(1,rows.length-1)))*(w-p.l-p.r);
-    const y=v=>p.t+(1-(v-min)/span)*(h-p.t-p.b);
-    const points=rows.map((r,i)=>x(i)+","+y(Number(r.y))).join(" ");
-    const circles=rows.map((r,i)=>'<circle cx="'+x(i)+'" cy="'+y(Number(r.y))+'" r="4" fill="#e6cb93"><title>'+esc(r.label)+': '+esc(r.y)+'</title></circle>').join("");
-    const labels=rows.map((r,i)=>'<text x="'+x(i)+'" y="'+(h-18)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(r.label)+'</text>').join("");
-    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+'"><line x1="'+p.l+'" y1="'+p.t+'" x2="'+p.l+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><line x1="'+p.l+'" y1="'+(h-p.b)+'" x2="'+(w-p.r)+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><polyline fill="none" stroke="#e6cb93" stroke-width="2.5" points="'+points+'"/>'+circles+labels+'<text x="'+p.l+'" y="12" fill="#eef0f7" font-size="10">'+esc(yLabel)+'</text><text x="'+(w/2)+'" y="'+(h-3)+'" fill="#737c96" font-size="9" text-anchor="middle">'+esc(xLabel)+'</text></svg>';
+    // Independent experiment records are categories, not a temporal series.
+    // Delegate to a bar chart; never connect unrelated records with a line.
+    const valid=(rows||[]).map(r=>{
+      const y=finiteNumericValue(r?.y);
+      return y===null?null:{...r,y};
+    }).filter(Boolean);
+    return valid.length ? barChartSVG(valid,yLabel,title) : "";
   }
 
   function flameSVG(rows) {
     const w=390,h=235;
-    const max=Math.max(...rows.map(r=>Number(r.y)||0),1);
+    rows=(rows||[]).map(r=>{const y=finiteNumericValue(r?.y);return y===null?null:{...r,y};}).filter(Boolean);
+    const max=Math.max(...rows.map(r=>r.y),1);
     const flames=rows.map((r,i)=>{
-      const cx=78+i*118, burn=Number(r.y)||0, scale=.65+.7*(burn/max);
+      const cx=78+i*118, burn=r.y, scale=.65+.7*(burn/max);
       const rx=30*scale, ry=72*scale;
       return '<g transform="translate('+cx+' 116)"><ellipse rx="'+(rx+7)+'" ry="'+(ry+7)+'" fill="rgba(168,220,255,.06)" stroke="rgba(168,220,255,.25)"/><path d="M0 '+ry+' C-'+rx+' '+(ry*.55)+' -'+(rx*.7)+' '+(ry*.1)+' -'+(rx*.15)+' -'+(ry*.35)+' C-'+(rx*.15)+' -'+(ry*.7)+' '+(rx*.55)+' -'+(ry*.72)+' 0 -'+ry+' C'+(rx*.65)+' -'+(ry*.72)+' '+rx*.15+' '+(ry*.05)+' 0 '+ry+'Z" fill="#e6cb93" opacity=".88"/><text y="'+(ry+22)+'" text-anchor="middle" fill="#eef0f7" font-size="10">'+esc(r.label)+'</text><text y="'+(ry+36)+'" text-anchor="middle" fill="#aab2c8" font-size="9">'+esc(r.y)+' s burn</text></g>';
     }).join("");
@@ -193,13 +191,14 @@
 
   function barChartSVG(rows, yLabel, title) {
     const w=390,h=220,p={l:42,r:16,t:24,b:48};
-    const vals=rows.map(r=>Number(r.y)).filter(Number.isFinite);
+    rows=(rows||[]).map(r=>{const y=finiteNumericValue(r?.y);return y===null?null:{...r,y};}).filter(Boolean);
+    const vals=rows.map(r=>r.y);
     if(!vals.length) return "";
     const max=Math.max(...vals,0), min=Math.min(...vals,0), span=max-min||1;
     const plotH=h-p.t-p.b, base=p.t+(max/span)*plotH;
     const slot=(w-p.l-p.r)/rows.length, bw=Math.min(42,slot*.58);
     const bars=rows.map((r,i)=>{
-      const v=Number(r.y), bh=Math.abs(v/span*plotH), x=p.l+i*slot+(slot-bw)/2, y=v>=0?base-bh:base;
+      const v=finiteNumericValue(r.y), bh=Math.abs(v/span*plotH), x=p.l+i*slot+(slot-bw)/2, y=v>=0?base-bh:base;
       return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+Math.max(1,bh)+'" rx="3" fill="#e6cb93" opacity=".9"><title>'+esc(r.label)+': '+esc(v)+'</title></rect>'+
         '<text x="'+(x+bw/2)+'" y="'+Math.max(14,y-5)+'" fill="#eef0f7" font-size="9" text-anchor="middle">'+esc(formatNum(v))+'</text>'+
         '<text x="'+(p.l+i*slot+slot/2)+'" y="'+(h-28)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(r.label)+'</text>';
@@ -225,12 +224,12 @@
     if((asksForVisual||asksForComparison) && metric) {
       const rows=rs.map(e=>{
         if(metric==="burn") {
-          const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&x.measurement.canonical_value!=null);
-          return o?{label:e.exp_id,y:Number(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;
+          const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&finiteNumericValue(x.measurement.canonical_value)!==null);
+          return o?{label:e.exp_id,y:finiteNumericValue(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;
         }
         const c=e.conditions&&e.conditions[metric];
-        return c&&c.canonical_value!=null?{label:e.exp_id,y:Number(c.canonical_value),source:c.source_id,locator:c.locator}:null;
-      }).filter(r=>r&&Number.isFinite(r.y));
+        return c&&finiteNumericValue(c.canonical_value)!==null?{label:e.exp_id,y:finiteNumericValue(c.canonical_value),source:c.source_id,locator:c.locator}:null;
+      }).filter(r=>r&&finiteNumericValue(r.y)!==null);
       if(rows.length>=2) {
         const chart=barChartSVG(rows.slice(0,8),label,"Evidence-backed experiment comparison");
         return visualShell(label+" · evidence-backed comparison","Categorical experiment values; not a time series",chart,metric);
@@ -240,17 +239,17 @@
 
     if(asksForComparison) {
       const rows=rs.map(e=>{
-        const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&x.measurement.canonical_value!=null);
-        return o?{label:e.exp_id,y:Number(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;
-      }).filter(r=>r&&Number.isFinite(r.y));
+        const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&finiteNumericValue(x.measurement.canonical_value)!==null);
+        return o?{label:e.exp_id,y:finiteNumericValue(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;
+      }).filter(r=>r&&finiteNumericValue(r.y)!==null);
       if(rows.length>=2) return visualShell("Observed burn-duration comparison","NASA PSI · categorical comparison, not a trend",barChartSVG(rows.slice(0,8),"Burn duration (s)","NASA-observed burn duration"),"burn");
     }
 
     if(/image|visual|render|picture|look like|show me a flame/.test(low)) {
       const rows=rs.map(e=>{
-        const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&x.measurement.canonical_value!=null);
-        return o?{label:e.exp_id,y:Number(o.measurement.canonical_value)}:null;
-      }).filter(r=>r&&Number.isFinite(r.y));
+        const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&finiteNumericValue(x.measurement.canonical_value)!==null);
+        return o?{label:e.exp_id,y:finiteNumericValue(o.measurement.canonical_value)}:null;
+      }).filter(r=>r&&finiteNumericValue(r.y)!==null);
       if(rows.length) return visualShell("Illustrative flame geometry","Size is scaled from reported burn duration; not a NASA image or measured flame shape",flameSVG(rows.slice(0,3)),"flame");
     }
     return "";
@@ -352,11 +351,11 @@
     const rows=rs.map(e=>{
       if(key==="burn_duration"){
         const o=(e.observations||[]).find(o=>/burn|duration/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement);
-        return o?{label:e.exp_id,y:Number(o.measurement.canonical_value)}:null;
+        return o?{label:e.exp_id,y:finiteNumericValue(o.measurement.canonical_value)}:null;
       }
       const c=e.conditions&&e.conditions[key];
-      return c&&c.canonical_value!=null?{label:e.exp_id,y:Number(c.canonical_value)}:null;
-    }).filter(r=>r&&Number.isFinite(r.y));
+      return c&&finiteNumericValue(c.canonical_value)!==null?{label:e.exp_id,y:finiteNumericValue(c.canonical_value)}:null;
+    }).filter(r=>r&&finiteNumericValue(r.y)!==null);
     if(rows.length<1) return "";
     pending3DResult=rows;
     return build3DResult(rows).outerHTML;
@@ -403,7 +402,7 @@
   const srcFor = id => sources().find(s=>s.source_id===id) || null;
   const srcIds = e => Array.isArray(e.source_ids) ? e.source_ids : [];
   const condition = (e,k) => e && e.conditions && e.conditions[k] ? e.conditions[k] : null;
-  const cval = (e,k) => { const c=condition(e,k); return c && c.canonical_value != null ? Number(c.canonical_value) : null; };
+  const cval = (e,k) => { const c=condition(e,k); return c && c.canonical_value != null ? finiteNumericValue(c.canonical_value) : null; };
   const rawval = (e,k) => { const c=condition(e,k); return c ? c.value : null; };
   const allText = e => [e.exp_id,e.title,e.platform,e.fuel,e.text,...(e.observations||[]).flatMap(o=>[o.phenomenon,o.description,o.source_id,o.locator])].filter(Boolean).join(" ").toLowerCase();
 
@@ -420,7 +419,7 @@
     for (const o of (e.observations||[])) {
       const hay=[o.phenomenon,o.description,o.locator].filter(Boolean).join(" ").toLowerCase();
       if (terms.some(t=>hay.includes(t)) && o.measurement && o.measurement.canonical_value!=null) {
-        return {value:Number(o.measurement.canonical_value), raw:o.measurement.value, unit:o.measurement.unit, source:o.source_id, locator:o.locator, evidence:"OBSERVED"};
+        return {value:finiteNumericValue(o.measurement.canonical_value), raw:o.measurement.value, unit:o.measurement.unit, source:o.source_id, locator:o.locator, evidence:"OBSERVED"};
       }
     }
     return null;
@@ -501,9 +500,16 @@
     return found;
   }
 
+  function finiteNumericValue(raw) {
+    if(raw===null || raw===undefined || (typeof raw==="string" && raw.trim()==="")) return null;
+    const value=Number(raw);
+    return Number.isFinite(value) ? value : null;
+  }
+
   function formatNum(v) {
-    if(!Number.isFinite(Number(v))) return "not available";
-    const n=Number(v); return Math.abs(n)>=100 ? n.toFixed(1).replace(/\.0$/,"") : n.toPrecision(4).replace(/\.?0+$/,"");
+    const n=finiteNumericValue(v);
+    if(n===null) return "not available";
+    return Math.abs(n)>=100 ? n.toFixed(1).replace(/\.0$/,"") : n.toPrecision(4).replace(/\.?0+$/,"");
   }
 
   // Persistent local conversation memory: survives app restarts and stays on-device.
