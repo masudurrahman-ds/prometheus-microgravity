@@ -90,3 +90,38 @@ Trace:
 5. Whether current tests execute behavior or mostly assert source-code strings.
 
 The output of this investigation should update this document with file paths, call sites, and test evidence before major implementation begins.
+
+
+## Follow-up source inspection — concrete defects to address
+
+These findings come from reading the current implementations, not just the directory names.
+
+### AI/backend contract
+- `agent/server.mjs` exposes `POST /v1/agent` with a message/history/consent-oriented request and tool-backed evidence functions.
+- `server/src/server.mjs` exposes a different `POST /api/ask` contract using `question`; its health endpoint is `GET /api/health`.
+- `agent/README.md` describes the first path as the cloud agent and the app's local evidence mode as separate. The two server paths are not drop-in compatible.
+- `server/src/agent.mjs` retrieves a limited set of evidence first and then asks the model to answer; it does not expose the same tool-execution loop shown in `agent/server.mjs`.
+- `agent/evidence.mjs` uses a simple token-presence score across serialized experiment JSON. This is deterministic but not semantic retrieval; common tokens and repeated fields can distort relevance.
+- `agent/evidence.mjs:getExperiment()` currently assigns `evidence_state: "NASA_OBSERVED"` to every experiment returned, regardless of whether a particular record is only documented configuration, metadata, or a direct measurement. This is a high-priority evidence-label correctness defect.
+- `agent/evidence.mjs:getSource()` currently maps `metadata_only` to `NASA_REPORTED` and all other sources to `NASA_OBSERVED`. Source-level metadata status is not enough to assign the evidence state of every claim or observation; this mapping must be replaced with record/claim-level states.
+- `server/src/evidence.mjs` currently marks each non-synthetic experiment `NASA REPORTED`, while synthetic records become `UNKNOWN`. This also loses the distinction between directly observed measurements and reported/documented configurations.
+- The client asset `android/app/src/main/assets/prometheus_ai.js` explicitly describes itself as local, no-network, retrieval-first behavior. The cloud UI path must therefore be traced separately; do not assume the cloud server is the default or that both agents have equivalent tools.
+
+### Scientific computation and graphs
+- `www/index.html` currently computes lab results using its local analysis namespace and constructs a 3D trace from the query point plus neighbor records. The source comments correctly warn that the trace is similarity navigation, not a physical prediction; this distinction must remain visible.
+- The trace is assembled from nearest evidence matches and normalized coordinates, not a time-evolved flame simulation. It must not be labeled or exported as a physical flame trajectory.
+- Any chart generator must select the chart type from the data semantics. Independent experiment rows are categorical/record-level observations by default, not a time series. No default straight-line connection between them.
+- A scenario comparison needs to expose the selected experiment IDs, variable names, units, distance/normalization rule, and missing-variable handling so the user can audit why records were considered similar.
+
+### Data validation and tests
+- The current build workflow runs `scripts/validate_web.mjs`, syntax checks the injected AI asset and `agent` files, and runs `npm test` inside `agent/`; it does not currently run an equivalent test suite for `server/` or browser/device interaction tests.
+- Several recent PR checks are source-string assertions. They are useful guardrails but cannot prove that the WebView rendered a layout correctly or that a scenario switch recomputes the intended values.
+- There are two shipped corpus-like JSON files. The canonical runtime consumer in `agent/evidence.mjs` reads `data/prometheus_nasa_psi.json`; `data/prometheus_nasa_psi_seed.json` is a second, smaller PSI seed representation. They should not silently diverge. A later data phase should explicitly mark the smaller file as a curated example or remove it only after verifying it has no required consumer.
+- The repository contains enough evidence to build a credible source-grounded research explorer, but not enough to claim comprehensive coverage of all NASA combustion research or to generate physical simulation outputs without additional validated models/data.
+
+### Next engineering action
+1. Add tests that prove evidence-state assignment cannot label metadata-only/configuration records as observed measurements.
+2. Define a shared evidence-state contract consumed by both backend paths and the local client.
+3. Add a chart-data contract with series provenance and chart-type constraints.
+4. Trace the live cloud endpoint settings and the exact data file consumed by each UI screen before migrating or deleting backend code.
+5. Keep these changes on the audit branch and require the mainline Android build plus relevant tests before proposing a merge.
