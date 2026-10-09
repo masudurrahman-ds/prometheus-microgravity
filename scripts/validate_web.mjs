@@ -18,14 +18,29 @@ const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
 if(!html.includes("window, '__prometheusDataset'")) throw new Error("stable local-AI dataset provider missing");
 if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
-if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel height missing");
+if(!ai.includes("#pm-ai-panel.fullscreen") || !ai.includes("height:100dvh!important")) throw new Error("full-screen AI workspace styles missing");
 if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("global touch/pointer drag handling missing");
-if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) throw new Error("AI floating position persistence missing");
-if(!ai.includes("DRAG TO MOVE")) throw new Error("visible AI panel drag affordance missing");
-if(!ai.includes('fab.addEventListener("pointerdown"')) throw new Error("movable AI launcher pointer handling missing");
-if(!ai.includes('panel.querySelector("#pm-ai-head").addEventListener("pointerdown"')) throw new Error("movable AI panel header handling missing");
-if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel sizing missing");
+if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) throw new Error("AI launcher position persistence missing");
+if(!ai.includes('document.querySelectorAll("#pm-ai-panel, #pm-ai-fab")')) throw new Error("AI overlay singleton cleanup missing");
+if(ai.includes("DRAG TO MOVE")) throw new Error("obsolete draggable AI panel affordance remains");
+if(!html.includes("aiworkspacebtn")) throw new Error("dedicated AI workspace control missing");
+if(!ai.includes('panel.classList.add("open","fullscreen")')) throw new Error("full-screen AI open lifecycle missing");
+if(!ai.includes("#pm-ai-panel.fullscreen") || !ai.includes('document.addEventListener("keydown"')) throw new Error("full-screen AI or Escape-close behavior missing");
 if(html.includes("top:calc(env(safe-area-inset-top,0px) + 8px)!important;bottom:calc(132px")) throw new Error("old full-height mobile AI override still present");
+
+if(!html.includes("FIRE-SAFETY INTELLIGENCE DASHBOARD")) throw new Error("fire-safety intelligence dashboard missing");
+if(!html.includes("Transparent representation score: indexed records")) throw new Error("explainable study ranking criteria missing");
+if(!html.includes("Generate cited AI briefing")) throw new Error("interactive AI briefing action missing");
+if(!html.includes("No cloud AI required for this dashboard")) throw new Error("local-first dashboard disclosure missing");
+if(!html.includes("Strongest coverage") || !html.includes("Thin coverage")) throw new Error("evidence coverage interpretation missing");
+if(!html.includes("studies.filter(x=>x.matches(dashboardFilter))")) throw new Error("dashboard study filters missing");
+if(!html.includes("Ask local AI ↗")) throw new Error("per-study AI interpretation action missing");
+if(!html.includes("ranked NASA studies")) throw new Error("ranked study navigator missing");
+if(!html.includes("miniGal.curve = [queryPoint, ...evidencePoints]") || !html.includes("this.curve && this.curve.length > 1")) throw new Error("live scenario-to-evidence 3D trace missing");
+if(!html.includes("not a physical prediction")) throw new Error("3D trace scientific limitation disclosure missing");
+if(!html.includes("Live evidence-match profile") || !html.includes("100 * (1 - n.distance)")) throw new Error("live parameter-sensitive evidence graph missing");
+if(!html.includes("NASA evidence matching — not a physical flame simulation")) throw new Error("Virtual Lab must disclose evidence matching rather than physical simulation");
+if(!html.includes("S.form.on[k] = false; if (F.cond(e, v) != null)")) throw new Error("loading a NASA experiment must clear stale unspecified lab conditions");
 
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
 scripts.forEach(({attrs,source,index})=>{

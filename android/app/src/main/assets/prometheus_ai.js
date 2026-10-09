@@ -1,7 +1,16 @@
 (() => {
   "use strict";
-  if (window.__prometheusAIStatus === "ready") return;
+  if (window.__prometheusAIStatus === "ready") {
+    // Defensive cleanup for stale duplicate overlays from prior hot reloads / repeated script injection.
+    for (const selector of ["#pm-ai-panel", "#pm-ai-fab"]) {
+      const nodes = document.querySelectorAll(selector);
+      nodes.forEach((node, index) => { if (index > 0) node.remove(); });
+    }
+    return;
+  }
   if (window.__prometheusAIStatus === "loading" && window.__prometheusAIInjected) return;
+  // Remove stale elements left by an interrupted previous initialization before creating the singleton.
+  document.querySelectorAll("#pm-ai-panel, #pm-ai-fab").forEach(node => node.remove());
   window.__prometheusAIStatus = "loading";
   window.__prometheusAIInjected = true;
 
@@ -32,6 +41,11 @@
     #pm-ai-fab span{display:block;font-size:9px;letter-spacing:.16em;margin-top:2px}
     #pm-ai-panel{position:fixed;right:18px;bottom:94px;z-index:99998;width:min(455px,calc(100vw - 28px));height:min(720px,calc(100vh - 112px));display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(230,203,147,.35);border-radius:24px;background:rgba(5,8,17,.965);backdrop-filter:blur(24px);box-shadow:0 35px 90px rgba(0,0,0,.72),inset 0 1px rgba(255,255,255,.06);color:#eef0f7}
     #pm-ai-panel.open{display:flex}
+    #pm-ai-panel.fullscreen{inset:env(safe-area-inset-top,0px) 0 0 0!important;left:0!important;right:0!important;top:env(safe-area-inset-top,0px)!important;bottom:0!important;width:100vw!important;height:100dvh!important;max-height:none!important;min-height:0!important;border-radius:0!important;border-left:0;border-right:0;border-top:0;z-index:100000}
+    #pm-ai-panel.fullscreen #pm-ai-body{min-height:0}
+    #pm-ai-panel.fullscreen #pm-ai-form{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+    #pm-ai-panel.fullscreen #pm-ai-head{padding-top:calc(14px + env(safe-area-inset-top,0px));cursor:default;touch-action:auto}
+    #pm-ai-panel.fullscreen #pm-ai-head:after{display:none}
     #pm-ai-head{padding:16px 18px 13px;border-bottom:1px solid rgba(255,255,255,.09);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;cursor:grab;touch-action:none;user-select:none} #pm-ai-head:active{cursor:grabbing} #pm-ai-head button{touch-action:manipulation}
     #pm-ai-head strong{font:500 23px Cormorant Garamond,Georgia,serif;letter-spacing:.08em}
     #pm-ai-head small{display:block;color:#aab2c8;font:10.5px IBM Plex Sans,system-ui;margin-top:2px}
@@ -74,7 +88,7 @@
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
     #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
-    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px))}#pm-ai-panel{top:auto;left:auto;right:10px;bottom:calc(108px + env(safe-area-inset-bottom,0px));width:calc(100vw - 20px);height:min(48dvh,460px);max-height:calc(100dvh - 176px);border-radius:20px}#pm-ai-head{position:relative;padding-top:18px}#pm-ai-head:after{content:'DRAG TO MOVE';display:block;position:absolute;right:52px;top:5px;color:#737c96;font:8px IBM Plex Sans,system-ui;letter-spacing:.13em}#pm-ai-head>div{padding-top:8px}}
+    @media(max-width:600px){#pm-ai-fab{right:14px;bottom:calc(112px + env(safe-area-inset-bottom,0px))}#pm-ai-panel:not(.fullscreen){left:0;right:0;top:0;bottom:0;width:100vw;height:100dvh;max-height:none;border-radius:0}#pm-ai-head{position:relative;padding-top:18px}#pm-ai-head>div{padding-top:8px}}
   `;
   document.head.appendChild(style);
 
@@ -110,6 +124,10 @@
   `;
   document.body.appendChild(panel);
   document.body.appendChild(fab);
+  // AI is opened from the app's top navigation, never as a floating overlay.
+  fab.style.display = "none";
+  fab.setAttribute("aria-hidden", "true");
+  fab.tabIndex = -1;
 
   const body = panel.querySelector("#pm-ai-body");
   const CLOUD_ENDPOINT_KEY = "prometheus_cloud_ai_endpoint";
@@ -138,16 +156,29 @@
   }
 
   function chartSVG(rows, xLabel, yLabel, title) {
-    const w=390,h=205,p={l:42,r:16,t:18,b:38};
+    // Record-level measurements are categories, not a time series. Use bars and
+    // never connect independent experiments with an invented trend line.
+    const w=460,rowH=34,p={l:48,r:56,t:30,b:36};
+    const h=Math.max(150,p.t+p.b+rows.length*rowH);
     const vals=rows.map(r=>Number(r.y)).filter(Number.isFinite);
     if(!vals.length) return "";
-    const min=Math.min(...vals),max=Math.max(...vals),span=max-min||1;
-    const x=i=>p.l+(i/(Math.max(1,rows.length-1)))*(w-p.l-p.r);
-    const y=v=>p.t+(1-(v-min)/span)*(h-p.t-p.b);
-    const points=rows.map((r,i)=>x(i)+","+y(Number(r.y))).join(" ");
-    const circles=rows.map((r,i)=>'<circle cx="'+x(i)+'" cy="'+y(Number(r.y))+'" r="4" fill="#e6cb93"><title>'+esc(r.label)+': '+esc(r.y)+'</title></circle>').join("");
-    const labels=rows.map((r,i)=>'<text x="'+x(i)+'" y="'+(h-18)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(r.label)+'</text>').join("");
-    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+'"><line x1="'+p.l+'" y1="'+p.t+'" x2="'+p.l+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><line x1="'+p.l+'" y1="'+(h-p.b)+'" x2="'+(w-p.r)+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><polyline fill="none" stroke="#e6cb93" stroke-width="2.5" points="'+points+'"/>'+circles+labels+'<text x="'+p.l+'" y="12" fill="#eef0f7" font-size="10">'+esc(yLabel)+'</text><text x="'+(w/2)+'" y="'+(h-3)+'" fill="#737c96" font-size="9" text-anchor="middle">'+esc(xLabel)+'</text></svg>';
+    const max=Math.max(...vals.map(v=>Math.abs(v)),1);
+    const plotW=w-p.l-p.r;
+    const ticks=4;
+    let grid="";
+    for(let i=0;i<=ticks;i++){
+      const xx=p.l+plotW*i/ticks, value=max*i/ticks;
+      grid+='<line x1="'+xx+'" y1="'+p.t+'" x2="'+xx+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.10)"/>';
+      grid+='<text x="'+xx+'" y="'+(h-18)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(formatNum(value))+'</text>';
+    }
+    const bars=rows.map((r,i)=>{
+      const v=Number(r.y), yy=p.t+i*rowH+5, bw=Math.max(1,Math.abs(v)/max*plotW);
+      const label=String(r.label||"Record").slice(0,22);
+      return '<text x="'+(p.l-8)+'" y="'+(yy+12)+'" fill="#cbd2e3" font-size="9" text-anchor="end">'+esc(label)+'</text>'+
+        '<rect x="'+p.l+'" y="'+yy+'" width="'+bw+'" height="17" rx="3" fill="#e6cb93" opacity=".88"><title>'+esc(label)+': '+esc(v)+' '+esc(r.unit||"")+'</title></rect>'+
+        '<text x="'+Math.min(w-p.r+4,p.l+bw+5)+'" y="'+(yy+12)+'" fill="#eef0f7" font-size="9">'+esc(formatNum(v))+' '+esc(r.unit||"")+'</text>';
+    }).join("");
+    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+'"><text x="'+p.l+'" y="15" fill="#eef0f7" font-size="10">'+esc(yLabel)+'</text>'+grid+bars+'<text x="'+(w/2)+'" y="'+(h-3)+'" fill="#737c96" font-size="9" text-anchor="middle">'+esc(xLabel)+'</text></svg>';
   }
 
   function flameSVG(rows) {
@@ -163,16 +194,43 @@
 
   function scientificVisual(q, rs) {
     const low=q.toLowerCase();
-    if(/graph|plot|chart|trend|correlat|relationship|compare|difference|burn time|flame/.test(low)) {
-      const s1=rs.find(e=>/s1/i.test(e.exp_id)), s2=rs.find(e=>/s2/i.test(e.exp_id));
-      const rows=[s1,s2].filter(Boolean).map(e=>({label:e.exp_id.replace("PSI98-",""),y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
-      if(rows.length>=2) return visualShell("Observed burn-time comparison","NASA PSI-98",chartSVG(rows,"Experiment","Burn time (s)","NASA observed burn time"),"burn");
+    if(!/graph|plot|chart|trend|correlat|relationship|compare|difference|burn time|flame|duration|measurement|spread rate|soot/.test(low)) return "";
+    const observations=rs.flatMap(e=>(e.observations||[]).filter(o=>o.measurement&&o.measurement.canonical_value!=null&&Number.isFinite(Number(o.measurement.canonical_value))).map(o=>({
+      label:e.exp_id,
+      y:Number(o.measurement.canonical_value),
+      unit:o.measurement.canonical_unit||o.measurement.unit||"",
+      phenomenon:String(o.phenomenon||""),
+      description:String(o.description||""),
+      source_id:o.source_id||""
+    })));
+    if(!observations.length) {
+      return visualShell("Graph not generated","No numeric observations in matched evidence",
+        '<div style="padding:14px;color:#aab2c8;font-size:12px">The retrieved NASA records do not contain numeric measurements suitable for this request. PROMETHEUS will not substitute metadata, fabricate a series, or draw a misleading line.</div>',"no-measurements");
     }
-    if(/image|visual|flame|fire|render|picture|look like/.test(low)) {
-      const rows=rs.map(e=>({label:e.exp_id.replace("PSI98-",""),y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
-      if(rows.length) return visualShell("Scientific flame rendering","Geometry is illustrative; values are NASA-derived",flameSVG(rows),"flame");
+    const terms=low.match(/oxygen|o2|pressure|velocity|flow|burn|duration|time|spread|soot|smoke|extinction|ignition|temperature|diameter|length|mass|fuel/gi)||[];
+    let selected=observations;
+    if(terms.length) {
+      const scored=observations.map(r=>({...r,match:terms.reduce((n,t)=>n+((r.phenomenon+" "+r.description).toLowerCase().includes(t.toLowerCase())?1:0),0)}));
+      const best=Math.max(...scored.map(r=>r.match));
+      if(best>0) selected=scored.filter(r=>r.match===best);
     }
-    return "";
+    const byRecord=new Map();
+    selected.forEach(r=>{const key=r.label+"|"+r.phenomenon;if(!byRecord.has(key))byRecord.set(key,r);});
+    const rows=[...byRecord.values()].slice(0,12);
+    if(rows.length<2) {
+      const label=rows[0] ? rows[0].phenomenon.replace(/_/g," ") : "requested variable";
+      return visualShell("Insufficient numeric coverage","No comparison inferred",
+        '<div style="padding:14px;color:#aab2c8;font-size:12px">Only '+rows.length+' distinct numeric record(s) matched '+esc(label)+'. A comparative graph needs at least two compatible measured records; a relationship analysis needs a larger paired sample. No line or trend has been invented.</div>',"insufficient-data");
+    }
+    const phen=rows[0].phenomenon||"numeric observation";
+    const unit=rows[0].unit;
+    const compatible=rows.filter(r=>r.unit===unit);
+    if(compatible.length<2) {
+      return visualShell("Insufficient comparable measurements","Units / variables differ",
+        '<div style="padding:14px;color:#aab2c8;font-size:12px">The matching records do not provide at least two observations in a compatible unit. PROMETHEUS will not put unlike quantities on the same axis.</div>',"incompatible-data");
+    }
+    return visualShell(phen.replace(/_/g," ")+" · record comparison","NASA-indexed numeric observations · categorical bars",
+      chartSVG(compatible,"Experiment record",phen.replace(/_/g," ")+" ("+unit+")","NASA indexed numeric observations"),"measurements");
   }
 
   function build3DResult(rows) {
@@ -649,15 +707,14 @@
   function savePositions(){
     try{
       localStorage.setItem(POSITION_KEY,JSON.stringify({
-        fab:fab.style.left?{left:fab.style.left,top:fab.style.top}:null,
-        panel:panel.style.left?{left:panel.style.left,top:panel.style.top}:null
+        fab:fab.style.left?{left:fab.style.left,top:fab.style.top}:null
       }));
     }catch(_){}
   }
   function restorePositions(){
     try{
       const saved=JSON.parse(localStorage.getItem(POSITION_KEY)||"null");
-      for(const [kind,el] of [["fab",fab],["panel",panel]]){
+      for(const [kind,el] of [["fab",fab]]){
         const p=saved&&saved[kind];if(!p||!Number.isFinite(parseFloat(p.left))||!Number.isFinite(parseFloat(p.top)))continue;
         const w=el.getBoundingClientRect().width|| (kind==="fab"?54:Math.min(window.innerWidth-20,420));
         const h=el.getBoundingClientRect().height|| (kind==="fab"?54:460);
@@ -694,25 +751,33 @@
     dragState=null;if(d.moved)savePositions();
   }
   fab.addEventListener("pointerdown",e=>startDrag(fab,e,"fab"));
-  panel.querySelector("#pm-ai-head").addEventListener("pointerdown",e=>startDrag(panel,e,"panel"));
+  // The research workspace is deliberately not draggable: it expands to the full screen.
   // Listen on window as Android WebView can retarget touch/pointer events after capture.
   window.addEventListener("pointermove",moveDrag,{passive:false});
   window.addEventListener("pointerup",endDrag);
   window.addEventListener("pointercancel",endDrag);
   window.addEventListener("resize",()=>{restorePositions();});
   restorePositions();
-  function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
-  function closeAI(){panel.classList.remove("open");}
+  function openAI(){
+    panel.style.left="";panel.style.top="";panel.style.right="";panel.style.bottom="";
+    panel.classList.add("open","fullscreen");fab.style.display="none";
+    try{const saved=JSON.parse(localStorage.getItem(POSITION_KEY)||"{}");delete saved.panel;localStorage.setItem(POSITION_KEY,JSON.stringify(saved));}catch(_){}
+    if(!body.childElementCount){readyMessage();restoreConversation();}
+    requestAnimationFrame(()=>input.focus());
+  }
+  function closeAI(){panel.classList.remove("open","fullscreen");fab.style.display="none";}
   fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});
   document.getElementById("pm-ai-clear").onclick=()=>{conversationMemory=[];try{localStorage.removeItem(MEMORY_KEY);}catch(_){}body.replaceChildren();readyMessage();saveMemory();};
 
-  panel.querySelector("#pm-ai-close").onclick=()=>panel.classList.remove("open");
+  panel.querySelector("#pm-ai-close").onclick=closeAI;
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&panel.classList.contains("open"))closeAI();});
   panel.querySelector("#pm-ai-form").onsubmit=e=>{e.preventDefault();ask(input.value);input.value="";};
   panel.querySelectorAll(".pm-chip").forEach(b=>b.onclick=()=>{input.value=b.textContent;ask(input.value);input.value="";});
 
   saveMemory();
   window.__prometheusAIStatus = "ready";
-  window.__prometheusAIOpen = ()=>{ panel.classList.add("open"); if(!body.childElementCount) readyMessage(); input.focus(); };
+  window.__prometheusAIOpen = openAI;
+  window.__prometheusAIClose = closeAI;
 
   window.PROMETHEUS_AI = {
     version:"2.0.0",

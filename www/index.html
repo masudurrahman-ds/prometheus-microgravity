@@ -416,6 +416,70 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   body:has(#pm-ai-panel.open) #pm-ai-fab{display:none}
 }
 
+
+/* Fire-safety intelligence dashboard */
+.fs-dashboard{gap:22px}
+.fs-hero{position:relative;overflow:hidden;border:1px solid rgba(230,203,147,.22);border-radius:26px;padding:clamp(20px,4vw,42px);background:radial-gradient(ellipse at 90% 0%,rgba(111,177,255,.12),transparent 42%),linear-gradient(145deg,rgba(20,29,56,.88),rgba(5,8,17,.92));box-shadow:var(--shadow)}
+.fs-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,220px);gap:24px;align-items:center}
+.fs-title{font:500 clamp(35px,6vw,66px)/.98 var(--serif);letter-spacing:-.02em;margin:12px 0}
+.fs-subtitle{font:400 clamp(16px,2.4vw,23px)/1.4 var(--serif);max-width:690px;color:var(--text)}
+.fs-disclaimer{font-size:11px;color:var(--faint);max-width:650px}
+.fs-orb-panel{display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--gold);font-size:9px;letter-spacing:.13em;text-align:center}
+.fs-orb{display:grid;place-items:center;width:clamp(80px,12vw,132px);aspect-ratio:1;border:1px solid rgba(230,203,147,.6);border-radius:50%;font-size:36px;color:#171106;background:radial-gradient(circle at 32% 25%,#fff8df,#e6cb93 32%,#544326 72%,#080b14);box-shadow:0 0 55px rgba(230,203,147,.2),inset 0 0 0 8px rgba(8,11,20,.24)}
+.fs-orb-panel small{color:var(--faint);letter-spacing:0;font-size:10px}
+.fs-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fs-metric{display:flex;flex-direction:column;gap:6px;padding:17px;border-radius:16px;min-width:0;position:relative;overflow:hidden;border:1px solid rgba(230,203,147,.16);background:linear-gradient(145deg,rgba(230,203,147,.075),rgba(13,19,37,.52) 48%,rgba(168,220,255,.035));box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 18px 42px -34px rgba(0,0,0,.9)}
+.fs-metric:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),transparent);opacity:.7}
+.fs-metric-value{text-shadow:0 0 24px rgba(230,203,147,.13)}
+.fs-study{background:linear-gradient(145deg,rgba(230,203,147,.045),rgba(13,19,37,.32));border:1px solid rgba(255,255,255,.075);transition:border-color .25s ease,transform .25s ease,background .25s ease}
+.fs-study:hover{border-color:rgba(230,203,147,.3);background:linear-gradient(145deg,rgba(230,203,147,.08),rgba(13,19,37,.55));transform:translateY(-2px)}
+.fs-study h3{letter-spacing:.015em}
+.fs-section-head{padding-bottom:5px;border-bottom:1px solid rgba(230,203,147,.13)}
+.fs-metric-value{font:500 clamp(25px,3.5vw,37px)/1 var(--serif);color:var(--gold)}
+.fs-metric-label{font-size:12px;font-weight:650}
+.fs-metric-note{font-size:10px;color:var(--faint);line-height:1.4}
+.fs-synthesis,.fs-card{padding:clamp(16px,2.5vw,25px);border-radius:20px;min-width:0}
+.fs-synthesis h2,.fs-card h2,.fs-section-head h2{font:500 clamp(22px,3vw,32px)/1.12 var(--serif);margin:5px 0 10px}
+.fs-synthesis-head{align-items:flex-start;justify-content:space-between;gap:12px}
+.fs-local-badge{border:1px solid rgba(79,227,160,.35);color:var(--obs);border-radius:999px;padding:6px 9px;font-size:9px;letter-spacing:.12em;white-space:nowrap}
+.fs-brief-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.fs-brief{padding:13px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.025)}
+.fs-brief b{font-size:11px;color:var(--gold)}
+.fs-brief p{font-size:12px;line-height:1.55;color:var(--dim);margin:7px 0 0}
+.fs-hypothesis{margin-top:13px;padding:14px;border-left:2px solid var(--ana);background:rgba(255,176,103,.055);border-radius:0 12px 12px 0}
+.fs-hypothesis b{font-size:11px;color:var(--ana)}
+.fs-hypothesis p{font-size:12px;line-height:1.55;margin:7px 0;color:var(--text)}
+.fs-synthesis-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+.fs-two-col{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:12px;align-items:stretch}
+.fs-phen-row{margin-top:14px}
+.fs-phen-title{display:flex;justify-content:space-between;gap:12px;font-size:11px;margin-bottom:6px}
+.fs-phen-title b{color:var(--gold);font-weight:500;white-space:nowrap}
+.fs-bar{height:5px;border-radius:9px;overflow:hidden;background:rgba(255,255,255,.07)}
+.fs-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#6FB1FF,#E6CB93)}
+.fs-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px}
+.fs-section-head h2{margin-bottom:5px}
+.fs-section-head p{font-size:11px;line-height:1.5;max-width:760px;margin:8px 0 0}
+.fs-result-count{font-size:10px;color:var(--gold);white-space:nowrap}
+.fs-filters{display:flex;gap:7px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:thin}
+.fs-filter{flex:0 0 auto;border:1px solid var(--line2);border-radius:999px;background:rgba(255,255,255,.035);color:var(--dim);padding:9px 12px;font-size:11px;cursor:pointer}
+.fs-filter.active{border-color:var(--gold);background:rgba(230,203,147,.12);color:var(--gold)}
+.fs-study-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fs-study{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;padding:16px;border-radius:16px;min-width:0}
+.fs-rank{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(230,203,147,.3);border-radius:50%;color:var(--gold);font:500 13px var(--serif)}
+.fs-study-main{min-width:0}
+.fs-study-top{justify-content:space-between;gap:8px;flex-wrap:wrap}
+.fs-study-top .eyebrow{font-size:9px}
+.fs-score{font-size:9px;color:var(--gold);border:1px solid rgba(230,203,147,.2);border-radius:999px;padding:4px 6px}
+.fs-study h3{font:500 19px/1.2 var(--serif);margin:9px 0}
+.fs-study-meta{font-size:10px;color:var(--dim);line-height:1.5}
+.fs-study-note{font-size:10px;line-height:1.5;color:var(--faint)}
+.fs-study-actions{gap:7px;flex-wrap:wrap;margin-top:11px}
+.fs-study-actions .btn{white-space:normal}
+.fs-study-actions a{text-decoration:none}
+.fs-footer-note{font-size:10px;line-height:1.6;color:var(--faint);padding:4px 2px 16px}
+@media(max-width:760px){.fs-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.fs-two-col{grid-template-columns:1fr}.fs-study-list{grid-template-columns:1fr}.fs-hero-grid{grid-template-columns:minmax(0,1fr) 100px}.fs-orb{width:76px}.fs-brief-grid{grid-template-columns:1fr}}
+@media(max-width:460px){.fs-hero-grid{grid-template-columns:1fr}.fs-orb-panel{display:none}.fs-metrics{gap:7px}.fs-metric{padding:13px}.fs-study{padding:13px;grid-template-columns:29px minmax(0,1fr);gap:9px}.fs-rank{width:28px;height:28px}.fs-section-head{align-items:flex-start;flex-direction:column}.fs-synthesis-head{align-items:flex-start}}
+
 </style>
 </head>
 <body>
@@ -1131,7 +1195,7 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
       this.onSelect = opts.onSelect || (() => {}); this.onCompare = opts.onCompare || (() => {});
       this.cam = {yaw: -0.62, pitch: 0.42, zoom: 1, tx: 0, ty: 0, tz: 0}; this.zoomGoal = 1; this.goal = null; this.vel = {yaw: 0, pitch: 0};
       this.pts = []; this.axes = null; this.sel = null; this.cmp = []; this.hover = null; this.links = []; this.beacon = null; this.auto = !UI.REDUCED && opts.auto !== false;
-      this.idle = performance.now(); this.w = 0; this.h = 0; this.dragging = false; this.proj = []; this.dead = false;
+      this.idle = performance.now(); this.w = 0; this.h = 0; this.dragging = false; this.proj = []; this.curve = []; this.dead = false;
       this.ro = new ResizeObserver(() => this.size()); this.ro.observe(canvas.parentElement || canvas); this.size(); this.bind();
       this.tick = (t, dt) => this.frame(t, dt); Loop.add(this.tick);
     }
@@ -1234,6 +1298,16 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
       if (selI) this.links.forEach(id => { const o = at(id); if (!o) return; const g = ctx.createLinearGradient(selI.x, selI.y, o.x, o.y); g.addColorStop(0, 'rgba(168,220,255,.85)'); g.addColorStop(1, 'rgba(168,220,255,.12)'); ctx.strokeStyle = g; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(selI.x, selI.y); ctx.lineTo(o.x, o.y); ctx.stroke(); });
       const bI = items.find(i => i.beacon);
       if (bI && this.beaconLinks) this.beaconLinks.forEach(id => { const o = at(id); if (!o) return; ctx.strokeStyle = 'rgba(230,203,147,.7)'; ctx.lineWidth = 1.2; ctx.setLineDash([5, 6]); ctx.lineDashOffset = -t * 0.02; ctx.beginPath(); ctx.moveTo(bI.x, bI.y); ctx.lineTo(o.x, o.y); ctx.stroke(); ctx.setLineDash([]); });
+      // A live query-to-evidence trace. It follows nearest-record ranking and is NOT a predicted flame curve.
+      if (this.curve && this.curve.length > 1) {
+        const cp = this.curve.map(p => P(p.x, p.y, p.z));
+        ctx.save(); ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = 'rgba(230,203,147,.92)'; ctx.lineWidth = this.mini ? 2.4 : 1.8;
+        ctx.shadowColor = 'rgba(230,203,147,.35)'; ctx.shadowBlur = 9;
+        ctx.beginPath(); cp.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); }); ctx.stroke();
+        cp.forEach((p, i) => { ctx.beginPath(); ctx.fillStyle = i === 0 ? '#FFF0C7' : 'rgba(168,220,255,.95)'; ctx.arc(p.x, p.y, i === 0 ? 4.5 : 2.5, 0, Math.PI * 2); ctx.fill(); });
+        ctx.restore();
+      }
       const pulse = 0.5 + 0.5 * Math.sin(t * 0.004);
       ctx.globalCompositeOperation = 'lighter';
       for (const it of items) {
@@ -1370,7 +1444,8 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
         sv('svg', {width: 30, height: 30, viewBox: '0 0 30 30', 'aria-hidden': 'true'}, sv('circle', {cx: 15, cy: 15, r: 13.5, fill: 'none', stroke: '#E6CB93', 'stroke-opacity': .55}), sv('ellipse', {cx: 15, cy: 15, rx: 13.5, ry: 4.6, fill: 'none', stroke: '#E6CB93', 'stroke-opacity': .4, transform: 'rotate(-28 15 15)'}), sv('circle', {cx: 15, cy: 15, r: 6, fill: '#FFF'}), sv('circle', {cx: 15, cy: 15, r: 6, fill: 'none', stroke: '#A8DCFF'})),
         h('span', {class: 'word gold-text'}, 'PROMETHEUS')),
       h('nav', {class: 'nav', id: 'nav', 'aria-label': 'Sections'}, h('div', {class: 'glider', id: 'glider'}), TABS.map(([k, l, ic]) => h('button', {type: 'button', 'data-tab': k, on: {click: () => go(k)}}, UI.icon(ic), l))),
-      h('div', {class: 'top-r'}, h('div', {class: 'chip-data', id: 'chip'}), h('button', {class: 'btn sm', id: 'tourbtn', 'aria-label': 'Guided tour', on: {click: () => startTour()}}, UI.icon('tour'), h('span', {class: 'longlabel'}, 'Guided tour')),
+      h('div', {class: 'top-r'}, h('div', {class: 'chip-data', id: 'chip'}), h('button', {class: 'btn sm gold', id: 'aiworkspacebtn', 'aria-label': 'Open full-screen AI research workspace', on: {click: () => { if (window.__prometheusAIOpen) window.__prometheusAIOpen(); else UI.toast('AI workspace is initializing. Try again in a moment.'); }}}, 'AI'),
+        h('button', {class: 'btn sm', id: 'tourbtn', 'aria-label': 'Guided tour', on: {click: () => startTour()}}, UI.icon('tour'), h('span', {class: 'longlabel'}, 'Guided tour')),
         h('button', {class: 'btn sm', id: 'privacybtn', on: {click: openPrivacyCenter}}, 'Privacy'), h('button', {class: 'btn sm', id: 'updatebtn', on: {click: () => checkForUpdates(true)}}, 'Updates'), h('button', {class: 'btn iconbtn ghost', 'aria-label': 'Toggle light or dark theme', id: 'themebtn', on: {click: toggleTheme}}, UI.icon('sun')))));
     stage = h('main', {id: 'stage'});
     const tabbar = h('nav', {class: 'tabbar', 'aria-label': 'Sections (mobile)', id: 'tabbar'}, TABS.map(([k, l, ic]) => h('button', {type: 'button', 'data-tab': k, on: {click: () => go(k)}}, UI.icon(ic), l.split(' ').pop())));
@@ -1449,35 +1524,108 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   const slideOf = (eyebrow, title, text, viz) => h('div', {class: 'glass hud'}, h('div', null, h('div', {class: 'eyebrow'}, eyebrow), h('h3', null, title), h('p', null, text)), h('div', {class: 'viz'}, viz));
 
   // ------------------------------------------------------------------ LANDING
+  // ------------------------------------------------------------------ FIRE-SAFETY INTELLIGENCE DASHBOARD
+  let dashboardFilter = 'all';
   function viewIntelligenceHome(root) {
-    const ds=S.ds, n=ds?.experiments?.length||0;
-    const launchAI=()=>{
-      if(window.__prometheusAIOpen){ window.__prometheusAIOpen(); return; }
-      const ai=document.getElementById('pm-ai-fab');
-      if(ai) ai.click();
-      else setTimeout(()=>{ if(window.__prometheusAIOpen) window.__prometheusAIOpen(); },1000);
+    const ds = S.ds, exps = ds?.experiments || [], srcs = ds ? Object.values(ds.sources || {}) : [];
+    if (!ds || !exps.length) {
+      root.append(h('div', {class:'page view-enter int-home'}, h('div',{class:'eyebrow'},'NASA FIRE-SAFETY INTELLIGENCE'),
+        h('h1',{class:'int-title gold-text'},'PROMETHEUS'),h('p',{class:'int-intro'},'Load a NASA combustion dataset to build the evidence dashboard.'),dropZone()));
+      return;
+    }
+    const phenLabel = p => (F.PHEN[p] && F.PHEN[p].label) || p.replace(/_/g,' ');
+    const expHas = (e, id) => (e.source_ids || []).includes(id) || (e.observations || []).some(o => o.source_id === id) ||
+      Object.values(e.conditions || {}).some(c => c.source_id === id);
+    const studies = srcs.map(src => {
+      const rows = exps.filter(e => expHas(e, src.source_id));
+      const obs = rows.flatMap(e => (e.observations || []).map(o => ({...o, exp_id:e.exp_id})));
+      const phenomena = [...new Set(obs.map(o => o.phenomenon))];
+      const vars = [...new Set(rows.flatMap(e => Object.keys(e.conditions || {})))];
+      const numeric = obs.filter(o => o.measurement && o.measurement.canonical_value != null).length;
+      // A transparent corpus-coverage score, NOT a scientific quality or hazard score.
+      const score = rows.length * 4 + numeric * 3 + phenomena.length * 2 + vars.length;
+      const title = src.title || src.source_id;
+      const text = (title + ' ' + (src.note || '') + ' ' + rows.map(e=>e.title+' '+e.fuel+' '+(e.observations||[]).map(o=>o.phenomenon).join(' ')).join(' ')).toLowerCase();
+      const matches = key => {
+        if (key === 'all') return true;
+        if (key === 'indexed') return rows.length > 0;
+        if (key === 'smoke') return phenomena.some(p=>['soot','morphology'].includes(p)) || /smoke|soot|spice/i.test(text);
+        if (key === 'spread') return phenomena.includes('flame_spread_rate') || /bass|pmma|sofie|fm²|luci|flame spread/i.test(text);
+        if (key === 'extinction') return phenomena.includes('extinction') || /flex|flare|extinction|flammability limit/i.test(text);
+        return true;
+      };
+      return {src, title, rows, obs, phenomena, vars, numeric, score, text, matches};
+    }).sort((a,b)=>b.score-a.score || b.rows.length-a.rows.length || a.title.localeCompare(b.title));
+    const totalObs = exps.reduce((n,e)=>n+(e.observations||[]).length,0);
+    const numericObs = exps.reduce((n,e)=>n+(e.observations||[]).filter(o=>o.measurement&&o.measurement.canonical_value!=null).length,0);
+    const phenomenonCounts = {};
+    exps.forEach(e => [...new Set((e.observations||[]).map(o=>o.phenomenon))].forEach(p => phenomenonCounts[p]=(phenomenonCounts[p]||0)+1));
+    const phenRows = Object.entries(phenomenonCounts).sort((a,b)=>b[1]-a[1]);
+    const sparse = [...phenRows].sort((a,b)=>a[1]-b[1]).slice(0,3);
+    let hypotheses = [];
+    try { hypotheses = F.hypotheses(ds) || []; } catch (_) {}
+    const association = hypotheses.find(x=>x.kind==='association');
+    const filtered = studies.filter(x=>x.matches(dashboardFilter));
+    const fmt = n => Number(n||0).toLocaleString();
+    const launchAI = question => {
+      if (window.__prometheusAIOpen) window.__prometheusAIOpen();
+      else { const fab=document.getElementById('pm-ai-fab'); if(fab) fab.click(); }
+      if (question && window.PROMETHEUS_AI && typeof window.PROMETHEUS_AI.ask==='function') {
+        setTimeout(()=>window.PROMETHEUS_AI.ask(question),80);
+      }
     };
-    const action=(title,desc,tab,mark)=>h('button',{class:'int-action',type:'button',on:{click:()=>go(tab)}},
-      h('span',{class:'int-mark'},mark),h('span',{class:'int-action-copy'},h('strong',null,title),h('small',null,desc)),h('span',{class:'int-chevron'},'›'));
-    root.append(h('div',{class:'page view-enter int-home'},
-      h('div',{class:'int-orb','aria-hidden':'true'},'✦'),
-      h('div',{class:'eyebrow'},'NASA MICROGRAVITY COMBUSTION · SCIENTIFIC INTELLIGENCE'),
-      h('h1',{class:'int-title gold-text'},'PROMETHEUS'),
-      h('p',{class:'int-intro'},'Ask scientific questions. Explore evidence. Test scenarios. Every conclusion traceable to its source.'),
-      h('button',{class:'int-ask',type:'button',on:{click:launchAI}},
-        h('span',{class:'int-ask-icon'},'✦'),
-        h('span',null,h('strong',null,'Ask PROMETHEUS'),h('small',null,'What does NASA evidence tell us about fire in microgravity?')),
-        h('span',{class:'int-chevron'},'→')),
-      h('div',{class:'int-section-title'},'YOUR WORKSPACE'),
-      h('div',{class:'int-actions'},
-        action('Virtual Lab','Adjust conditions and evaluate evidence','lab','⚗'),
-        action('Evidence Universe','Explore relationships in 3D','universe','◎'),
-        action('Research Intelligence','Patterns, anomalies and comparisons','research','◇'),
-        action('Evidence Gaps','See what is not yet known','gaps','◌'),
-        action('Future Missions','Apply evidence to engineering questions','mission','✧'),
-        action('Sources & Datasets','NASA PSI provenance and citations','data','▤')),
-      h('div',{class:'int-evidence'},h('strong',null,'NASA EVIDENCE ENGINE'),h('p',null,n+' indexed records · '+(ds?Object.keys(ds.sources||{}).length:0)+' sources. AI findings are limited by the available data.'),h('button',{class:'btn sm',on:{click:()=>go('data')}},'View sources →'))
-    ));
+    const metric = (value,label,note) => h('div',{class:'glass fs-metric'},h('span',{class:'fs-metric-value'},value),h('span',{class:'fs-metric-label'},label),h('span',{class:'fs-metric-note'},note));
+    const bar = (value,max) => h('div',{class:'fs-bar'},h('i',{style:'width:'+Math.max(3,100*value/(max||1))+'%'}));
+    const filters = [['all','All studies'],['indexed','With indexed records'],['smoke','Smoke & flame shape'],['spread','Material flame spread'],['extinction','Ignition & extinction']];
+    const filterBar = h('div',{class:'fs-filters','aria-label':'Filter ranked NASA studies'},filters.map(([key,label])=>
+      h('button',{type:'button',class:'fs-filter'+(dashboardFilter===key?' active':''),'aria-pressed':String(dashboardFilter===key),on:{click:()=>{dashboardFilter=key;render();}},},label)));
+    const rankedCards = filtered.slice(0,10).map((study,index)=>{
+      const src=study.src, records=study.rows.length;
+      const depth=records ? (src.metadata_only ? 'Catalog-backed entries' : (study.numeric ? 'Includes numeric observations' : 'Indexed descriptions')) : 'Source catalog only';
+      return h('article',{class:'glass fs-study'},
+        h('div',{class:'fs-rank'},String(studies.indexOf(study)+1).padStart(2,'0')),
+        h('div',{class:'fs-study-main'},
+          h('div',{class:'row fs-study-top'},h('span',{class:'eyebrow'},src.source_id),h('span',{class:'fs-score'},'Coverage score '+study.score)),
+          h('h3',null,study.title),
+          h('p',{class:'fs-study-meta'},records+' indexed record'+(records===1?'':'s')+' · '+study.phenomena.length+' phenomenon types · '+study.vars.length+' condition variables'),
+          h('p',{class:'fs-study-note'},depth+'; rank reflects how this seed corpus represents the source, not the study’s quality or safety importance.'),
+          h('div',{class:'row fs-study-actions'},
+            src.url ? h('a',{class:'btn sm ghost',href:src.url,target:'_blank',rel:'noopener noreferrer'},'Open source ↗') : null,
+            h('button',{class:'btn sm',type:'button',on:{click:()=>launchAI('Interpret NASA source '+src.source_id+' — '+study.title+'. Summarize what this PROMETHEUS corpus actually records, distinguish measured values from descriptive metadata, explain the relevance to spacecraft fire safety, and list limitations with citations.')}},'Ask local AI ↗'))));
+    });
+    const maxPhen = Math.max(1,...phenRows.map(x=>x[1]));
+    const coverageCard = h('section',{class:'glass fs-card'},h('div',{class:'eyebrow'},'Evidence coverage'),h('h2',null,'What the corpus actually tracks'),
+      phenRows.length ? phenRows.map(([p,n])=>h('div',{class:'fs-phen-row'},h('div',{class:'fs-phen-title'},h('span',null,phenLabel(p)),h('b',null,n+' records')),bar(n,maxPhen))) : h('p',{class:'dim'},'No phenomenon observations are loaded.'));
+    const gapText = sparse.length ? sparse.map(([p,n])=>phenLabel(p)+' ('+n+')').join(', ') : 'No phenomenon categories are indexed yet.';
+    const synthesis = h('section',{class:'glass fs-synthesis'},
+      h('div',{class:'row fs-synthesis-head'},h('div',null,h('div',{class:'eyebrow'},'Local AI · evidence-grounded interpretation'),h('h2',null,'Fire-safety briefing')),h('span',{class:'fs-local-badge'},'ON-DEVICE')),
+      h('p',null,'This dashboard ranks source representation and summarizes the currently loaded corpus. It does not rank studies by scientific merit, predict a fire outcome, or certify a design.'),
+      h('div',{class:'fs-brief-grid'},
+        h('div',{class:'fs-brief'},h('b',null,'Strongest coverage'),h('p',null,phenRows.length ? phenLabel(phenRows[0][0])+' appears in '+phenRows[0][1]+' indexed experiment records.' : 'No phenomenon data available.')),
+        h('div',{class:'fs-brief'},h('b',null,'Thin coverage'),h('p',null,'Lowest represented categories: '+gapText+'. Treat these as evidence gaps to review, not proof of low risk.')),
+        h('div',{class:'fs-brief'},h('b',null,'Fire-safety implication'),h('p',null,'Use flame shape and smoke/soot studies to frame sensor-detection questions; use material flame-spread and extinction studies to frame ignition, propagation and suppression questions. The available corpus alone cannot set operational thresholds.'))),
+      association ? h('div',{class:'fs-hypothesis'},h('b',null,'Unvalidated statistical signal'),h('p',null,association.statement),h('span',{class:'fs-study-note'},association.status+' · '+(association.limitations||[]).join(' '))) :
+        h('div',{class:'fs-hypothesis'},h('b',null,'No association promoted'),h('p',null,'No statistical association currently passed the local analysis thresholds. That does not establish that no physical relationship exists.')),
+      h('div',{class:'fs-synthesis-actions'},h('button',{class:'btn gold',type:'button',on:{click:()=>launchAI('Prepare a NASA-evidence-grounded microgravity fire-safety briefing from the currently loaded PROMETHEUS dataset. Summarize strongest observations, rank represented studies using transparent corpus coverage, distinguish measurements from metadata and hypotheses, identify evidence gaps, and cite sources. Do not provide safety certification or invent values.')}},'Generate cited AI briefing'),
+        h('button',{class:'btn ghost',type:'button',on:{click:()=>go('research')}},'Open research analysis →')));
+    const rankHeader = h('div',{class:'fs-section-head'},h('div',null,h('div',{class:'eyebrow'},'Study navigator'),h('h2',null,'Ranked NASA studies'),h('p',{class:'dim'},'Transparent representation score: indexed records × 4 + numeric observations × 3 + distinct phenomena × 2 + distinct recorded condition variables. Metadata-only entries remain visibly labeled.')),
+      h('span',{class:'fs-result-count'},filtered.length+' sources'));
+    const rankingSection = h('section',{class:'stack fs-ranking'},rankHeader,filterBar,
+      filtered.length ? h('div',{class:'fs-study-list'},rankedCards) : h('div',{class:'glass fs-card'},h('p',{class:'dim'},'No studies match this filter in the current corpus.')));
+    root.append(h('div',{class:'page view-enter fs-dashboard'},
+      h('section',{class:'fs-hero'},
+        h('div',{class:'eyebrow'},'PROMETHEUS · NASA MICROGRAVITY COMBUSTION INTELLIGENCE'),
+        h('div',{class:'fs-hero-grid'},h('div',null,h('h1',{class:'fs-title gold-text'},'Fire Safety Intelligence'),
+          h('p',{class:'fs-subtitle'},'Summarize. Rank. Interpret. Trace every insight to NASA evidence.'),
+          h('p',{class:'fs-disclaimer'},'Research support for human space exploration — not a fire-safety certification or operational decision system.')),
+          h('div',{class:'fs-orb-panel'},h('div',{class:'fs-orb'},'✦'),h('span',null,'LOCAL EVIDENCE ENGINE'),h('small',null,'No cloud AI required for this dashboard')))),
+      h('div',{class:'fs-metrics'},metric(fmt(exps.length),'Indexed experiment records','Current dataset'),metric(fmt(srcs.length),'Catalogued sources','NASA PSI / NASA NTRS and related NASA material'),metric(fmt(phenRows.length),'Phenomenon categories','Present in records'),metric(fmt(numericObs),'Numeric observations','Measurements with canonical values')),
+      synthesis,
+      h('div',{class:'fs-two-col'},coverageCard,h('section',{class:'glass fs-card'},h('div',{class:'eyebrow'},'Research coverage gap'),h('h2',null,'Where evidence is thin'),
+        h('p',null,'Least represented categories in this corpus: '+gapText+'.'),h('p',{class:'fs-study-note'},'Counts describe this curated seed corpus only. Some sources are metadata-only; do not interpret record counts as the full scale of NASA research.'),
+        h('button',{class:'btn sm',type:'button',on:{click:()=>go('gaps')}},'Explore evidence gaps →'))),
+      rankingSection,
+      h('div',{class:'fs-footer-note'},'Evidence boundary: '+exps.length+' indexed records from a provenance-tracked seed corpus. Values marked as proxies, documented configurations or metadata are not treated as direct measured outcomes. Each source link opens the cited source; use the AI assistant to request a claim-by-claim citation audit.')));
   }
 
   function viewLanding(root) {
@@ -1606,7 +1754,7 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
       const srcIds = [...new Set(e.source_ids.concat(e.observations.map(o => o.source_id), Object.values(e.conditions).map(m => m.source_id)))].filter(s => S.ds.sources[s]);
       d.append(h('div', {class: 'eyebrow'}, 'Experiment'), h('h3', null, e.exp_id), h('p', {class: 'dim', style: 'margin-top:4px'}, e.title),
         h('div', {style: 'margin-top:10px'}, h('span', {class: 'tag'}, e.platform), e.synthetic ? h('span', {class: 'tag warn'}, 'synthetic') : null, e.fuel ? h('span', {class: 'tag gold'}, e.fuel) : null),
-        h('div', {class: 'row', style: 'margin-top:8px'}, h('button', {class: 'btn sm', on: {click: () => toggleCmp(e.exp_id)}}, S.cmp.includes(e.exp_id) ? 'Remove from comparison' : 'Add to comparison'), h('button', {class: 'btn sm ghost', on: {click: () => { S.lab = null; S.form.fuel = e.fuel || S.form.fuel; F.VAR_KEYS.forEach(v => { const k = {o2_fraction: 'o2', pressure_kpa: 'p', gravity_g: 'g', temperature_k: 't', flow_velocity_mm_s: 'f'}[v]; if (F.cond(e, v) != null) { S.form.v[k] = k === 'o2' ? F.cond(e, v) * 100 : F.cond(e, v); S.form.on[k] = true; } }); go('lab'); }}}, 'Use as lab scenario')),
+        h('div', {class: 'row', style: 'margin-top:8px'}, h('button', {class: 'btn sm', on: {click: () => toggleCmp(e.exp_id)}}, S.cmp.includes(e.exp_id) ? 'Remove from comparison' : 'Add to comparison'), h('button', {class: 'btn sm ghost', on: {click: () => { S.lab = null; S.form.fuel = e.fuel || S.form.fuel; F.VAR_KEYS.forEach(v => { const k = {o2_fraction: 'o2', pressure_kpa: 'p', gravity_g: 'g', temperature_k: 't', flow_velocity_mm_s: 'f'}[v]; S.form.on[k] = false; if (F.cond(e, v) != null) { S.form.v[k] = k === 'o2' ? F.cond(e, v) * 100 : F.cond(e, v); S.form.on[k] = true; } }); go('lab'); }}}, 'Use as lab scenario')),
         h('div', {class: 'sec stack s8'}, h('h4', null, 'Conditions'), h('dl', {class: 'kv'}, F.VAR_KEYS.flatMap(v => [h('dt', null, F.VARS[v].short), h('dd', {title: e.conditions[v] ? `${e.conditions[v].value} ${e.conditions[v].unit} as reported · ${e.conditions[v].source_id}${e.conditions[v].locator ? ' · ' + e.conditions[v].locator : ''}` : 'not reported'}, fmtVar(v, F.cond(e, v)))]))),
         h('div', {class: 'sec stack s8'}, h('h4', null, 'Observed'), e.observations.length ? e.observations.map(o => h('div', {class: 'small'}, h('span', {class: 'dim'}, F.PHEN[o.phenomenon].label + ' · '), o.measurement ? fmtNum(o.measurement.canonical_value, o.measurement.canonical_unit) : '', o.description ? (o.measurement ? ' — ' : '') + o.description : '')) : h('p', {class: 'dim small'}, 'No observations recorded.')),
         h('div', {class: 'sec stack s8'}, h('h4', null, 'Flame-front measurement'), (() => { const m=e.observations.find(o=>o.phenomenon==='flame_spread_rate'&&o.measurement); return m ? h('p',{class:'small'},fmtNum(m.measurement.canonical_value,m.measurement.canonical_unit),' · ',m.source_id,' · ',m.locator||'NASA source') : h('p',{class:'dim small'},'Not reported for this experiment; PROMETHEUS does not infer a flame-front value.'); })()),
@@ -1645,8 +1793,19 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   function runLabSoon(immediate) { clearTimeout(labTimer); labTimer = setTimeout(runLabNow, immediate ? 0 : 70); }
   function runLabNow() {
     try { S.labErr = ''; S.lab = F.runLab(S.ds, parseLabForm()); } catch (e) { S.labErr = e.message; S.lab = null; }
+    if (miniGal && S.lab) {
+      placeBeacon(miniGal, miniGal.axes, S.lab);
+      const axes = miniGal.axes, queryPoint = {...miniGal.beacon};
+      const evidencePoints = S.lab.neighbors.map(n => {
+        const e = S.ds.experiments.find(x => x.exp_id === n.exp_id); if (!e) return null;
+        const coord = axis => axis.key === 'none' || axis.key.startsWith('obs:') ? 0 : (F.cond(e, axis.key) == null ? null : axis.norm(F.cond(e, axis.key)));
+        const x = coord(axes.x), y = coord(axes.y), z = coord(axes.z);
+        return x == null || y == null || z == null ? null : {x, y, z};
+      }).filter(Boolean);
+      miniGal.curve = [queryPoint, ...evidencePoints];
+      miniGal.animateTo({}, 1);
+    } else if (miniGal) { miniGal.beacon = null; miniGal.beaconLinks = []; miniGal.curve = []; }
     const box = $('#labres'); if (!box) return; box.replaceChildren(); if (S.labErr) box.append(h('div', {class: 'notice', role: 'alert', style: 'border-color:var(--unk)'}, S.labErr)); else box.append(labResult(S.lab));
-    if (miniGal && S.lab) { placeBeacon(miniGal, miniGal.axes, S.lab); miniGal.animateTo({}, 1); } else if (miniGal) { miniGal.beacon = null; miniGal.beaconLinks = []; }
     const badge = $('#labbadge'); if (badge) { badge.replaceChildren(S.lab ? evPill(S.lab.summary) : h('span', {class: 'faint small'}, '—')); }
   }
   function sliderRow(key, label, unit, toS, fromS, min, max, step, fmt) {
@@ -1669,14 +1828,14 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
     rows.t = sliderRow('t', 'Temperature', 'K', lin, lin, R.t[0], R.t[1], 0.5, v => (+v).toFixed(1));
     rows.f = sliderRow('f', 'Forced flow', 'mm/s', lin, lin, R.f[0], R.f[1], 0.5, v => (+v).toFixed(1));
     const preset = (label, g, c) => h('button', {class: 'btn sm', type: 'button', on: {click: () => { fm.v.g = g; fm.on.g = true; rows.g.querySelector('input[type=checkbox]').checked = true; rows.g.style.opacity = 1; rows.g.querySelector('input[type=range]').disabled = false; rows.g.sync(); runLabSoon(true); }}}, h('span', {class: 'orbchip'}, h('i', {style: `background:radial-gradient(circle at 32% 28%,#fff,${c} 60%,#0b1020)`}), label));
-    const canvas = h('canvas'), tip = h('div', {class: 'tip'}), vp = h('div', {class: 'viewport mini'}, canvas, tip, h('div', {class: 'vp-ui'}, h('div', {class: 'vp-tl'}, h('div', {class: 'eyebrow'}, 'Your scenario in the universe')), h('div', {class: 'vp-bl'}, h('span', null, 'The dashed lines reach the closest experiments. Drag to orbit.'))));
+    const canvas = h('canvas'), tip = h('div', {class: 'tip'}), vp = h('div', {class: 'viewport mini'}, canvas, tip, h('div', {class: 'vp-ui'}, h('div', {class: 'vp-tl'}, h('div', {class: 'eyebrow'}, 'Your scenario in the universe')), h('div', {class: 'vp-bl'}, h('span', null, 'Gold trace = current scenario to nearest evidence records; similarity navigation only, not a physical prediction. Drag to orbit.'))));
     const fuelSel = select([['', 'Any / not specified']].concat(fuels.map(x => [x, x])), fm.fuel, v => { fm.fuel = v; runLabSoon(true); });
     root.append(h('div', {class: 'page view-enter'},
       h('div', {class: 'head'}, h('div', null, h('div', {class: 'eyebrow'}, 'Virtual laboratory'), h('h2', null, 'Ask “what would happen if…”'), h('p', {class: 'lead'}, 'Describe a scenario and move the sliders. PROMETHEUS answers live from the recorded experiments: what was observed, what is only analogous, and what is unknown. It never fills a gap with an invented number.')),
         h('div', {class: 'row'}, h('span', {class: 'small faint'}, 'Overall evidence'), h('span', {id: 'labbadge'}))),
       h('div', {class: 'lab-grid'}, h('div', {class: 'glass hud stack s24'}, field('Fuel', fuelSel, 'Matched by name'), rows.o2, rows.p,
         h('div', {class: 'stack s8'}, rows.g, h('div', {class: 'presets'}, preset('Earth 1 g', 1, '#6FB1FF'), preset('Mars 0.379 g', 0.379, '#FF8E7A'), preset('Moon 0.166 g', 0.166, '#C9D1E6'), preset('Microgravity', 1e-6, '#E6CB93'))), rows.t, rows.f,
-        h('div', {class: 'row'}, h('button', {class: 'btn gold', id: 'runbtn', on: {click: () => runLabSoon(true)}}, 'Run experiment'), h('span', {class: 'small faint'}, 'Live: results update as you move a slider'))), vp),
+        h('div', {class: 'row'}, h('button', {class: 'btn gold', id: 'runbtn', on: {click: () => runLabSoon(true)}}, 'Evaluate scenario'), h('span', {class: 'small faint'}, 'NASA evidence matching — not a physical flame simulation'))), vp),
       h('div', {id: 'labres', style: 'margin-top:22px'})));
     const axes = {x: UI.axisSpec('flow_velocity_mm_s', S.ds.experiments), y: UI.axisSpec('gravity_g', S.ds.experiments), z: axisFor('none', S.ds.experiments)};
     const pts = S.ds.experiments.filter(e => F.cond(e, 'flow_velocity_mm_s') != null && F.cond(e, 'gravity_g') != null).map(e => ({id: e.exp_id, fuel: e.fuel, x: axes.x.norm(F.cond(e, 'flow_velocity_mm_s')), y: axes.y.norm(F.cond(e, 'gravity_g')), z: 0, color: FUEL_COLORS[Math.max(0, fuels.indexOf(e.fuel)) % FUEL_COLORS.length], lines: [`Flow ${fmtVar('flow_velocity_mm_s', F.cond(e, 'flow_velocity_mm_s'))}`, `g ${fmtVar('gravity_g', F.cond(e, 'gravity_g'))}`]}));
@@ -1698,6 +1857,8 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
     const diffCell = n => h('td', null,
       Object.entries(n.differences).map(([v, d]) => (v === 'fuel' ? h('span', {class: 'tag warn'}, `fuel: ${d.query} vs ${d.experiment}`) : h('span', {class: 'tag'}, `${F.VARS[v].short}: ${fmtVar(v, d.query)} vs ${fmtVar(v, d.experiment)}`))),
       n.not_reported.map(v => h('span', {class: 'tag warn'}, (F.VARS[v] ? F.VARS[v].short : v) + ' not reported')));
+    const traceRows = r.neighbors.map((n, i) => h('div', {class: 'stack s8', style: 'gap:5px'}, h('div', {class: 'row', style: 'justify-content:space-between;gap:8px'}, h('span', {class: 'small'}, (i + 1) + '. ' + n.exp_id), h('span', {class: 'small faint'}, 'distance ' + n.distance.toFixed(3))), h('div', {style: 'height:5px;background:var(--line);border-radius:99px;overflow:hidden'}, h('i', {style: 'display:block;height:100%;width:' + Math.max(2, 100 * (1 - n.distance)) + '%;background:linear-gradient(90deg,var(--gold-d),var(--ice));border-radius:99px;transition:width .25s ease'}))));
+    box.append(h('div', {class: 'glass stack'}, h('h3', null, 'Live evidence-match profile'), h('p', {class: 'small dim'}, 'Recomputed from the current parameter values. Lower distance means closer recorded conditions; this is not a fire-severity score or a physical flame prediction.'), traceRows.length ? traceRows : h('p', {class: 'small dim'}, 'No comparable records for the current scenario.')));
     const nrow = n => h('tr', null, h('td', null, n.exp_id, n.is_match ? h('span', {class: 'tag gold', style: 'margin-left:8px'}, 'match') : null), h('td', null, n.fuel || '—'), h('td', {class: 'num'}, n.distance.toFixed(3)), diffCell(n));
     const head = h('thead', null, h('tr', null, ['Experiment', 'Fuel', 'Distance', 'Differs from your scenario in'].map(t => h('th', null, t))));
     box.append(h('div', {class: 'glass stack'}, h('h3', null, 'Closest experiments and how they differ'), h('div', {class: 'tblwrap'}, h('table', null, head, h('tbody', null, r.neighbors.map(nrow))))));
