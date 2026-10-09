@@ -1214,18 +1214,23 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
           A.x.ticks.forEach(([n, l]) => { const s = P(n, -1.02, -1.06); ctx.fillStyle = 'rgba(238,240,247,.62)'; ctx.textAlign = 'center'; ctx.fillText(l, s.x, s.y + 8); const a = P(n, -1, -1), b = P(n, -1.04, -1); line(a, b, 'rgba(230,203,147,.6)'); });
           A.y.ticks.forEach(([n, l]) => { const s = P(-1.06, n, -1.02); ctx.fillStyle = 'rgba(238,240,247,.62)'; ctx.textAlign = 'right'; ctx.fillText(l, s.x - 4, s.y); });
           A.z.ticks.forEach(([n, l]) => { const s = P(-1.06, -1.04, n); ctx.fillStyle = 'rgba(238,240,247,.62)'; ctx.textAlign = 'right'; ctx.fillText(l, s.x - 4, s.y + 6); });
-          ctx.font = '600 11px "IBM Plex Sans",system-ui,sans-serif'; ctx.fillStyle = '#E6CB93';
-          let s = P(1.02, -1.02, -1.1); ctx.textAlign = 'left'; ctx.fillText(A.x.label.toUpperCase() + (A.x.unit ? '  ·  ' + A.x.unit : ''), s.x - 30, s.y + 26);
-          s = P(-1.02, 1.12, -1); ctx.textAlign = 'center'; ctx.fillText(A.y.label.toUpperCase() + (A.y.unit ? '  ·  ' + A.y.unit : ''), s.x, s.y - 6);
-          s = P(-1.05, -1.12, 1.05); ctx.textAlign = 'right'; ctx.fillText(A.z.label.toUpperCase() + (A.z.unit ? '  ·  ' + A.z.unit : ''), s.x - 6, s.y + 20);
-        } else {
-          ctx.font = '600 10px "IBM Plex Sans",system-ui,sans-serif';
-          ctx.fillStyle = 'rgba(230,203,147,.9)';
-          ctx.textAlign = 'left';
-          ctx.fillText('X · ' + A.x.label + (A.x.unit ? ' · ' + A.x.unit : ''), 12, H - 42);
-          ctx.fillText('Y · ' + A.y.label + (A.y.unit ? ' · ' + A.y.unit : ''), 12, H - 27);
-          ctx.fillText('Z · ' + (A.z.label || 'flat') + (A.z.unit ? ' · ' + A.z.unit : ''), 12, H - 12);
         }
+        // Fixed legend prevents perspective-projected X/Y/Z titles from colliding.
+        ctx.save();
+        const axisText = (key, axis) => key.toUpperCase() + ' · ' + (axis.label || (key === 'z' ? 'flat' : key)).toUpperCase() + (axis.unit ? ' · ' + axis.unit : '');
+        const legend = [axisText('x', A.x), axisText('y', A.y), axisText('z', A.z)];
+        const fontSize = compact ? 9 : 10;
+        ctx.font = '600 ' + fontSize + 'px "IBM Plex Sans",system-ui,sans-serif';
+        const lineH = compact ? 14 : 16, padX = 8, padY = 6;
+        const maxW = Math.min(this.w - 24, compact ? 230 : 300);
+        const measuredW = Math.max(...legend.map(v => ctx.measureText(v).width));
+        const boxW = Math.min(maxW, measuredW + padX * 2), boxH = lineH * 3 + padY * 2;
+        const lx = 12, ly = H - boxH - 12;
+        ctx.fillStyle = 'rgba(5,8,18,.84)'; ctx.strokeStyle = 'rgba(230,203,147,.28)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(lx, ly, boxW, boxH, 8); ctx.fill(); ctx.stroke();
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(230,203,147,.96)';
+        legend.forEach((label, i) => ctx.fillText(label, lx + padX, ly + padY + lineH * i + lineH / 2, maxW - padX * 2));
+        ctx.restore();
       }
       // project + depth sort
       const items = this.pts.map(p => { const s = P(p.x, p.y, p.z); return {id: p.id, p, x: s.x, y: s.y, z: s.z, k: s.k, r: (this.mini ? 3.6 : 4.6) * s.k * (0.9 + 0.2 * this.cam.zoom)}; });
