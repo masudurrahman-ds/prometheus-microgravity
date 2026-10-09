@@ -24,7 +24,7 @@ if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) thr
 if(ai.includes("DRAG TO MOVE")) throw new Error("obsolete draggable AI panel affordance remains");
 if(!ai.includes('fab.addEventListener("pointerdown"')) throw new Error("movable AI launcher pointer handling missing");
 if(!ai.includes('panel.classList.add("open","fullscreen")')) throw new Error("full-screen AI open lifecycle missing");
-if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel sizing missing");
+if(!ai.includes("#pm-ai-panel.fullscreen") || !ai.includes('document.addEventListener("keydown"')) throw new Error("full-screen AI or Escape-close behavior missing");
 if(html.includes("top:calc(env(safe-area-inset-top,0px) + 8px)!important;bottom:calc(132px")) throw new Error("old full-height mobile AI override still present");
 
 if(!html.includes("FIRE-SAFETY INTELLIGENCE DASHBOARD")) throw new Error("fire-safety intelligence dashboard missing");
