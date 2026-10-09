@@ -226,6 +226,8 @@
     return "";
   }
 
+  let pending3DResult = null;
+
   function build3DResult(rows) {
     const id="pm3d-"+Math.random().toString(36).slice(2,9);
     const card=document.createElement("div");
@@ -257,8 +259,8 @@
       pts.forEach((p,i)=>{if(running&&!drag)p.z+=Math.sin(t/900+i)*.03;});
       const pp=pts.map(project).sort((a,b)=>a.z-b.z);
       pp.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,Math.PI*2);ctx.fillStyle="rgba(230,203,147,.82)";ctx.fill();});
-      ctx.fillStyle="#eef0f7";ctx.font="18px system-ui";ctx.fillText("NASA-derived experiment space",24,32);
-      ctx.fillStyle="#737c96";ctx.font="12px system-ui";ctx.fillText("Relative 3D representation · not a measured geometry",24,52);
+      ctx.fillStyle="#eef0f7";ctx.font="18px system-ui";ctx.fillText("PROMETHEUS · evidence-derived visualization",24,32);
+      ctx.fillStyle="#737c96";ctx.font="12px system-ui";ctx.fillText("Selected numeric values mapped to illustrative geometry · not measured shape",24,52);
       if(running)raf=requestAnimationFrame(frame);
     }
     function start(){cancelAnimationFrame(raf);running=true;raf=requestAnimationFrame(frame);}
@@ -312,8 +314,21 @@
   function scientific3DVisual(q, rs) {
     const low=q.toLowerCase();
     if(!/3d|three.?d|spatial|volume|surface|model|visualize|visualise|video|animate|animation|motion/.test(low)) return "";
-    const rows=rs.map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
+    let key="burn_duration";
+    if(/oxygen|o2_fraction|o2 concentration/.test(low)) key="o2_fraction";
+    else if(/pressure|pressur/.test(low)) key="pressure_kpa";
+    else if(/flow|velocity|co-flow/.test(low)) key="flow_velocity_mm_s";
+    else if(/gravity/.test(low)) key="gravity_g";
+    const rows=rs.map(e=>{
+      if(key==="burn_duration"){
+        const o=(e.observations||[]).find(o=>/burn|duration/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement);
+        return o?{label:e.exp_id,y:Number(o.measurement.canonical_value)}:null;
+      }
+      const c=e.conditions&&e.conditions[key];
+      return c&&c.canonical_value!=null?{label:e.exp_id,y:Number(c.canonical_value)}:null;
+    }).filter(r=>r&&Number.isFinite(r.y));
     if(rows.length<1) return "";
+    pending3DResult=rows;
     return build3DResult(rows).outerHTML;
   }
 
@@ -622,8 +637,9 @@
     if(visual3d) {
       const holder=el.querySelector(".pm-3d");
       if(holder) {
-        const rows=records().map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
+        const rows=pending3DResult || records().map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement)?.measurement?.canonical_value})).filter(r=>Number.isFinite(Number(r.y)));
         const fresh=build3DResult(rows); holder.replaceWith(fresh);
+        pending3DResult=null;
       }
     }
     body.scrollTop=body.scrollHeight;
