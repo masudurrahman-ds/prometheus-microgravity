@@ -27,6 +27,15 @@ if(!ai.includes('panel.querySelector("#pm-ai-head").addEventListener("pointerdow
 if(!ai.includes("height:min(48dvh,460px)")) throw new Error("compact mobile AI panel sizing missing");
 if(html.includes("top:calc(env(safe-area-inset-top,0px) + 8px)!important;bottom:calc(132px")) throw new Error("old full-height mobile AI override still present");
 
+if(!html.includes("FIRE-SAFETY INTELLIGENCE DASHBOARD")) throw new Error("fire-safety intelligence dashboard missing");
+if(!html.includes("Transparent representation score: indexed records")) throw new Error("explainable study ranking criteria missing");
+if(!html.includes("Generate cited AI briefing")) throw new Error("interactive AI briefing action missing");
+if(!html.includes("No cloud AI required for this dashboard")) throw new Error("local-first dashboard disclosure missing");
+if(!html.includes("Strongest coverage") || !html.includes("Thin coverage")) throw new Error("evidence coverage interpretation missing");
+if(!html.includes("study.matches(dashboardFilter)")) throw new Error("dashboard study filters missing");
+if(!html.includes("Ask local AI ↗")) throw new Error("per-study AI interpretation action missing");
+if(!html.includes("ranked NASA studies")) throw new Error("ranked study navigator missing");
+
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
 scripts.forEach(({attrs,source,index})=>{
   if(/type=["']application\/json["']/i.test(attrs)) return;
