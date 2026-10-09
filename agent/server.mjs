@@ -27,7 +27,8 @@ const tools = [
   { type:"function", name:"search_nasa_evidence", description:"Search the indexed NASA evidence corpus.", parameters:{type:"object",properties:{query:{type:"string"},limit:{type:"integer",minimum:1,maximum:20}},required:["query"],additionalProperties:false} },
   { type:"function", name:"get_experiment", description:"Retrieve an indexed experiment by exact ID.", parameters:{type:"object",properties:{exp_id:{type:"string"}},required:["exp_id"],additionalProperties:false} },
   { type:"function", name:"compare_experiments", description:"Compare two indexed experiments.", parameters:{type:"object",properties:{a_id:{type:"string"},b_id:{type:"string"}},required:["a_id","b_id"],additionalProperties:false} },
-  { type:"function", name:"get_source", description:"Resolve an indexed NASA source ID to citation metadata.", parameters:{type:"object",properties:{source_id:{type:"string"}},required:["source_id"],additionalProperties:false} }
+  { type:"function", name:"get_source", description:"Resolve an indexed NASA source ID to citation metadata.", parameters:{type:"object",properties:{source_id:{type:"string"}},required:["source_id"],additionalProperties:false} },
+  { type:"function", name:"analyze_dataset", description:"Run reproducible statistics on indexed NASA evidence and return chart-ready data. Use for numeric summaries, experiment comparisons, and measurement coverage. Never interpret a proxy or midpoint as a direct measurement.", parameters:{type:"object",properties:{operation:{type:"string",enum:["coverage","distribution","compare"]},variable:{type:"string",enum:["o2_fraction","gravity_g","flow_velocity_mm_s","pressure_kpa","burn_duration"]},experiment_ids:{type:"array",items:{type:"string"},maxItems:20}},required:["operation"],additionalProperties:false} }
 ];
 
 function runTool(name,args) {
