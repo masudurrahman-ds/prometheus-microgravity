@@ -33,6 +33,9 @@ if(!fs.existsSync("render.yaml")) throw new Error("cloud agent deployment bluepr
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
 if(!ai.includes("#pm-ai-panel{position:fixed!important;inset:0!important")) throw new Error("AI chat must use a full-screen viewport layout");
 if(!ai.includes("height:100dvh!important")) throw new Error("AI chat must fill dynamic mobile viewport height");
+if(!ai.includes("top:max(28px,env(safe-area-inset-top,0px))")) throw new Error("AI chat must stay clear of Android status-bar controls");
+if(!ai.includes("min-width:48px;min-height:48px")) throw new Error("AI close control must have a reliable touch target");
+if(!ai.includes("window.__prometheusBack = function()")) throw new Error("Android Back must close the AI chat before navigating or exiting");
 if(!ai.includes("body.pm-ai-fullscreen-open #pm-ai-fab{display:none!important")) throw new Error("floating launcher must hide while full-screen chat is open");
 if(!ai.includes("window.__prometheusAIOpen = openAI")) throw new Error("external dashboard action does not open the full-screen chat");
 if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("movable AI launcher pointer handling missing");
