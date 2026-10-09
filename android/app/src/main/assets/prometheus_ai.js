@@ -54,7 +54,7 @@
     #pm-ai-head small{display:block;color:#aab2c8;font:10.5px IBM Plex Sans,system-ui;margin-top:2px}
     #pm-ai-status{display:inline-flex;align-items:center;gap:6px;margin-top:8px;color:#4fe3a0;font:10px IBM Plex Sans,system-ui;letter-spacing:.08em;text-transform:uppercase}
     #pm-ai-status i{width:6px;height:6px;border-radius:50%;background:#4fe3a0;box-shadow:0 0 9px #4fe3a0}
-    #pm-ai-close{background:none;border:0;color:#aab2c8;font-size:22px;cursor:pointer}
+    #pm-ai-close{background:none;border:0;color:#aab2c8;font-size:28px;cursor:pointer;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;touch-action:manipulation;position:relative;z-index:2}
     #pm-ai-body{padding:15px;overflow:auto;display:flex;flex-direction:column;gap:11px;flex:1}
     .pm-visual{margin-top:11px;border:1px solid rgba(255,255,255,.10);border-radius:14px;overflow:hidden;background:rgba(0,0,0,.22)}
     .pm-visual-head{padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#aab2c8;letter-spacing:.08em;text-transform:uppercase}
@@ -92,9 +92,10 @@
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
     #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
     /* Full-screen conversational workspace: no floating mini-window. */
-    #pm-ai-panel{position:fixed!important;inset:0!important;right:auto!important;bottom:auto!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:none!important;min-height:0!important;border-radius:0!important;border:0!important;z-index:100000!important;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:#050812;}
+    /* Keep the app-owned chat below Android status icons and above navigation controls. Android WebView often reports zero CSS safe-area insets, so use a conservative status-bar fallback. */
+    #pm-ai-panel{position:fixed!important;inset:28px 0 0 0!important;right:0!important;bottom:0!important;left:0!important;top:max(28px,env(safe-area-inset-top,0px))!important;width:100vw!important;height:calc(100vh - 28px)!important;height:calc(100dvh - max(28px,env(safe-area-inset-top,0px)))!important;max-height:none!important;min-height:0!important;border-radius:0!important;border:0!important;z-index:100000!important;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0px);background:#050812;}
     #pm-ai-panel.open{display:flex;}
-    #pm-ai-panel #pm-ai-head{flex:none;padding:calc(14px + env(safe-area-inset-top,0px)) 18px 13px;cursor:default;touch-action:manipulation;}
+    #pm-ai-panel #pm-ai-head{flex:none;padding:8px 14px 12px;min-height:64px;align-items:center;cursor:default;touch-action:manipulation;}
     #pm-ai-panel #pm-ai-head:after{content:none!important}
     #pm-ai-body{min-height:0;overscroll-behavior:contain;padding:18px clamp(14px,4vw,36px);}
     #pm-ai-suggest{flex:none;padding:8px clamp(14px,4vw,36px) 10px;}
@@ -808,6 +809,8 @@
   restorePositions();
   function openAI(){panel.classList.add("open");document.body.classList.add("pm-ai-fullscreen-open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
   function closeAI(){panel.classList.remove("open");document.body.classList.remove("pm-ai-fullscreen-open");}
+  // Native Android Back asks this handler first. Return true only when chat consumes Back.
+  window.__prometheusBack = function(){if(panel.classList.contains("open")){closeAI();return true;}return false;};
   fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});
   document.getElementById("pm-ai-clear").onclick=()=>{conversationMemory=[];try{localStorage.removeItem(MEMORY_KEY);}catch(_){}body.replaceChildren();readyMessage();saveMemory();};
 
