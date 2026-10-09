@@ -1311,7 +1311,13 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   function setDataset(json, name, silent) {
     try {
       const ds = F.loadDataset(json); S.ds = ds; S.sel = null; S.cmp = []; S.lab = null; S.cache = {}; S.drawer = null;
-      const fu = fuelsOf(); S.form.fuel = fu[0] || ''; S.mission.fuel = '';
+      const fu = fuelsOf();
+      // Loading a dataset must not carry slider constraints or a fuel filter
+      // from the previous corpus into the next virtual-lab run.
+      S.form.fuel = '';
+      S.form.on = {o2:false, p:false, g:false, t:false, f:false};
+      S.form.v = {o2:25, p:101.3, g:1e-5, t:294, f:0};
+      S.mission.fuel = '';
       S.msg = ds.problems.length ? `Loaded ${ds.experiments.length} experiments from ${name}; ${ds.problems.length} rejected (see Data).` : `Loaded ${ds.experiments.length} experiments from ${name}.`;
       if (!silent) { UI.toast(S.msg); go(ds.experiments.length ? 'universe' : 'data'); } else render();
     } catch (err) { S.msg = 'Could not load: ' + err.message; UI.toast(S.msg); render(); }
@@ -1676,7 +1682,7 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
         h('div', {class: 'row'}, h('span', {class: 'small faint'}, 'Overall evidence'), h('span', {id: 'labbadge'}))),
       h('div', {class: 'lab-grid'}, h('div', {class: 'glass hud stack s24'}, field('Fuel', fuelSel, 'Matched by name'), rows.o2, rows.p,
         h('div', {class: 'stack s8'}, rows.g, h('div', {class: 'presets'}, preset('Earth 1 g', 1, '#6FB1FF'), preset('Mars 0.379 g', 0.379, '#FF8E7A'), preset('Moon 0.166 g', 0.166, '#C9D1E6'), preset('Microgravity', 1e-6, '#E6CB93'))), rows.t, rows.f,
-        h('div', {class: 'row'}, h('button', {class: 'btn gold', id: 'runbtn', on: {click: () => runLabSoon(true)}}, 'Run experiment'), h('span', {class: 'small faint'}, 'Live: results update as you move a slider'))), vp),
+        h('div', {class: 'row', style:'flex-wrap:wrap'}, h('button', {class: 'btn gold', id: 'runbtn', on: {click: () => runLabSoon(true)}}, 'Run evidence analysis'), h('button', {class: 'btn sm ghost', id: 'resetlabbtn', on: {click: () => { S.form.fuel=''; S.form.on={o2:false,p:false,g:false,t:false,f:false}; S.form.v={o2:25,p:101.3,g:1e-5,t:294,f:0}; S.lab=null; render(); UI.toast('Scenario reset · no stale conditions retained'); }}}, 'Reset scenario'), h('span', {class: 'small faint'}, 'Evidence matching and model estimates · not a physical combustion simulation'))), vp),
       h('div', {id: 'labres', style: 'margin-top:22px'})));
     const axes = {x: UI.axisSpec('flow_velocity_mm_s', S.ds.experiments), y: UI.axisSpec('gravity_g', S.ds.experiments), z: axisFor('none', S.ds.experiments)};
     const pts = S.ds.experiments.filter(e => F.cond(e, 'flow_velocity_mm_s') != null && F.cond(e, 'gravity_g') != null).map(e => ({id: e.exp_id, fuel: e.fuel, x: axes.x.norm(F.cond(e, 'flow_velocity_mm_s')), y: axes.y.norm(F.cond(e, 'gravity_g')), z: 0, color: FUEL_COLORS[Math.max(0, fuels.indexOf(e.fuel)) % FUEL_COLORS.length], lines: [`Flow ${fmtVar('flow_velocity_mm_s', F.cond(e, 'flow_velocity_mm_s'))}`, `g ${fmtVar('gravity_g', F.cond(e, 'gravity_g'))}`]}));
@@ -1692,6 +1698,22 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
       r.findings.length ? r.findings.map((x, i) => h('div', {class: 'finding ev-' + x.level, style: `--i:${i}`}, h('div', {class: 'ftop'}, h('strong', null, x.label), evPill(x.level), h('span', {class: 'small dim'}, 'Confidence · ' + x.confidence)), h('p', {class: 'txt'}, x.statement), x.reasons.map(t => h('p', {class: 'small faint'}, t)),
         x.values.length ? h('div', null, x.values.slice(0, 6).map(v => h('span', {class: 'tag'}, `${v.exp_id}: ${v.value != null ? sig(v.value, 4) + ' ' + v.unit : v.description} [${v.source_id}${v.locator ? ' · ' + v.locator : ''}]`))) : null)) : h('p', {class: 'dim'}, 'Nothing in this dataset is similar enough to report on. That is itself the answer: unknown.'),
       h('div', {class: 'row'}, h('button', {class: 'btn sm', on: {click: () => { const q = r.query.conditions, have = F.VAR_KEYS.filter(v => q[v] != null); if (have.length >= 2) { S.ax = have.includes('o2_fraction') ? 'o2_fraction' : have[0]; S.ay = have.find(v => v !== S.ax); S.az = have.find(v => v !== S.ax && v !== S.ay) || 'none'; } go('universe'); }}}, 'Show in full universe'), h('button', {class: 'btn sm ghost', on: {click: () => UI.showText('Virtual experiment result (JSON)', JSON.stringify(r, null, 2), 'flare-lab-result.json')}}, 'Export result'))));
+    const numericFinding = r.findings.find(x => x.values && x.values.some(v => Number.isFinite(Number(v.value))));
+    if (numericFinding) {
+      const vals = numericFinding.values.filter(v => Number.isFinite(Number(v.value))).slice(0, 8);
+      const max = Math.max(1, ...vals.map(v => Math.abs(Number(v.value))));
+      const unit = vals.find(v => v.unit)?.unit || '';
+      const chart = sv('svg', {viewBox:'0 0 520 210', role:'img', 'aria-label':numericFinding.label+' evidence values'});
+      chart.append(sv('text',{x:12,y:17,fill:'currentColor','font-size':11},'RETRIEVED EVIDENCE · '+numericFinding.level));
+      chart.append(sv('line',{x1:12,y1:174,x2:508,y2:174,stroke:'currentColor','stroke-opacity':'.25'}));
+      vals.forEach((v,i)=>{
+        const slot=492/vals.length, bw=Math.min(36,slot*.58), bh=Math.max(2,Math.abs(Number(v.value))/max*128), x=12+i*slot+(slot-bw)/2;
+        chart.append(sv('rect',{x,y:174-bh,width:bw,height:bh,rx:3,fill:'#E6CB93',opacity:'.9'}));
+        chart.append(sv('text',{x:x+bw/2,y:Math.max(31,168-bh),fill:'currentColor','font-size':9,'text-anchor':'middle'},sig(Number(v.value),4)));
+        chart.append(sv('text',{x:12+i*slot+slot/2,y:190,fill:'currentColor','font-size':8,'text-anchor':'middle'},String(v.exp_id||'record').slice(0,14)));
+      });
+      box.append(h('div',{class:'glass stack'},h('div',{class:'row',style:'justify-content:space-between'},h('h3',null,numericFinding.label+' · evidence chart'),evPill(numericFinding.level)),h('p',{class:'small dim'},'Categorical values retrieved from records; this is not a simulated flame or a time-series prediction.'),chart,h('p',{class:'small faint'},'Unit: '+unit+' · sources and record locations are listed below in the findings.')));
+    }
     box.append(h('div', {class: 'grid2'},
       h('div', {class: 'glass stack'}, h('h3', null, 'What is unknown'), r.unknowns.length ? r.unknowns.map(u => h('p', {class: 'small'}, u)) : h('p', {class: 'dim small'}, 'No additional unknowns detected beyond the notices above.')),
       h('div', {class: 'glass stack'}, h('h3', null, 'Sources'), r.sources.length ? r.sources.map(s => h('p', {class: 'small'}, h('b', null, s.source_id + ' '), s.citation)) : h('p', {class: 'dim small'}, 'No sources were used.'))));
