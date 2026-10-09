@@ -98,7 +98,7 @@ jobs:
           APK_URL: https://github.com/masudurrahman-ds/prometheus-microgravity/releases/download/auto-${{ github.run_number }}/prometheus-release.apk
           RELEASE_NOTES: Signed PROMETHEUS release with evidence-grounded laboratory improvements.
         run: |
-          SHA256="$(cut -d' ' -f1 prometheus-release.sha256)"
+          export SHA256="$(cut -d' ' -f1 prometheus-release.sha256)"
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const path = 'data/update.json';
