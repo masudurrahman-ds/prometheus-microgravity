@@ -78,7 +78,8 @@ if(!ai.includes('String(r.label).length>12?String(r.label).slice(0,11)+"…"')) 
 
 if(!ai.includes('const fields=["pressure_kpa","o2_fraction","gravity_g","flow_velocity_mm_s"]')) throw new Error("controlled comparison must explicitly check pressure alongside shared conditions");
 if(!ai.includes('return c.source_id && c.value!=null && c.value!=="" ? "REPORTED" : "UNKNOWN"')) throw new Error("raw source-reported condition text must remain NASA REPORTED even when canonical plotting values are derived");
-if(!ai.includes('String(c.value)+(c.unit ? " "+String(c.unit) : "")')) throw new Error("comparison must preserve source-reported units");
+if(!ai.includes('compactValue.endsWith(compactUnit)')) throw new Error("comparison must avoid duplicating source-reported units");
+if(!ai.includes('flow_velocity_mm_s:"Flow velocity"')) throw new Error("condition fields must use readable variable labels");
 if(!ai.includes('" ("+ea.label+" / "+eb.label+")"')) throw new Error("comparison must classify each record's condition evidence separately");
 
 if(!ai.includes('const normalizedQuestion=low.replace(/[^a-z0-9]/g,"")')) throw new Error("explicitly named experiment IDs must scope scientific charts");

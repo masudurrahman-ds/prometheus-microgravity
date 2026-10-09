@@ -422,10 +422,26 @@
     // numeric plotting field. Midpoint/proxy notes apply only to canonical plots.
     return c.source_id && c.value!=null && c.value!=="" ? "REPORTED" : "UNKNOWN";
   }
+  function conditionLabel(k) {
+    const labels={
+      pressure_kpa:"Pressure",
+      o2_fraction:"Oxygen concentration",
+      gravity_g:"Gravity condition",
+      flow_velocity_mm_s:"Flow velocity"
+    };
+    return labels[k] || String(k).replace(/_/g," ");
+  }
   function formatCondition(e,k) {
     const c=condition(e,k);
     if(!c || c.value==null || c.value==="") return "not reported";
-    return String(c.value)+(c.unit ? " "+String(c.unit) : "");
+    const value=String(c.value).trim();
+    const unit=String(c.unit||"").trim();
+    // Source text sometimes already contains its unit (e.g. 21.5–21.7%).
+    // Preserve the source text and append only a unit that is actually absent.
+    const compactValue=value.toLowerCase().replace(/\s+/g,"");
+    const compactUnit=unit.toLowerCase().replace(/\s+/g,"");
+    if(!unit || compactValue.endsWith(compactUnit)) return value;
+    return value+" "+unit;
   }
   function evidenceForObservation(o) { return o && o.measurement ? "OBSERVED" : "REPORTED"; }
 
@@ -660,7 +676,7 @@
           }
           const ea=EVIDENCE[evidenceForCondition(a,k)]||EVIDENCE.UNKNOWN;
           const eb=EVIDENCE[evidenceForCondition(b,k)]||EVIDENCE.UNKNOWN;
-          return "<b>"+esc(k)+"</b>: "+esc(formatCondition(a,k))+" vs "+esc(formatCondition(b,k))+
+          return "<b>"+esc(conditionLabel(k))+"</b>: "+esc(formatCondition(a,k))+" vs "+esc(formatCondition(b,k))+
             " ("+ea.label+" / "+eb.label+")";
         }).join("<br>");
         const am=measurement(a,["burn","duration","time"]), bm=measurement(b,["burn","duration","time"]);
