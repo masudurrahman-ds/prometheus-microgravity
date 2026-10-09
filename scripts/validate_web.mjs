@@ -36,6 +36,8 @@ if(!html.includes("Strongest coverage") || !html.includes("Thin coverage")) thro
 if(!html.includes("studies.filter(x=>x.matches(dashboardFilter))")) throw new Error("dashboard study filters missing");
 if(!html.includes("Ask local AI ↗")) throw new Error("per-study AI interpretation action missing");
 if(!html.includes("ranked NASA studies")) throw new Error("ranked study navigator missing");
+if(!html.includes("miniGal.curve = [queryPoint, ...evidencePoints]") || !html.includes("this.curve && this.curve.length > 1")) throw new Error("live scenario-to-evidence 3D trace missing");
+if(!html.includes("not a physical prediction")) throw new Error("3D trace scientific limitation disclosure missing");
 
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
 scripts.forEach(({attrs,source,index})=>{
