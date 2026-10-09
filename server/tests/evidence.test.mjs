@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchNASAEvidence, hasReportedMeasurement } from "../src/evidence.mjs";
+import { searchNASAEvidence, hasReportedMeasurement, finiteNumericValue } from "../src/evidence.mjs";
 
 test("reported measurement records are distinguished from documented configurations", () => {
   const measured = searchNASAEvidence("PSI98-S1 SAFFIRE burn duration", 20).evidence
@@ -38,4 +38,15 @@ test("null, blank, and non-finite measurement fields are not numeric observation
     assert.equal(hasReportedMeasurement({ observations: [{ measurement }] }), false);
   }
   assert.equal(hasReportedMeasurement({ observations: [{ measurement: { canonical_value: 0 } }] }), true);
+});
+
+test("numeric parsing rejects null and blank values instead of coercing them to zero", () => {
+  assert.equal(finiteNumericValue(null), null);
+  assert.equal(finiteNumericValue(undefined), null);
+  assert.equal(finiteNumericValue(""), null);
+  assert.equal(finiteNumericValue("   "), null);
+  assert.equal(finiteNumericValue("not available"), null);
+  assert.equal(finiteNumericValue("0"), 0);
+  assert.equal(finiteNumericValue(0), 0);
+  assert.equal(finiteNumericValue("420"), 420);
 });
