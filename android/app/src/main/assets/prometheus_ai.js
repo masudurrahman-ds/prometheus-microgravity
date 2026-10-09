@@ -437,13 +437,10 @@
     const value=String(c.value).trim();
     const unit=String(c.unit||"").trim();
     // Source text sometimes already contains its unit (e.g. 21.5–21.7%).
-    // Preserve the source text verbatim and append only a missing unit.
-    if(!unit || new RegExp("(?:^|\\\\s)"+unit.replace(/[.*+?^${}()|[\\]\\\\]/g,"\\\\  function formatCondition(e,k) {
-    const c=condition(e,k);
-    if(!c || c.value==null || c.value==="") return "not reported";
-    return String(c.value)+(c.unit ? " "+String(c.unit) : "");
-  }")+"\\\\s*$","i").test(value) ||
-       (unit==="%" && /%\\s*$/.test(value))) return value;
+    // Preserve the source text and append only a unit that is actually absent.
+    const compactValue=value.toLowerCase().replace(/\s+/g,"");
+    const compactUnit=unit.toLowerCase().replace(/\s+/g,"");
+    if(!unit || compactValue.endsWith(compactUnit)) return value;
     return value+" "+unit;
   }
   function evidenceForObservation(o) { return o && o.measurement ? "OBSERVED" : "REPORTED"; }
