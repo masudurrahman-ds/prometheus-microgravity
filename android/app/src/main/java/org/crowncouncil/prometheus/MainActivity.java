@@ -22,8 +22,6 @@ public class MainActivity extends BridgeActivity {
         updateManager = new UpdateManager(this);
         updateManager.checkIfDue();
         getBridge().getWebView().postDelayed(this::injectPrometheusAI, 1200);
-        getBridge().getWebView().postDelayed(this::injectPrometheusAI, 2600);
-        getBridge().getWebView().postDelayed(this::injectPrometheusAI, 5200);
     }
 
     private void installWindowInsets() {
