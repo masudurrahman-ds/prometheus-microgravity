@@ -21,9 +21,9 @@ test("configuration-only records do not receive a reported-measurement state", (
 });
 
 test("metadata-only sources stay visibly marked as metadata", () => {
-  const record = searchNASAEvidence("NASA-FLARE flammability limits", 20).evidence
-    .find(item => item.source_ids.includes("NASA-FLARE"));
+  const record = searchNASAEvidence("NASA-NTRS-20170000230 SAFFIREII", 20).evidence
+    .find(item => item.source_ids.includes("NASA-NTRS-20170000230"));
   assert.ok(record, "expected the FLARE metadata record");
-  assert.ok(record.sources.some(source => source.source_id === "NASA-FLARE" && source.metadata_only === true));
+  assert.ok(record.sources.some(source => source.source_id === "NASA-NTRS-20170000230" && source.metadata_only === true));
   assert.notEqual(record.evidence_state, "NASA_OBSERVED");
 });
