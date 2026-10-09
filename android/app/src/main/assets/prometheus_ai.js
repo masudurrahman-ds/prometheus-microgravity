@@ -280,6 +280,15 @@
   const input = panel.querySelector("#pm-ai-input");
 
   const ds = () => {
+    // Prefer the stable provider published by the application state, so AI works
+    // from Home, Lab, Evidence, and Research—not only after opening the universe.
+    try {
+      if (typeof window.__prometheusDataset === "function") {
+        const loaded = window.__prometheusDataset();
+        if (loaded && Array.isArray(loaded.experiments)) return loaded;
+      }
+    } catch (_) {}
+    // Backward-compatible fallback for older app shells.
     try { return window.__flare && window.__flare.S && window.__flare.S.ds ? window.__flare.S.ds : null; }
     catch (_) { return null; }
   };
