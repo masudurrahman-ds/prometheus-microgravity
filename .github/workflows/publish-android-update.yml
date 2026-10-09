@@ -2,6 +2,9 @@ name: Publish signed PROMETHEUS update
 
 on:
   push:
+    paths-ignore:
+      - update/update.json
+  pull_request:
     branches: [main]
     paths-ignore:
       - update/update.json
@@ -12,6 +15,7 @@ permissions:
 
 jobs:
   release:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
