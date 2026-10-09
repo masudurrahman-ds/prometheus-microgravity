@@ -20,7 +20,8 @@ if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does no
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
 if(!ai.includes("#pm-ai-panel.fullscreen") || !ai.includes("height:100dvh!important")) throw new Error("full-screen AI workspace styles missing");
 if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("global touch/pointer drag handling missing");
-if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) throw new Error("AI floating position persistence missing");
+if(!ai.includes('const POSITION_KEY="prometheus_ai_floating_positions_v1"')) throw new Error("AI launcher position persistence missing");
+if(!ai.includes('document.querySelectorAll("#pm-ai-panel, #pm-ai-fab")')) throw new Error("AI overlay singleton cleanup missing");
 if(ai.includes("DRAG TO MOVE")) throw new Error("obsolete draggable AI panel affordance remains");
 if(!ai.includes('fab.addEventListener("pointerdown"')) throw new Error("movable AI launcher pointer handling missing");
 if(!ai.includes('panel.classList.add("open","fullscreen")')) throw new Error("full-screen AI open lifecycle missing");
