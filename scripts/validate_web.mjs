@@ -39,6 +39,8 @@ if(!html.includes("ranked NASA studies")) throw new Error("ranked study navigato
 if(!html.includes("miniGal.curve = [queryPoint, ...evidencePoints]") || !html.includes("this.curve && this.curve.length > 1")) throw new Error("live scenario-to-evidence 3D trace missing");
 if(!html.includes("not a physical prediction")) throw new Error("3D trace scientific limitation disclosure missing");
 if(!html.includes("Live evidence-match profile") || !html.includes("100 * (1 - n.distance)")) throw new Error("live parameter-sensitive evidence graph missing");
+if(!html.includes("NASA evidence matching — not a physical flame simulation")) throw new Error("Virtual Lab must disclose evidence matching rather than physical simulation");
+if(!html.includes("S.form.on[k] = false; if (F.cond(e, v) != null)")) throw new Error("loading a NASA experiment must clear stale unspecified lab conditions");
 
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
 scripts.forEach(({attrs,source,index})=>{
