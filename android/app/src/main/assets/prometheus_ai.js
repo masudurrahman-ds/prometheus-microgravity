@@ -180,7 +180,7 @@
   function scientificVisual(q, rs) {
     const low=q.toLowerCase();
     const asksForVisual=/(graph|plot|chart|visuali[sz]e|visual|image|picture|render|show me a flame)/.test(low);
-    const asksForComparison=/(compare|comparison|difference|versus|\\bvs\\b)/.test(low);
+    const asksForComparison=/(compare|comparison|difference|versus|\bvs\b)/.test(low);
     const asksForTrend=/(trend|over time|time series|correlat|relationship|association)/.test(low);
     // The corpus is experiment-level, not a temporal sequence. Never connect
     // unrelated experiments with a line and label it a trend.
