@@ -201,7 +201,7 @@
       const v=finiteNumericValue(r.y), bh=Math.abs(v/span*plotH), x=p.l+i*slot+(slot-bw)/2, y=v>=0?base-bh:base;
       return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+Math.max(1,bh)+'" rx="3" fill="#e6cb93" opacity=".9"><title>'+esc(r.label)+': '+esc(v)+'</title></rect>'+
         '<text x="'+(x+bw/2)+'" y="'+Math.max(14,y-5)+'" fill="#eef0f7" font-size="9" text-anchor="middle">'+esc(formatNum(v))+'</text>'+
-        '<text x="'+(p.l+i*slot+slot/2)+'" y="'+(h-28)+'" fill="#aab2c8" font-size="9" text-anchor="middle">'+esc(r.label)+'</text>';
+        '<text x="'+(p.l+i*slot+slot/2)+'" y="'+(h-28)+'" fill="#aab2c8" font-size="9" text-anchor="middle"><title>'+esc(r.label)+'</title>'+esc(String(r.label).length>12?String(r.label).slice(0,11)+"…":r.label)+'</text>';
     }).join("");
     return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+'"><line x1="'+p.l+'" y1="'+p.t+'" x2="'+p.l+'" y2="'+(h-p.b)+'" stroke="rgba(255,255,255,.18)"/><line x1="'+p.l+'" y1="'+base+'" x2="'+(w-p.r)+'" y2="'+base+'" stroke="rgba(255,255,255,.24)"/>'+bars+'<text x="'+p.l+'" y="14" fill="#eef0f7" font-size="10">'+esc(yLabel)+'</text><text x="'+(w/2)+'" y="'+(h-6)+'" fill="#737c96" font-size="9" text-anchor="middle">Experiment record · categorical comparison</text></svg>';
   }
@@ -221,7 +221,9 @@
     else if(/pressure|pressur/.test(low)) { metric="pressure_kpa"; label="Pressure (kPa)"; }
     else if(/flow|velocity|co-flow/.test(low)) { metric="flow_velocity_mm_s"; label="Flow velocity (mm/s)"; }
 
-    if((asksForVisual||asksForComparison) && metric) {
+    // A comparison or causal question alone is not a request for a chart.
+    // Only attach visual output when the user explicitly asks to plot/graph/chart.
+    if(asksForVisual && metric) {
       const rows=rs.map(e=>{
         if(metric==="burn") {
           const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&finiteNumericValue(x.measurement.canonical_value)!==null);
@@ -239,7 +241,7 @@
       return "";
     }
 
-    if(asksForComparison) {
+    if(asksForVisual && asksForComparison) {
       const rows=rs.map(e=>{
         const o=(e.observations||[]).find(x=>/burn|duration/i.test((x.phenomenon||"")+" "+(x.description||""))&&x.measurement&&finiteNumericValue(x.measurement.canonical_value)!==null);
         return o?{label:e.exp_id,y:finiteNumericValue(o.measurement.canonical_value),source:o.source_id,locator:o.locator}:null;

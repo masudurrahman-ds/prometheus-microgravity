@@ -71,3 +71,7 @@ if(!ai.includes("window.PROMETHEUS_AI = {") || !ai.includes("    ask,")) throw n
 const mainActivity=fs.readFileSync("android/app/src/main/java/org/crowncouncil/prometheus/MainActivity.java","utf8");
 if((mainActivity.match(/postDelayed\(this::injectPrometheusAI/g)||[]).length!==1) throw new Error("AI script should be injected only once per Android startup");
 if(mainActivity.includes("window.__prometheusAIStatus='injecting'")) throw new Error("Android injection must not reset the AI singleton guard");
+
+if(!ai.includes("if(asksForVisual && metric)")) throw new Error("scientific charts must require an explicit visualization request");
+if(!ai.includes("if(asksForVisual && asksForComparison)")) throw new Error("comparison fallback must not attach unsolicited charts");
+if(!ai.includes('String(r.label).length>12?String(r.label).slice(0,11)+"…"')) throw new Error("categorical chart labels must be abbreviated for narrow screens while preserving full labels in title");
