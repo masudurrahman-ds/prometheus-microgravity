@@ -70,7 +70,7 @@ public class MainActivity extends BridgeActivity {
             String line;
             while ((line = reader.readLine()) != null) script.append(line).append(System.lineSeparator());
             reader.close();
-            String js = "(function(){try{window.__prometheusAIStatus='injecting';" + script.toString() + "}catch(e){window.__prometheusAIStatus='error';window.__prometheusAIInjected=false;console.error('PROMETHEUS AI injection failed',e);}})()";
+            String js = "(function(){try{" + script.toString() + "}catch(e){window.__prometheusAIStatus='error';window.__prometheusAIInjected=false;console.error('PROMETHEUS AI injection failed',e);}})()";
             webView.evaluateJavascript(js, null);
         } catch (Exception e) {
             e.printStackTrace();
