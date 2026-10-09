@@ -7,18 +7,48 @@ function corpus() {
   return cache;
 }
 
-function tokenize(q) {
-  return [...new Set(String(q || "").toLowerCase().match(/[a-z0-9₂₃-]{2,}/g) || [])];
+const STOP_WORDS = new Set(["a","an","and","are","as","at","be","by","does","for","from","how","in","into","is","it","of","on","or","that","the","this","to","was","what","when","where","which","why","with"]);
+
+function tokenize(query) {
+  return [...new Set((String(query || "").toLowerCase().replace(/[_-]+/g, " ").match(/[a-z0-9₂₃]+/g) || [])
+    .filter(term => term.length > 1 && !STOP_WORDS.has(term)))];
 }
 
-function searchable(e) {
-  const obs = (e.observations || []).flatMap(o => [
-    o.phenomenon, o.description, o.locator,
-    o.measurement?.value, o.measurement?.unit
+function scoreFields(fields, queryTokens, queryPhrase, experimentId) {
+  if (!queryTokens.length) return 0;
+  let score = 0;
+  for (const term of queryTokens) {
+    const best = fields.reduce((max, field) => {
+      const tokens = new Set(tokenize(field.text));
+      return tokens.has(term) ? Math.max(max, field.weight) : max;
+    }, 0);
+    score += best;
+  }
+  const normalizedPhrase = String(queryPhrase || "").toLowerCase().replace(/[_-]+/g, " ").replace(/[^a-z0-9₂₃]+/g, " ").trim();
+  const title = fields.find(f => f.name === "title")?.text || "";
+  const body = fields.find(f => f.name === "body")?.text || "";
+  const normalize = value => String(value || "").toLowerCase().replace(/[_-]+/g, " ").replace(/[^a-z0-9₂₃]+/g, " ").trim();
+  if (normalizedPhrase.length >= 5 && (normalize(title).includes(normalizedPhrase) || normalize(body).includes(normalizedPhrase))) score += 5;
+  const idNorm = normalize(experimentId);
+  if (idNorm && normalize(queryPhrase).includes(idNorm)) score += 20;
+  return score;
+}
+
+
+function searchFields(e, c) {
+  const observations = (e.observations || []).flatMap(o => [
+    o.phenomenon, o.description, o.locator, o.measurement?.value, o.measurement?.unit
   ]);
-  const conditions = Object.entries(e.conditions || {}).flatMap(([k, v]) => [k, v.value, v.unit, v.locator]);
-  return [e.exp_id, e.title, e.platform, e.fuel, e.text, ...(e.source_ids || []), ...obs, ...conditions]
-    .filter(Boolean).join(" ").toLowerCase();
+  const conditions = Object.entries(e.conditions || {}).flatMap(([key, value]) => [key, value.value, value.unit, value.locator]);
+  const sourceTitles = (e.source_ids || []).map(id => c.sources?.find(s => s.source_id === id)?.title || id);
+  return [
+    {name:"id", text:e.exp_id || "", weight:8},
+    {name:"title", text:e.title || "", weight:5},
+    {name:"phenomena", text:(e.observations || []).flatMap(o => [o.phenomenon,o.description]).filter(Boolean).join(" "), weight:4},
+    {name:"fuel-platform", text:[e.fuel,e.platform].filter(Boolean).join(" "), weight:3},
+    {name:"body", text:[e.text,...observations,...sourceTitles].filter(Boolean).join(" "), weight:2},
+    {name:"metadata", text:[...(e.source_ids || []),...conditions].filter(Boolean).join(" "), weight:1}
+  ];
 }
 
 function sourceRecord(c, id) {
@@ -51,11 +81,11 @@ export function hasReportedMeasurement(e) {
 export function searchNASAEvidence(query, limit = 8) {
   const c = corpus();
   const terms = tokenize(query);
-  const ranked = (c.experiments || []).map(e => {
-    const text = searchable(e);
-    const score = terms.reduce((n, t) => n + (text.includes(t) ? 1 : 0), 0);
-    return { e, score };
-  }).filter(x => x.score > 0).sort((a, b) => b.score - a.score).slice(0, limit);
+  const ranked = (c.experiments || []).map(e => ({
+    e, score:scoreFields(searchFields(e,c),terms,query,e.exp_id)
+  })).filter(x => x.score > 0)
+    .sort((a,b) => b.score-a.score || String(a.e.exp_id).localeCompare(String(b.e.exp_id)))
+    .slice(0, Math.min(20, Math.max(1, Number(limit) || 8)));
 
   const evidence = ranked.map(({e, score}) => {
     const observations = e.observations || [];
