@@ -38,6 +38,7 @@ if(!html.includes("Ask local AI ↗")) throw new Error("per-study AI interpretat
 if(!html.includes("ranked NASA studies")) throw new Error("ranked study navigator missing");
 if(!html.includes("miniGal.curve = [queryPoint, ...evidencePoints]") || !html.includes("this.curve && this.curve.length > 1")) throw new Error("live scenario-to-evidence 3D trace missing");
 if(!html.includes("not a physical prediction")) throw new Error("3D trace scientific limitation disclosure missing");
+if(!html.includes("Live evidence-match profile") || !html.includes("100 * (1 - n.distance)")) throw new Error("live parameter-sensitive evidence graph missing");
 
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
 scripts.forEach(({attrs,source,index})=>{
