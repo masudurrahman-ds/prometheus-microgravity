@@ -52,3 +52,9 @@ if(!html.includes("EVIDENCE COVERAGE RANKING")) throw new Error("dashboard evide
 if(!html.includes("not fire danger")) throw new Error("dashboard must disclose that coverage is not hazard severity");
 if(!html.includes("Measured phenomenon")) throw new Error("dashboard phenomenon filter missing");
 if(!html.includes("Inspect in Evidence Universe")) throw new Error("dashboard study drill-down missing");
+if(!html.includes("Interpret this selection with PROMETHEUS AI")) throw new Error("dashboard-to-agent action missing");
+if(!html.includes("ai.ask(question)")) throw new Error("dashboard does not dispatch its current selection to the AI agent");
+if(!ai.includes("window.PROMETHEUS_AI = {") || !ai.includes("    ask,")) throw new Error("local evidence agent ask API is not exported");
+const mainActivity=fs.readFileSync("android/app/src/main/java/org/crowncouncil/prometheus/MainActivity.java","utf8");
+if((mainActivity.match(/postDelayed\(this::injectPrometheusAI/g)||[]).length!==1) throw new Error("AI script should be injected only once per Android startup");
+if(mainActivity.includes("window.__prometheusAIStatus='injecting'")) throw new Error("Android injection must not reset the AI singleton guard");
