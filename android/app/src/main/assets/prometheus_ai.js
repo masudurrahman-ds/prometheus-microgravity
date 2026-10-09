@@ -1,9 +1,25 @@
 (() => {
   "use strict";
+  // Enforce a DOM-level singleton as well as a script-level singleton.
+  // WebView lifecycle callbacks can evaluate the same asset more than once;
+  // a status flag alone does not remove duplicate nodes left by older runs.
+  function dedupeAIInstances() {
+    ["#pm-ai-fab", "#pm-ai-panel", "#pm-ai-style"].forEach(selector => {
+      const nodes = document.querySelectorAll(selector);
+      for (let i = 1; i < nodes.length; i++) nodes[i].remove();
+    });
+  }
+  dedupeAIInstances();
   if (window.__prometheusAIStatus === "ready") return;
   if (window.__prometheusAIStatus === "loading" && window.__prometheusAIInjected) return;
   window.__prometheusAIStatus = "loading";
   window.__prometheusAIInjected = true;
+
+  // Defend against duplicate nodes introduced by another WebView lifecycle hook.
+  if (!window.__prometheusAIDedupeObserver && document.documentElement) {
+    window.__prometheusAIDedupeObserver = new MutationObserver(() => dedupeAIInstances());
+    window.__prometheusAIDedupeObserver.observe(document.documentElement, {childList:true, subtree:true});
+  }
 
   /*
    * PROMETHEUS AI — NASA-only scientific intelligence layer.
@@ -25,6 +41,7 @@
   const OUTSIDE = /\b(stock|crypto|bitcoin|recipe|football|soccer|celebrity|politics|election|weather|password|homework|joke|poem|dating|relationship|medical diagnosis|medicine|restaurant|shopping|travel|programming|javascript|android|python|linux|gaming|movie|music|lyrics|religion|news)\b/i;
 
   const style = document.createElement("style");
+  style.id = "pm-ai-style";
   style.textContent = `
     #pm-ai-fab{position:fixed;right:18px;bottom:22px;z-index:99999;width:62px;height:62px;border-radius:50%;border:1px solid rgba(230,203,147,.8);background:radial-gradient(circle at 35% 27%,#fff8df 0 8%,#e6cb93 25%,#6f5830 62%,#090c15 100%);box-shadow:0 14px 40px rgba(0,0,0,.62),0 0 30px rgba(230,203,147,.28);color:#161108;font:700 12px IBM Plex Sans,system-ui;cursor:grab;touch-action:none;user-select:none}
     #pm-ai-fab .pm-orbit{position:absolute;inset:8px;border:1px solid rgba(20,16,8,.42);border-radius:50%;transform:rotate(-23deg)}
