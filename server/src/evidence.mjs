@@ -34,6 +34,16 @@ function sourceRecord(c, id) {
   };
 }
 
+export function hasReportedMeasurement(e) {
+  return (e?.observations || []).some(o => {
+    const measurement = o?.measurement;
+    if (!measurement) return false;
+    const raw = measurement.canonical_value ?? measurement.value;
+    if (raw === null || raw === undefined || (typeof raw === "string" && raw.trim() === "")) return false;
+    return Number.isFinite(Number(raw));
+  });
+}
+
 export function searchNASAEvidence(query, limit = 8) {
   const c = corpus();
   const terms = tokenize(query);
@@ -45,21 +55,19 @@ export function searchNASAEvidence(query, limit = 8) {
 
   const evidence = ranked.map(({e, score}) => {
     const observations = e.observations || [];
-    const hasReportedMeasurement = observations.some(o =>
-      o.measurement && Number.isFinite(Number(o.measurement.canonical_value ?? o.measurement.value))
-    );
+    const hasMeasurement = hasReportedMeasurement(e);
     const linkedSources = [...new Set(e.source_ids || [])]
       .map(id => sourceRecord(c, id)).filter(Boolean);
     const metadataOnly = linkedSources.length > 0 && linkedSources.every(s => s.metadata_only);
     const recordClass = e.synthetic ? "synthetic"
-      : hasReportedMeasurement ? "reported_measurements"
+      : hasMeasurement ? "reported_measurements"
       : metadataOnly ? "metadata_only" : "documented_configuration";
     return {
       exp_id: e.exp_id,
       title: e.title,
-      evidence_state: hasReportedMeasurement && !e.synthetic ? "NASA_REPORTED" : "UNKNOWN",
+      evidence_state: hasMeasurement && !e.synthetic ? "NASA_REPORTED" : "UNKNOWN",
       record_class: recordClass,
-      evidence_state_note: hasReportedMeasurement && !e.synthetic
+      evidence_state_note: hasMeasurement && !e.synthetic
         ? "The indexed record contains source-attributed reported measurements; raw instrument-level observation is not asserted."
         : "No indexed numeric outcome measurement is available for this record. Treat any listed conditions as documented metadata, not a measured outcome.",
       relevance: score,
