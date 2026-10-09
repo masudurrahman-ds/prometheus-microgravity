@@ -125,3 +125,22 @@ These findings come from reading the current implementations, not just the direc
 3. Add a chart-data contract with series provenance and chart-type constraints.
 4. Trace the live cloud endpoint settings and the exact data file consumed by each UI screen before migrating or deleting backend code.
 5. Keep these changes on the audit branch and require the mainline Android build plus relevant tests before proposing a merge.
+
+
+## Runtime route trace — Phase 1 follow-up
+
+### Confirmed AI request paths
+- The Android native wrapper injects `android/app/src/main/assets/prometheus_ai.js` into the WebView. That asset's local evidence engine is retrieval-first and explicitly makes no network calls for its local answers.
+- Cloud AI is optional and off until the user enters an endpoint ending in `/v1/agent` and enables consent. The client stores the endpoint and consent locally, then posts `message`, recent `history`, and `consent.cloud_ai=true`. The canonical documented cloud route is `agent/server.mjs` → `POST /v1/agent`, backed by the Responses API and evidence tools. This is the tool-enabled cloud route.
+- `server/src/server.mjs` exposes a separate `POST /api/ask` contract accepting `question`; its `answerWithEvidence` path is not wire-compatible with the Android cloud client. Do not delete it until deployments/callers are checked, but it should not be documented as the Android client's endpoint.
+- Cloud visualizations are consumed from tool trace entries with `result.visualization` and are rendered only when the result is a bar chart with rows. The client can silently fall back to local mode when the cloud request fails; the toast says cloud AI is unavailable. This fallback behavior should be made more diagnosable in a later UI pass.
+
+### Graph semantics
+- The local AI's evidence-backed numeric comparison uses categorical bar charts. Trend/correlation/time-series requests are intentionally not drawn from unordered experiment-level records.
+- The separate 3D universe is similarity navigation through indexed records, not a physical flame simulation or time-evolved trajectory. Preserve that label in all screens, exports, and demo narration.
+- If the same straight-line graph appears on the device, capture the exact prompt, selected mode (local/cloud), and screenshot. That symptom may come from another screen/build than the inspected local AI chart function; do not claim the current code inspection proves device behavior.
+
+### Dataset loading and release
+- The primary embedded UI loads the `#fixture` JSON in `www/index.html` when `ALLOW_FIXTURE` is true; after consent, the app may fetch `data/prometheus_nasa_psi.json` from the public `main` branch when its `update_version` differs. The cloud backends independently load `data/prometheus_nasa_psi.json`.
+- `data/prometheus_nasa_psi_seed.json` is a separate, smaller representation. Treat it as a curated/example artifact until its intended consumer and relationship to the canonical corpus are documented. Do not imply that the app is loading a full NASA archive.
+- Mainline debug APK CI has passed on the audit branch, including web/data validation, both backend test suites, Capacitor sync, and Android debug build. This proves build/test success for that commit, not physical-device rendering or cloud deployment availability.
