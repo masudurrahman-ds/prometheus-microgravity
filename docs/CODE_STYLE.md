@@ -18,6 +18,28 @@ scientific integrity without becoming verbose for its own sake.
 - Do not change behavior, public interfaces, evidence labels, permissions, or
   scientific calculations merely to satisfy a formatter.
 
+## 1A. Signature header for learning scripts
+
+For standalone Python learning exercises, use the author's exact heading style
+and separator pattern:
+
+```python
+# Author: Masudur Rahman
+# Day 02 - Area of Rectangle Program
+
+print("=" * 40)
+print("Data Science Journey")
+print("=" * 40)
+```
+
+- Keep the author line and day/title at the top of each learning exercise.
+- Use the same separator width and journey label consistently.
+- Follow the heading with readable, fully explained code and expected output.
+- Use the day/title header for lessons and exercises, not every production
+  module; production files should use an accurate module docstring instead.
+- Preserve the same readable spirit in JavaScript, Kotlin, Java, and other
+  languages while using their normal comment and naming conventions.
+
 ## 2. Python — PEP 8 plus the signature standard
 
 - Use four spaces, imports grouped as standard library, third-party, then local.
