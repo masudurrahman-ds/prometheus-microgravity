@@ -1,45 +1,150 @@
-# PROMETHEUS Code Style Guide
+# PROMETHEUS Signature Coding Standard
 
-This guide keeps the repository approachable for contributors who are learning,
-reviewing, or maintaining the app. Formatting changes must not change behavior.
+This is the project's human-readable coding standard. It combines the user's
+formal, educational Python style with language-appropriate conventions for the
+existing multi-language app. Code should explain its purpose and preserve
+scientific integrity without becoming verbose for its own sake.
 
-## Python — PEP 8
+## 1. Core principles
 
-- Use four spaces for indentation and `snake_case` for functions and variables.
-- Use `PascalCase` for classes and `UPPER_SNAKE_CASE` for constants.
-- Group standard-library, third-party, and local imports separately.
-- Prefer short, focused functions, explicit names, type hints where useful, and
-  docstrings for public modules and functions.
-- Keep scientific assumptions, units, evidence states, and provenance explicit.
-- Use Ruff to format Python consistently and check style.
+- Prefer readability over cleverness.
+- Use descriptive names that explain domain meaning.
+- Keep each function focused on one responsibility.
+- Make inputs, outputs, assumptions, units, and failure modes explicit.
+- Return values from reusable functions; keep printing and UI output at the
+  application boundary.
+- Avoid mutable global state and hidden side effects where practical.
+- Comments explain why a decision exists, not what obvious syntax does.
+- Do not change behavior, public interfaces, evidence labels, permissions, or
+  scientific calculations merely to satisfy a formatter.
 
-## JavaScript, HTML, CSS, JSON, and YAML
+## 2. Python — PEP 8 plus the signature standard
 
-- Use Prettier with the repository configuration in `.prettierrc.json`.
-- Prefer descriptive `camelCase` names for JavaScript functions and variables.
-- Keep modules focused; avoid unrelated refactors during formatting-only work.
-- Preserve existing public request/response contracts and browser compatibility.
+- Use four spaces, imports grouped as standard library, third-party, then local.
+- Use `snake_case` for functions and variables, `PascalCase` for classes, and
+  `UPPER_SNAKE_CASE` for constants.
+- Keep source lines to 79 characters where practical; wrap expressions using
+  parentheses rather than backslashes.
+- Add type hints to function parameters and return values. Use `Final` for
+  constants that should not be reassigned.
+- Give every public module, class, and function a useful NumPy-style docstring.
+- Validate inputs at system boundaries and raise specific, meaningful
+  exceptions. Do not swallow exceptions without a clear recovery strategy.
+- Prefer a small pure calculation function over a large function that mixes
+  retrieval, calculation, rendering, and logging.
+- Name scientific quantities by meaning and include units in names or typed
+  metadata when ambiguity is possible. Do not use unexplained numeric literals.
+- Comments should explain scientific assumptions, equations, edge cases, and
+  evidence limitations. Do not add comments that merely repeat the code.
+- Keep logging, console output, and UI rendering outside reusable core logic.
 
-## Java / Android
+### Preferred function pattern
 
-- Use Google Java Format for Java source files.
-- Do not change Android package names, manifest permissions, exported component
-  settings, lifecycle behavior, or Capacitor integration as part of formatting.
+```python
+from typing import Final
 
-## Scientific and safety requirements
+MAX_SEARCH_RESULTS: Final[int] = 20
 
-- Never re-label evidence, infer missing measurements, or alter numerical
-  calculations in a formatting-only change.
-- Keep `NASA_OBSERVED`, `NASA_REPORTED`, `DERIVED`, `MODEL_INFERRED`,
-  `ANALOGICAL`, and `UNKNOWN` distinctions intact.
-- Preserve units, source identifiers, citations, proxy warnings, and limitations.
-- Do not connect independent experiments as a trend merely to make a chart look
-  smoother. Formatting is not permission to change scientific behavior.
 
-## Review and validation
+def calculate_mean(values: list[float]) -> float:
+    """Calculate the arithmetic mean of numeric values.
 
-- Keep formatting changes isolated from functional changes where possible.
-- Run the repository's web/data validation, agent tests, server tests, Python
-  tests, and Android debug build before merging.
-- A passing build does not replace physical-device layout and interaction checks.
-- Never commit credentials, signing keys, `.env` files, or private user data.
+    Parameters
+    ----------
+    values : list[float]
+        Non-empty sequence of numeric observations.
+
+    Returns
+    -------
+    float
+        Arithmetic mean of the supplied observations.
+
+    Raises
+    ------
+    ValueError
+        If no observations are provided.
+    """
+    if not values:
+        raise ValueError("At least one observation is required.")
+
+    return sum(values) / len(values)
+
+
+def main() -> None:
+    """Run a small example of the calculation."""
+    observations = [2.0, 4.0, 6.0]
+    mean_value = calculate_mean(observations)
+    print(f"Mean value: {mean_value:.2f}")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Expected output:
+
+```text
+Mean value: 4.00
+```
+
+This is an illustrative example, not a requirement to create a `main()`
+function in every module. Library code should expose reusable functions and
+avoid running examples at import time.
+
+## 3. Python teaching and scientific documentation
+
+For tutorials, notebooks, research examples, and the educational parts of the
+documentation, use this order where applicable:
+
+1. **Purpose** — what the example solves.
+2. **Mathematical Background** — equations, definitions, assumptions, and units.
+3. **Python Implementation** — the readable, reusable implementation.
+4. **Expected Output** — a representative output or validation result.
+
+Do not force this four-part structure into every production source file.
+Production code should use focused module/function docstrings and concise
+scientific comments instead.
+
+## 4. JavaScript, HTML, CSS, JSON, YAML, and configuration
+
+- Use Prettier with `.prettierrc.json` for supported files.
+- Use `camelCase` for JavaScript variables and functions, and descriptive
+  names rather than single-letter identifiers except for clear local math.
+- Keep API field names, event names, local-storage keys, DOM selectors, and
+  serialized data contracts unchanged unless a separately tested migration is
+  explicitly intended.
+- Split modules only when call sites and loading order are understood.
+- Avoid adding dependencies for formatting alone when an existing tool suffices.
+
+## 5. Java and Android
+
+- Use Google Java Format for Java source.
+- Follow existing Android and Gradle conventions for Kotlin, XML, and build
+  scripts; do not apply Python naming conventions to other languages.
+- Never change package names, manifest permissions, exported component settings,
+  lifecycle behavior, signing configuration, or Capacitor integration as part
+  of a formatting-only change.
+
+## 6. Scientific integrity
+
+- Preserve `NASA_OBSERVED`, `NASA_REPORTED`, `DERIVED`,
+  `MODEL_INFERRED`, `ANALOGICAL`, and `UNKNOWN` distinctions.
+- Preserve source IDs, citations, units, proxy warnings, uncertainty, and
+  coverage limitations.
+- Never turn missing data into a numeric zero or a guessed measurement.
+- Do not connect independent experiment records as a time series by default.
+- Label similarity visualizations as similarity navigation, not a physical flame
+  trajectory, unless a validated physics model supports that claim.
+- Keep AI-generated hypotheses separate from sourced facts and derived results.
+
+## 7. Safe refactoring and validation
+
+- Make the migration in small, reviewable groups; avoid a single opaque rewrite.
+- First format code, then add types/docstrings and improve names in separate,
+  tested changes. Do not mix logic changes into formatting-only commits.
+- Test each layer: data/schema validation, agent and server tests, Python tests,
+  web validation, Android debug build, then manual device checks.
+- Review large diffs for changed strings, constants, API contracts, query logic,
+  calculations, permissions, and source citations.
+- A passing CI run is not proof of correct physical-device behavior.
+- Never commit API keys, signing keys, `.env` files, or private user data.
