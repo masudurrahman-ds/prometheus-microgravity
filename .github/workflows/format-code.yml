@@ -27,6 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,9 +40,15 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install locked Node.js dependencies
+        run: npm ci --no-audit --no-fund
+
       - name: Format JavaScript, HTML, CSS, JSON, YAML, and Markdown
         run: |
-          npx --yes prettier@3.5.3 --write \
+          npx --no-install prettier@3.5.3 --write \
             "www/**/*.{html,js,css,json}" \
             "android/app/src/main/assets/**/*.{js,json}" \
             "agent/**/*.{js,mjs,json,md}" \
@@ -50,21 +57,18 @@ jobs:
             "docs/**/*.md" "README.md" "package.json" \
             ".github/workflows/*.yml" ".prettierrc.json"
 
-      - name: Format Python using Ruff
+      - name: Format Python using the project signature standard
         run: |
           python -m pip install "ruff>=0.11,<1.0"
           ruff format .
 
-      - name: Format Java using Google Java Format
+      - name: Format Java source
         run: |
           curl --fail --location --silent --show-error \
             "https://github.com/google/google-java-format/releases/download/v1.24.0/google-java-format-1.24.0-all-deps.jar" \
             --output /tmp/google-java-format.jar
           find . -type f -name "*.java" -not -path "*/build/*" -print0 \
             | xargs -0 -r java -jar /tmp/google-java-format.jar --replace
-
-      - name: Install JavaScript dependencies
-        run: npm install --no-audit --no-fund
 
       - name: Validate web source and agent tests
         run: |
@@ -84,15 +88,30 @@ jobs:
           npx cap sync android
           gradle -p android assembleDebug --no-daemon
 
-      - name: Commit formatting-only changes
+      - name: Commit formatter changes only
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git diff --check
-          if ! git diff --quiet; then
-            git add -A
+
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              package-lock.json|*/build/*|node_modules/*|*/node_modules/*)
+                continue
+                ;;
+            esac
+
+            case "$file" in
+              *.py|*.js|*.mjs|*.html|*.css|*.json|*.md|*.yml|*.yaml|*.java)
+                git add -- "$file"
+                ;;
+            esac
+          done < <(git diff --name-only -z)
+
+          if ! git diff --cached --quiet; then
             git commit -m "style: apply repository-wide language formatters"
             git push origin "HEAD:${GITHUB_REF_NAME}"
           else
-            echo "All supported files were already formatted."
+            echo "No tracked formatter changes to commit."
           fi
