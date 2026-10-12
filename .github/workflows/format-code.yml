@@ -48,7 +48,7 @@ jobs:
 
       - name: Format JavaScript, HTML, CSS, JSON, YAML, and Markdown
         run: |
-          npx --no-install prettier@3.5.3 --write \
+          npx --yes prettier@3.5.3 --write \
             "www/**/*.{html,js,css,json}" \
             "android/app/src/main/assets/**/*.{js,json}" \
             "agent/**/*.{js,mjs,json,md}" \
