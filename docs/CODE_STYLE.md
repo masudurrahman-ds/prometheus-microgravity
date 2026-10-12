@@ -18,7 +18,7 @@ scientific integrity without becoming verbose for its own sake.
 - Do not change behavior, public interfaces, evidence labels, permissions, or
   scientific calculations merely to satisfy a formatter.
 
-## 1A. Signature header for learning scripts
+## Signature header for learning scripts
 
 For standalone Python learning exercises, use the author's exact heading style
 and separator pattern:
