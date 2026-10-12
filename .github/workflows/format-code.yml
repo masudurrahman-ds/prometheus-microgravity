@@ -1,0 +1,98 @@
+name: Repository-wide code formatting
+
+on:
+  push:
+    branches:
+      - chore/repo-wide-code-style
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repository-code-format-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  format-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out formatting branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Format JavaScript, HTML, CSS, JSON, YAML, and Markdown
+        run: |
+          npx --yes prettier@3.5.3 --write \
+            "www/**/*.{html,js,css,json}" \
+            "android/app/src/main/assets/**/*.{js,json}" \
+            "agent/**/*.{js,mjs,json,md}" \
+            "server/**/*.{js,mjs,json,md}" \
+            "scripts/**/*.{js,mjs,json}" \
+            "docs/**/*.md" "README.md" "package.json" \
+            ".github/workflows/*.yml" ".prettierrc.json"
+
+      - name: Format Python using Ruff
+        run: |
+          python -m pip install "ruff>=0.11,<1.0"
+          ruff format .
+
+      - name: Format Java using Google Java Format
+        run: |
+          curl --fail --location --silent --show-error \
+            "https://github.com/google/google-java-format/releases/download/v1.24.0/google-java-format-1.24.0-all-deps.jar" \
+            --output /tmp/google-java-format.jar
+          find . -type f -name "*.java" -not -path "*/build/*" -print0 \
+            | xargs -0 -r java -jar /tmp/google-java-format.jar --replace
+
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate web source and agent tests
+        run: |
+          node scripts/validate_web.mjs
+          node --check android/app/src/main/assets/prometheus_ai.js
+          (cd agent && node --check server.mjs && node --check evidence.mjs && npm test)
+          (cd server && node --check src/evidence.mjs && node --test tests/evidence.test.mjs)
+
+      - name: Test Python research engine
+        run: |
+          python -m pip install -e "./python_engine[test]"
+          ruff format --check .
+          python -m pytest -q python_engine/tests
+
+      - name: Build Android debug APK
+        run: |
+          npx cap sync android
+          gradle -p android assembleDebug --no-daemon
+
+      - name: Commit formatting-only changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git diff --check
+          if ! git diff --quiet; then
+            git add -A
+            git commit -m "style: apply repository-wide language formatters"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          else
+            echo "All supported files were already formatted."
+          fi
