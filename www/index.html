@@ -1925,6 +1925,34 @@ body{background:var(--ro-bg)!important;color:var(--ro-ink)!important;font-family
 @media(max-width:520px){.ro-top{height:62px;padding:0 12px}.ro-layout{min-height:calc(100dvh - 62px)}.ro-side{top:62px}.ro-brandname{font-size:13px}.ro-brandname small{font-size:7px}.ro-status{font-size:0}.ro-main{padding:20px 12px}.ro-card{padding:15px}.ro-title{font-size:35px}.ro-question{flex-direction:column}.ro-nav{font-size:10px;padding:9px}.ro-nav .ico{display:none}}
 
 .ro-plot-wrap{position:relative;margin-top:12px}.ro-plot{display:block;width:100%;height:280px;border:1px solid var(--ro-line);border-radius:10px;background:linear-gradient(180deg,#f8fbfc,#fff)}.ro-plot-controls{display:flex;align-items:center;gap:12px;margin-top:12px}.ro-plot-controls label{font-size:10px;color:var(--ro-muted);white-space:nowrap}.ro-plot-controls input{width:100%;accent-color:#176b87}.ro-plot-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.ro-plot-key{font-size:10px;color:var(--ro-muted);display:flex;align-items:center;gap:6px}.ro-plot-key i{width:8px;height:8px;background:#176b87;border-radius:50%;display:inline-block}.ro-plot-key:nth-child(2) i{background:#c38c43}.ro-dark .ro-plot{background:linear-gradient(180deg,#152630,#101b22)}
+
+/* Mobile QA hotfix: render only the Research Observatory, never the legacy shell beneath it. */
+#root{display:none!important}#stars{display:none!important}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+#ro-app{width:100%;min-height:100dvh;overflow-x:clip}
+.ro-layout,.ro-main,.ro-grid,.ro-card{min-width:0}
+.ro-side{scroll-snap-type:x proximity;overscroll-behavior-x:contain;max-width:100vw}
+.ro-nav{scroll-snap-align:start;flex-shrink:0}
+.ro-input,.ro-select{box-sizing:border-box;max-width:100%;min-width:0;width:100%}
+.ro-question{display:flex;gap:8px;min-width:0}
+.ro-question .ro-input{flex:1}
+.ro-worksheet-fields{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px}
+.ro-worksheet-fields>*{min-width:0}
+.ro-plot{height:280px;max-width:100%;touch-action:pan-y}
+.ro-plot-wrap{width:100%;min-width:0}
+@media(max-width:600px){
+ .ro-worksheet-fields{grid-template-columns:minmax(0,1fr)!important}
+ .ro-plot{height:245px}
+ .ro-card{padding:14px}
+ .ro-main{padding:16px 10px}
+ .ro-nav{font-size:11px;padding:9px 10px}
+ .ro-side{overflow-x:auto;touch-action:pan-x}
+ .ro-status{gap:6px}
+ .ro-status .ro-btn{padding:7px 9px;min-height:34px}
+ .ro-title{overflow-wrap:anywhere}
+ .ro-plot-legend{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+}
+
 </style>
 <div id="ro-app" aria-label="PROMETHEUS Research Observatory">
 <header class="ro-top"><div class="ro-brand"><div class="ro-mark">✳</div><div class="ro-brandname">PROMETHEUS<small>RESEARCH OBSERVATORY · MICROGRAVITY COMBUSTION</small></div></div><div class="ro-status"><span class="ro-dot"></span>LOCAL EVIDENCE INDEX <button class="ro-btn" id="ro-theme">◐ Theme</button></div></header>
@@ -1943,7 +1971,7 @@ function row(title,sub,action){var r=el('div','ro-row'),l=el('div');l.append(el(
 function source(id){return(ds.sources||[]).filter(function(s){return s.source_id===id})[0]}
 function header(k,t,d){var h=el('div','ro-head'),l=el('div');l.append(el('div','ro-kicker',k),el('h1','ro-title',t),el('p','ro-lead',d));h.append(l);return h}
 function metric(n,label,sub){var c=card();c.append(el('div','ro-metric',String(n)),el('div','ro-metric-label',label));if(sub)c.append(el('p','',sub));return c}
-function go(v){view=v;document.querySelectorAll('.ro-nav').forEach(function(b){b.classList.toggle('active',b.dataset.roView===v)});render();try{history.replaceState({ro:v},'','#ro-'+v)}catch(e){}}
+function go(v){view=v;document.querySelectorAll('.ro-nav').forEach(function(b){b.classList.toggle('active',b.dataset.roView===v)});render();var active=document.querySelector('.ro-nav.active');if(active&&window.matchMedia('(max-width:900px)').matches)active.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});try{history.replaceState({ro:v},'','#ro-'+v)}catch(e){}}
 function inspect(id){selected=id;go('evidence')}
 function ask(q){
 q=(q||'').trim();if(!q)return;
@@ -2044,7 +2072,7 @@ if(!plotData.length){c.fillStyle='#6b7a83';c.font='12px system-ui';c.fillText('N
 }
 rotate.addEventListener('input',drawPlot);if(typeof ResizeObserver!=='undefined')new ResizeObserver(drawPlot).observe(canvas);else window.addEventListener('resize',drawPlot);drawPlot();
 var plotList=el('div','');plotData.forEach(function(p){plotList.append(row(p.id,p.title+' · O₂ '+p.o2raw+' · flow '+p.flowraw+' '+(p.flowunit||'')+' · burn '+p.burnraw+' s',btn('Inspect record',function(){inspect(p.id)},'soft')))});plotCard.append(plotList);
-var w=card('What-if worksheet','ro-span-12');w.append(el('p','','Record a hypothetical question. This worksheet does not calculate flame behaviour.'));var form=el('form','ro-grid');form.style.gridTemplateColumns='repeat(3,minmax(0,1fr))';var fields=[];['Fuel / material','Oxygen (%)','Pressure (kPa)','Gravity regime','Flow velocity and unit','Research question'].forEach(function(t){var i=el('input','ro-input');i.placeholder=t;fields.push(i);form.append(i)});var note=el('div','ro-note','No scenario note recorded.');function recordScenario(){note.textContent='SCENARIO NOTE — NOT A SIMULATION: '+fields.map(function(f){return f.value.trim()?f.placeholder+': '+f.value.trim():''}).filter(Boolean).join(' · ')+'. These inputs have not been physically simulated or validated.'}form.append(btn('Record scenario note',recordScenario,'primary'));form.addEventListener('submit',function(e){e.preventDefault();recordScenario()});w.append(form,note);g.append(w);host.append(g)
+var w=card('What-if worksheet','ro-span-12');w.append(el('p','','Record a hypothetical question. This worksheet does not calculate flame behaviour.'));var form=el('form','ro-worksheet-fields');var fields=[];['Fuel / material','Oxygen (%)','Pressure (kPa)','Gravity regime','Flow velocity and unit','Research question'].forEach(function(t){var i=el('input','ro-input');i.placeholder=t;fields.push(i);form.append(i)});var note=el('div','ro-note','No scenario note recorded.');function recordScenario(){note.textContent='SCENARIO NOTE — NOT A SIMULATION: '+fields.map(function(f){return f.value.trim()?f.placeholder+': '+f.value.trim():''}).filter(Boolean).join(' · ')+'. These inputs have not been physically simulated or validated.'}form.append(btn('Record scenario note',recordScenario,'primary'));form.addEventListener('submit',function(e){e.preventDefault();recordScenario()});w.append(form,note);g.append(plotCard);g.append(w);host.append(g)
 }
 function agent(){
 host.append(header('PROMETHEUS AI','Scientific questions, traceable answers','Ask the agent to retrieve evidence, compare records, or explain uncertainty. The indexed corpus is a seed subset, not the complete NASA PSI archive.'));
