@@ -1959,7 +1959,37 @@ var routes=card('Continue your investigation','ro-span-12');[['NASA Evidence Exp
 function evidence(){
 host.append(header('NASA EVIDENCE EXPLORER','Inspect the record, not just the result','Search indexed experiment records. Open a record to inspect reported conditions, observation descriptions, source IDs and locators.'));
 var c=card('Indexed experiment records'),search=el('input','ro-input');search.placeholder='Search experiment, fuel, source, phenomenon…';search.value=query;var list=el('div','');c.append(search,list);host.append(c);
-function fill(){list.replaceChildren();var arr=(ds.experiments||[]).filter(function(e){return !search.value||JSON.stringify(e).toLowerCase().indexOf(search.value.toLowerCase())>=0});if(!arr.length){list.append(el('p','','No matching indexed record.'));return}arr.forEach(function(e){list.append(row(e.title,e.exp_id+' · '+(e.platform||'Platform not reported')+' · '+(e.fuel||'Fuel not reported'),btn(selected===e.exp_id?'Selected':'Inspect',function(){selected=e.exp_id;fill()},'soft')));if(selected===e.exp_id){var d=card('Record details');d.append(el('span','ro-pill','NASA REPORTED'),el('p','',e.text||'No narrative text attached.'));Object.entries(e.conditions||{}).forEach(function(x){var v=x[1];d.append(row(x[0],(v.value||'Unknown')+' '+(v.unit||'')+' · '+(v.source_id||'')+' · '+(v.locator||'')+(v.canonical_note?' · '+v.canonical_note:'')))});d.append(el('h3','','Reported observations'));(e.observations||[]).forEach(function(o){d.append(row(o.phenomenon||'Observation',(o.description||'')+(o.measurement?' · '+o.measurement.value+' '+o.measurement.unit:'')+' · '+(o.source_id||'')+' '+(o.locator||'')))});(e.source_ids||[]).forEach(function(id){var s=source(id);if(s&&s.url){var a=el('a','ro-btn soft','Open source ↗');a.href=s.url;a.target='_blank';a.rel='noopener noreferrer';d.append(a)}});list.append(d)}}}
+function fill(){
+list.replaceChildren();
+var arr=(ds.experiments||[]).filter(function(e){return !search.value||JSON.stringify(e).toLowerCase().indexOf(search.value.toLowerCase())>=0});
+if(!arr.length){list.append(el('p','','No matching indexed record.'));return}
+arr.forEach(function(e){
+var inspectButton=btn(selected===e.exp_id?'Selected':'Inspect',function(){selected=e.exp_id;fill()},'soft');
+list.append(row(e.title,e.exp_id+' · '+(e.platform||'Platform not reported')+' · '+(e.fuel||'Fuel not reported'),inspectButton));
+if(selected!==e.exp_id)return;
+var d=card('Record details');
+d.append(el('span','ro-pill','NASA REPORTED'));
+d.append(el('p','',e.text||'No narrative text attached.'));
+Object.entries(e.conditions||{}).forEach(function(pair){
+var key=pair[0],v=pair[1];
+var summary=(v.value||'Unknown')+' '+(v.unit||'')+' · '+(v.source_id||'')+' · '+(v.locator||'');
+if(v.canonical_note)summary+=' · '+v.canonical_note;
+d.append(row(key,summary));
+});
+d.append(el('h3','','Reported observations'));
+(e.observations||[]).forEach(function(o){
+var summary=o.description||'';
+if(o.measurement)summary+=' · '+o.measurement.value+' '+o.measurement.unit;
+summary+=' · '+(o.source_id||'')+' '+(o.locator||'');
+d.append(row(o.phenomenon||'Observation',summary));
+});
+(e.source_ids||[]).forEach(function(id){
+var src=source(id);
+if(src&&src.url){var link=el('a','ro-btn soft','Open source ↗');link.href=src.url;link.target='_blank';link.rel='noopener noreferrer';d.append(link)}
+});
+list.append(d);
+});
+}
 search.addEventListener('input',function(){query=search.value;fill()});fill()
 }
 function intelligence(){
