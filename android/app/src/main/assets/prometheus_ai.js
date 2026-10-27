@@ -598,8 +598,8 @@
     const explicit=findSourcesInQuestion(q); explicit.forEach(x=>ids.add(x));
 
     if(OUTSIDE.test(low) && !NASA_TERMS.has(ws[0])) {
-      audit.push("Topic gate: outside NASA combustion scope","Abstention gate: PASS");
-      return {title:"AI · Scope boundary",text:"I can help with NASA microgravity combustion, spacecraft fire safety, the loaded NASA PSI investigations, experiment comparison, evidence gaps, and evidence-grounded mission scenarios. I will not invent an answer from general web knowledge for an unrelated topic. If you want, reframe the question around NASA combustion evidence.",evidence:"UNKNOWN · NASA-only mode",score:.99,ids:[...ids],audit,visual};
+      audit.push("Topic gate: outside NASA combustion scope","Offline general-knowledge model: not configured","Abstention gate: PASS");
+      return {title:"AI · General question",text:"This build's offline brain is specialized for NASA microgravity-combustion evidence, so it cannot reliably answer an unrelated question by itself. <b>To ask general questions:</b> open the AI controls and choose <b>Enable Cloud AI</b>, then enter a trusted PROMETHEUS-compatible agent endpoint. Your question and recent conversation will leave this device only after you explicitly enable it. If you want to stay fully offline, I can still help with experiment comparisons, source tracing, definitions grounded in the loaded corpus, evidence gaps, and research planning. I won't present unrelated or guessed information as verified fact.",evidence:"UNKNOWN · general answer unavailable offline",score:.99,ids:[...ids],audit,visual};
     }
 
     if(/logic|logically|illogical|nonsense|impossible|contradiction|paradox/.test(low)) {
