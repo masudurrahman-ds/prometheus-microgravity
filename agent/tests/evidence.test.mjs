@@ -145,3 +145,12 @@ test("numeric values attributed only to metadata sources are not promoted to NAS
   assert.equal(r.evidence_state, "UNKNOWN");
   assert.equal(r.record_class, "metadata_only");
 });
+
+
+test("dataset analysis excludes values without a usable source locator", () => {
+  const burns = analyzeDataset("distribution", "burn_duration");
+  assert.ok(burns.rows.every(row => row.source_id && row.locator));
+  const conditions = analyzeDataset("distribution", "flow_velocity_mm_s");
+  assert.ok(conditions.rows.every(row => row.source_id && row.locator));
+  assert.ok(burns.rows.every(row => Number.isFinite(row.y)));
+});
