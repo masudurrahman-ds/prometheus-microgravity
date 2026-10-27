@@ -846,9 +846,10 @@
   }
 
   function restoreConversation(){
+    // Keep prior turns available to follow-up resolution, but never inject an old
+    // transcript into a fresh chat view. This avoids stale/prompt-like answers
+    // appearing before the user asks a new question.
     saveMemory();
-    if(body.childElementCount || !conversationMemory.length)return;
-    recentMemory(8).forEach(x=>add(x.role==="user"?"user":"ai",x.title||"AI · Recalled context",esc(x.text),x.evidence||null,.86,x.ids||[],["Restored from local device memory"]));
   }
   // The AI orb and assistant card are both draggable so they can be moved away
   // from Research controls and content. Clamp the panel inside the visible viewport.
@@ -905,7 +906,7 @@
   window.addEventListener("pointercancel",endDrag);
   window.addEventListener("resize",()=>{restorePositions();});
   restorePositions();
-  function openAI(){panel.classList.add("open");document.body.classList.add("pm-ai-fullscreen-open");if(!body.childElementCount){readyMessage();restoreConversation();}input.focus();}
+  function openAI(){panel.classList.add("open");document.body.classList.add("pm-ai-fullscreen-open");if(!body.childElementCount){readyMessage();}input.focus();}
   function closeAI(){panel.classList.remove("open");document.body.classList.remove("pm-ai-fullscreen-open");}
   // Native Android Back asks this handler first. Return true only when chat consumes Back.
   window.__prometheusBack = function(){if(panel.classList.contains("open")){closeAI();return true;}return false;};
