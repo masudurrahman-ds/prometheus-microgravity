@@ -21,7 +21,7 @@ test("documented configurations without numeric outcome measurements are not lab
   const r = getExperiment("PSI107-MET-low");
   assert.equal(r.evidence_state, "UNKNOWN");
   assert.equal(r.record_class, "documented_configuration");
-  assert.match(r.evidence_state_note, /no indexed numeric outcome measurement/i);
+  assert.match(r.evidence_state_note, /no provenance-qualified numeric outcome measurement/i);
 });
 
 test("search results carry the same evidence classification as exact lookup", () => {
