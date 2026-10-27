@@ -1953,6 +1953,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
  .ro-plot-legend{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
 }
 
+
+/* AI UX correction: no floating orb over the research interface. The AI is launched from its workspace. */
+#pm-ai-fab{display:none!important}
+#pm-ai-panel{z-index:9999}
 </style>
 <div id="ro-app" aria-label="PROMETHEUS Research Observatory">
 <header class="ro-top"><div class="ro-brand"><div class="ro-mark">✳</div><div class="ro-brandname">PROMETHEUS<small>RESEARCH OBSERVATORY · MICROGRAVITY COMBUSTION</small></div></div><div class="ro-status"><span class="ro-dot"></span>LOCAL EVIDENCE INDEX <button class="ro-btn" id="ro-theme">◐ Theme</button></div></header>
@@ -2076,8 +2080,8 @@ var w=card('What-if worksheet','ro-span-12');w.append(el('p','','Record a hypoth
 }
 function agent(){
 host.append(header('PROMETHEUS AI','Scientific questions, traceable answers','Ask the agent to retrieve evidence, compare records, or explain uncertainty. The indexed corpus is a seed subset, not the complete NASA PSI archive.'));
-var c=card('Research workspace','ro-span-12');c.append(el('span','ro-pill','LOCAL EVIDENCE INDEX'),el('p','','Start with a specific research question. The local evidence assistant can answer from indexed records. Cloud AI, if configured, requires explicit consent.'));
-var form=el('form','ro-question'),q=el('input','ro-input');q.placeholder='Ask about an experiment, parameter, comparison, or evidence gap…';form.append(q,btn('Ask PROMETHEUS →',function(){ask(q.value)},'primary'));form.addEventListener('submit',function(e){e.preventDefault();ask(q.value)});c.append(form);
+var c=card('Research workspace','ro-span-12');c.append(el('span','ro-pill','EVIDENCE-GROUNDED · HYBRID-READY'),el('p','','Ask research questions here. For open-ended conversation, use the full assistant below; general-purpose answers require a configured language-model endpoint. NASA evidence claims must remain source-traceable.'),btn('Open conversational AI ↓',function(){if(window.__prometheusAIOpen)window.__prometheusAIOpen();else{var panel=document.getElementById('pm-ai-panel');if(panel)panel.classList.add('open')}},'primary'));
+var form=el('form','ro-question'),q=el('input','ro-input');q.placeholder='Ask about NASA combustion evidence, comparisons, or missing data…';form.append(q,btn('Ask evidence agent →',function(){ask(q.value)},'primary'));form.addEventListener('submit',function(e){e.preventDefault();ask(q.value)});c.append(form);
 var g=el('div','ro-grid'),suggest=card('Suggested investigations','ro-span-6'),response=card('Agent response','ro-span-6');[['Compare SAFFIRE-I burn durations','Compare the reported burn durations for PSI98-S1 and PSI98-S2, with source limitations.'],['Evidence about soot','Summarize indexed evidence on soot and smoke-point investigations.'],['Data gaps','Which variables have the lowest coverage in this seed corpus?']].forEach(function(x){suggest.append(row(x[0],'Evidence-first prompt',btn('Ask',function(){q.value=x[1];ask(x[1])},'soft')))});response.append(el('div','ro-response','Your answer will appear here when the local evidence agent returns it.'));response.dataset.roResponse='';g.append(suggest,response);host.append(c,g);var n=el('div','ro-note','Guardrails: no invented measurements or citations; proxy values remain labelled; comparisons are not causal proof; missing evidence is stated explicitly.');n.style.marginTop='14px';host.append(n)
 }
 function safety(){
