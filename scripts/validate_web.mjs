@@ -6,6 +6,14 @@ const match=html.match(/<script type="application\/json" id="fixture">([\s\S]*?)
 if(!match) throw new Error("fixture script missing");
 const fixture=JSON.parse(match[1]);
 if(!fixture.dataset_id || !Array.isArray(fixture.experiments) || !Array.isArray(fixture.sources)) throw new Error("invalid PROMETHEUS fixture schema");
+const observatoryViews=["overview","evidence","intelligence","lab","agent","safety","sources"];
+if(!html.includes('id="prometheus-observatory-redesign"') || !html.includes('id="ro-app"')) throw new Error("Research Observatory interface shell missing");
+for(const view of observatoryViews) if(!html.includes('data-ro-view="'+view+'"')) throw new Error("Research Observatory navigation destination missing: "+view);
+if(!html.includes("function resetLabFormToBaseline(ds = S.ds)")) throw new Error("virtual-lab recorded-baseline reset helper missing");
+if(!html.includes("function ask(q){") || !html.includes("window.__prometheusAIOpen()")) throw new Error("Research Observatory agent entry point is not connected to PROMETHEUS AI");
+if(!html.includes("@media(max-width:900px)") || !html.includes("@media(max-width:520px)")) throw new Error("Research Observatory mobile layout breakpoints missing");
+if(!html.includes("This worksheet does not calculate flame behaviour.")) throw new Error("laboratory simulation limitation missing");
+if(!html.includes("Differences are not proof of causality.")) throw new Error("causal inference guardrail missing");
 if(!fixture.challenge_sources || fixture.challenge_sources.length < 20) throw new Error("challenge source catalog unexpectedly small");
 const ids=new Set(fixture.sources.map(s=>s.source_id));
 for(const e of fixture.experiments) for(const id of (e.source_ids||[])) if(!ids.has(id)) throw new Error("experiment references unknown source "+id);
