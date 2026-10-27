@@ -42,7 +42,7 @@ function hasProvenancedMeasurement(e) {
   });
 }
 
-function classifyExperiment(e) {
+export function classifyExperiment(e) {
   const hasMeasurement = hasProvenancedMeasurement(e);
   const linkedSources = (e.source_ids || []).map((sourceId) => sourceMap.get(sourceId)).filter(Boolean);
   const metadataOnly = linkedSources.length > 0 && linkedSources.every((s) => s.metadata_only === true);
