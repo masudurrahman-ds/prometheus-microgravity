@@ -14,6 +14,10 @@ if(!html.includes("function ask(q){") || !html.includes("window.__prometheusAIOp
 if(!html.includes("@media(max-width:900px)") || !html.includes("@media(max-width:520px)")) throw new Error("Research Observatory mobile layout breakpoints missing");
 if(!html.includes("This worksheet does not calculate flame behaviour.")) throw new Error("laboratory simulation limitation missing");
 if(!html.includes("Differences are not proof of causality.")) throw new Error("causal inference guardrail missing");
+if(!html.includes("3D evidence space · recorded experiment values")) throw new Error("Combustion Laboratory evidence-space visualization missing");
+if(!html.includes("Records with missing values are excluded, not imputed.")) throw new Error("3D evidence visualization missing-data disclosure missing");
+if(!html.includes("Rotate 3D evidence view")) throw new Error("3D evidence visualization rotation control missing");
+if(!html.includes("flowunit:fl&&fl.unit")) throw new Error("3D evidence plot must retain source-reported flow units");
 if(!fixture.challenge_sources || fixture.challenge_sources.length < 20) throw new Error("challenge source catalog unexpectedly small");
 const ids=new Set(fixture.sources.map(s=>s.source_id));
 for(const e of fixture.experiments) for(const id of (e.source_ids||[])) if(!ids.has(id)) throw new Error("experiment references unknown source "+id);
