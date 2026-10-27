@@ -135,10 +135,16 @@ export function compareExperiments(aid, bid) {
   const a = experiments.find((x) => x.exp_id === aid);
   const b = experiments.find((x) => x.exp_id === bid);
   if (!a || !b) return { error: "Both experiment IDs must exist in indexed NASA corpus." };
+  const sourceA = [...new Set(a.source_ids || [])].sort();
+  const sourceB = [...new Set(b.source_ids || [])].sort();
+  const sameSourceSet = sourceA.length === sourceB.length && sourceA.every((id, i) => id === sourceB[i]);
   return {
     experiment_a: getExperiment(aid),
-    experiment_b: getExperiment(b),
-    causal_warning: "Pairwise differences do not establish causality."
+    experiment_b: getExperiment(bid),
+    causal_warning: "Pairwise differences do not establish causality.",
+    comparability_warning: sameSourceSet
+      ? "Records share the same indexed source, but direct comparison still requires checking variable definitions, units, and experimental conditions."
+      : "Records reference different source sets/investigations. Do not treat values as directly comparable unless definitions, units, methods, and conditions have been harmonized."
   };
 }
 
