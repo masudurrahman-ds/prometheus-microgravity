@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const corpus = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), "../data/prometheus_nasa_psi.json"), "utf8"));
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const corpusPath = path.resolve(moduleDir, "../data/prometheus_nasa_psi.json");
+const corpus = JSON.parse(fs.readFileSync(corpusPath, "utf8"));
 const experiments = corpus.experiments || [];
 const sources = corpus.sources || [];
 const sourceMap = new Map(sources.map((s) => [s.source_id, s]));
@@ -29,10 +32,21 @@ export function hasReportedMeasurement(e) {
   });
 }
 
-function classifyExperiment(e) {
-  const hasMeasurement = hasReportedMeasurement(e);
+function hasProvenancedMeasurement(e) {
+  return (e?.observations || []).some((o) => {
+    const measurement = o?.measurement;
+    if (!measurement || finiteNumericValue(measurement.canonical_value ?? measurement.value) === null) return false;
+    const sourceId = o.source_id;
+    const source = sourceId ? sourceMap.get(sourceId) : null;
+    return Boolean(source && !(source.metadata_only === true) && typeof o.locator === "string" && o.locator.trim());
+  });
+}
+
+export function classifyExperiment(e) {
+  const hasMeasurement = hasProvenancedMeasurement(e);
   const linkedSources = (e.source_ids || []).map((sourceId) => sourceMap.get(sourceId)).filter(Boolean);
   const metadataOnly = linkedSources.length > 0 && linkedSources.every((s) => s.metadata_only === true);
+  const hasNumericButUnprovenanced = hasReportedMeasurement(e) && !hasMeasurement;
   const recordClass = hasMeasurement
     ? "reported_measurements"
     : metadataOnly ? "metadata_only" : "documented_configuration";
@@ -40,8 +54,10 @@ function classifyExperiment(e) {
     evidence_state: hasMeasurement ? "NASA_REPORTED" : "UNKNOWN",
     record_class: recordClass,
     evidence_state_note: hasMeasurement
-      ? "The indexed record contains source-attributed reported measurements; this response does not assert raw instrument-level observation."
-      : "This record contains descriptive metadata or documented conditions but no indexed numeric outcome measurement. Do not treat it as a measured result."
+      ? "The indexed record contains numeric values attributed to a non-metadata source and locator; this does not assert raw instrument-level observation."
+      : hasNumericButUnprovenanced
+        ? "Numeric values exist, but source attribution or a locator is missing/invalid; they are not classified as NASA-reported measurements."
+        : "This record contains descriptive metadata or documented conditions but no provenance-qualified numeric outcome measurement. Do not treat it as a measured result."
   };
 }
 
@@ -119,10 +135,16 @@ export function compareExperiments(aid, bid) {
   const a = experiments.find((x) => x.exp_id === aid);
   const b = experiments.find((x) => x.exp_id === bid);
   if (!a || !b) return { error: "Both experiment IDs must exist in indexed NASA corpus." };
+  const sourceA = [...new Set(a.source_ids || [])].sort();
+  const sourceB = [...new Set(b.source_ids || [])].sort();
+  const sameSourceSet = sourceA.length === sourceB.length && sourceA.every((id, i) => id === sourceB[i]);
   return {
     experiment_a: getExperiment(aid),
-    experiment_b: getExperiment(b),
-    causal_warning: "Pairwise differences do not establish causality."
+    experiment_b: getExperiment(bid),
+    causal_warning: "Pairwise differences do not establish causality.",
+    comparability_warning: sameSourceSet
+      ? "Records share the same indexed source, but direct comparison still requires checking variable definitions, units, and experimental conditions."
+      : "Records reference different source sets/investigations. Do not treat values as directly comparable unless definitions, units, methods, and conditions have been harmonized."
   };
 }
 
@@ -146,21 +168,30 @@ const VARIABLE_LABELS = {
   burn_duration: {label:"Burn duration", unit:"s"}
 };
 
+function hasUsableProvenance(sourceId, locator) {
+  const source = sourceId ? sourceMap.get(sourceId) : null;
+  return Boolean(source && source.metadata_only !== true &&
+    typeof locator === "string" && locator.trim());
+}
+
 function valueFor(e, variable) {
   if (variable === "burn_duration") {
     const o = (e.observations || []).find(x =>
       /burn|duration/i.test((x.phenomenon || "") + " " + (x.description || "")) &&
-      x.measurement && finiteNumericValue(x.measurement.canonical_value) !== null);
+      x.measurement &&
+      finiteNumericValue(x.measurement.canonical_value ?? x.measurement.value) !== null &&
+      hasUsableProvenance(x.source_id, x.locator));
     return o ? {
-      value:finiteNumericValue(o.measurement.canonical_value), raw:o.measurement.value,
+      value:finiteNumericValue(o.measurement.canonical_value ?? o.measurement.value), raw:o.measurement.value,
       unit:o.measurement.canonical_unit || o.measurement.unit, source_id:o.source_id,
       locator:o.locator, note:""
     } : null;
   }
   const c = e.conditions && e.conditions[variable];
-  if (!c || finiteNumericValue(c.canonical_value) === null) return null;
+  if (!c || finiteNumericValue(c.canonical_value ?? c.value) === null ||
+      !hasUsableProvenance(c.source_id, c.locator)) return null;
   return {
-    value:finiteNumericValue(c.canonical_value), raw:c.value, unit:c.canonical_unit || c.unit,
+    value:finiteNumericValue(c.canonical_value ?? c.value), raw:c.value, unit:c.canonical_unit || c.unit,
     source_id:c.source_id, locator:c.locator, note:c.canonical_note || ""
   };
 }

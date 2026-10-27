@@ -24,7 +24,9 @@ Optional hardening settings:
 - `MAX_TOOL_ROUNDS=8`
 - `MAX_BODY_BYTES=65536`
 - `RATE_LIMIT_PER_MINUTE=20`
-- `ALLOWED_ORIGIN=https://your-app.example`
+- `ALLOWED_ORIGIN=https://your-app.example` (required for browser-based cross-origin clients; no wildcard origin is enabled by default)
+- `REQUEST_TIMEOUT_MS=45000` (upstream inference timeout, bounded to 5–120 seconds)
+- `TRUST_PROXY=true` only when the service is behind a trusted proxy that overwrites `X-Forwarded-For`
 
 ## API
 
@@ -40,7 +42,7 @@ Request:
 }
 ```
 
-The server refuses cloud inference without explicit consent and never receives an API key from the client.
+The server refuses cloud inference without explicit consent and never receives an API key from the client. Requests are bounded by message/history limits, tool arguments are validated again before execution, upstream inference calls time out, and proxy headers are ignored unless `TRUST_PROXY=true`. Configure a specific `ALLOWED_ORIGIN` for browser clients; do not use a wildcard in production.
 
 ## Scientific boundary
 

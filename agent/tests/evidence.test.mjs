@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset, hasReportedMeasurement, finiteNumericValue } from "../evidence.mjs";
+import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset, hasReportedMeasurement, finiteNumericValue, classifyExperiment } from "../evidence.mjs";
 
 test("NASA corpus search returns provenance", () => {
   const r = searchNasaEvidence("SAFFIRE S1 burn duration");
@@ -21,7 +21,7 @@ test("documented configurations without numeric outcome measurements are not lab
   const r = getExperiment("PSI107-MET-low");
   assert.equal(r.evidence_state, "UNKNOWN");
   assert.equal(r.record_class, "documented_configuration");
-  assert.match(r.evidence_state_note, /no indexed numeric outcome measurement/i);
+  assert.match(r.evidence_state_note, /no provenance-qualified numeric outcome measurement/i);
 });
 
 test("search results carry the same evidence classification as exact lookup", () => {
@@ -40,9 +40,12 @@ test("source lookup is explicitly source metadata, not an observation", () => {
   assert.match(r.evidence_state_note, /not an experiment measurement/i);
 });
 
-test("comparison explicitly blocks causal inference", () => {
-  const r = compareExperiments("PSI98-S1", "PSI98-S2");
-  assert.match(r.causal_warning, /do not establish causality/i);
+test("comparison explicitly blocks causal inference and qualifies comparability", () => {
+  const sameInvestigation = compareExperiments("PSI98-S1", "PSI98-S2");
+  assert.match(sameInvestigation.causal_warning, /do not establish causality/i);
+  assert.match(sameInvestigation.comparability_warning, /same indexed source/i);
+  const crossInvestigation = compareExperiments("PSI98-S1", "PSI107-MET-low");
+  assert.match(crossInvestigation.comparability_warning, /different source sets/i);
 });
 
 test("unknown experiment cannot fabricate evidence", () => {
@@ -121,4 +124,33 @@ test("evidence search ranks experiment IDs and scientific fields above incidenta
 test("evidence search ignores stop-word-only queries and normalizes separators", () => {
   assert.equal(searchNasaEvidence("why is it in the").matches.length, 0);
   assert.equal(searchNasaEvidence("PSI98 S1", 20).matches[0]?.exp_id, "PSI98-S1");
+});
+
+
+test("numeric values without a source locator are not promoted to NASA-reported evidence", () => {
+  const r = classifyExperiment({
+    source_ids: ["PSI-98"],
+    observations: [{ source_id: "PSI-98", phenomenon: "burn_duration", measurement: { value: "99", unit: "s", canonical_value: 99, canonical_unit: "s" } }]
+  });
+  assert.equal(r.evidence_state, "UNKNOWN");
+  assert.equal(r.record_class, "documented_configuration");
+  assert.match(r.evidence_state_note, /locator is missing\/invalid/i);
+});
+
+test("numeric values attributed only to metadata sources are not promoted to NASA-reported evidence", () => {
+  const r = classifyExperiment({
+    source_ids: ["NASA-FLARE"],
+    observations: [{ source_id: "NASA-FLARE", locator: "catalogue page", phenomenon: "burn_duration", measurement: { value: "99", unit: "s", canonical_value: 99, canonical_unit: "s" } }]
+  });
+  assert.equal(r.evidence_state, "UNKNOWN");
+  assert.equal(r.record_class, "metadata_only");
+});
+
+
+test("dataset analysis excludes values without a usable source locator", () => {
+  const burns = analyzeDataset("distribution", "burn_duration");
+  assert.ok(burns.rows.every(row => row.source_id && row.locator));
+  const conditions = analyzeDataset("distribution", "flow_velocity_mm_s");
+  assert.ok(conditions.rows.every(row => row.source_id && row.locator));
+  assert.ok(burns.rows.every(row => Number.isFinite(row.y)));
 });
