@@ -1,13 +1,26 @@
 import http from "node:http";
 import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset } from "./evidence.mjs";
 
-const PORT = Number(process.env.PORT || 8787);
+function integerEnv(name, fallback, min, max) {
+  const raw = process.env[name];
+  if (raw === undefined || raw.trim() === "") return fallback;
+  const parsed = Number(raw);
+  if (!Number.isSafeInteger(parsed)) {
+    console.warn(`Invalid ${name}; using default ${fallback}.`);
+    return fallback;
+  }
+  const bounded = Math.min(max, Math.max(min, parsed));
+  if (bounded !== parsed) console.warn(`${name} is outside its supported range; clamped to ${bounded}.`);
+  return bounded;
+}
+
+const PORT = integerEnv("PORT", 8787, 1, 65535);
 const MODEL = process.env.PROMETHEUS_MODEL;
-const MAX_ROUNDS = Number(process.env.MAX_TOOL_ROUNDS || 8);
-const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 65536);
+const MAX_ROUNDS = integerEnv("MAX_TOOL_ROUNDS", 8, 1, 8);
+const MAX_BODY_BYTES = integerEnv("MAX_BODY_BYTES", 65536, 1024, 1048576);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "";
-const REQUEST_TIMEOUT_MS = Math.min(120000, Math.max(5000, Number(process.env.REQUEST_TIMEOUT_MS || 45000)));
-const RATE_LIMIT = Math.min(120, Math.max(1, Number(process.env.RATE_LIMIT_PER_MINUTE || 20)));
+const REQUEST_TIMEOUT_MS = integerEnv("REQUEST_TIMEOUT_MS", 45000, 5000, 120000);
+const RATE_LIMIT = integerEnv("RATE_LIMIT_PER_MINUTE", 20, 1, 120);
 const TRUST_PROXY = process.env.TRUST_PROXY === "true";
 const rate = new Map();
 
