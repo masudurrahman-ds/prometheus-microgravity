@@ -168,21 +168,30 @@ const VARIABLE_LABELS = {
   burn_duration: {label:"Burn duration", unit:"s"}
 };
 
+function hasUsableProvenance(sourceId, locator) {
+  const source = sourceId ? sourceMap.get(sourceId) : null;
+  return Boolean(source && source.metadata_only !== true &&
+    typeof locator === "string" && locator.trim());
+}
+
 function valueFor(e, variable) {
   if (variable === "burn_duration") {
     const o = (e.observations || []).find(x =>
       /burn|duration/i.test((x.phenomenon || "") + " " + (x.description || "")) &&
-      x.measurement && finiteNumericValue(x.measurement.canonical_value) !== null);
+      x.measurement &&
+      finiteNumericValue(x.measurement.canonical_value ?? x.measurement.value) !== null &&
+      hasUsableProvenance(x.source_id, x.locator));
     return o ? {
-      value:finiteNumericValue(o.measurement.canonical_value), raw:o.measurement.value,
+      value:finiteNumericValue(o.measurement.canonical_value ?? o.measurement.value), raw:o.measurement.value,
       unit:o.measurement.canonical_unit || o.measurement.unit, source_id:o.source_id,
       locator:o.locator, note:""
     } : null;
   }
   const c = e.conditions && e.conditions[variable];
-  if (!c || finiteNumericValue(c.canonical_value) === null) return null;
+  if (!c || finiteNumericValue(c.canonical_value ?? c.value) === null ||
+      !hasUsableProvenance(c.source_id, c.locator)) return null;
   return {
-    value:finiteNumericValue(c.canonical_value), raw:c.value, unit:c.canonical_unit || c.unit,
+    value:finiteNumericValue(c.canonical_value ?? c.value), raw:c.value, unit:c.canonical_unit || c.unit,
     source_id:c.source_id, locator:c.locator, note:c.canonical_note || ""
   };
 }
