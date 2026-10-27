@@ -1943,7 +1943,24 @@ function header(k,t,d){var h=el('div','ro-head'),l=el('div');l.append(el('div','
 function metric(n,label,sub){var c=card();c.append(el('div','ro-metric',String(n)),el('div','ro-metric-label',label));if(sub)c.append(el('p','',sub));return c}
 function go(v){view=v;document.querySelectorAll('.ro-nav').forEach(function(b){b.classList.toggle('active',b.dataset.roView===v)});render();try{history.replaceState({ro:v},'','#ro-'+v)}catch(e){}}
 function inspect(id){selected=id;go('evidence')}
-function ask(q){q=(q||'').trim();if(!q)return;go('agent');var out=host.querySelector('[data-ro-response]');if(out)out.textContent='Searching local evidence…';var api=window.PROMETHEUS_AI;if(api&&typeof api.ask==='function'){try{var ret=api.ask(q);if(ret&&typeof ret.then==='function')ret.then(function(a){var x=host.querySelector('[data-ro-response]');if(x&&typeof a==='string')x.textContent=a;else if(x&&a)x.textContent=a.answer||a.text||JSON.stringify(a,null,2)}).catch(function(e){var x=host.querySelector('[data-ro-response]');if(x)x.textContent='The agent could not complete this request: '+e.message})}catch(e){if(out)out.textContent='The local agent could not complete this request: '+e.message}}else if(out)out.textContent='The local evidence assistant is not ready. You can still inspect the corpus in NASA Evidence Explorer. Cloud AI requires explicit consent and server configuration.'}
+function ask(q){
+q=(q||'').trim();if(!q)return;
+go('agent');
+var out=host.querySelector('[data-ro-response]');
+if(out)out.textContent='Opening the evidence-grounded research assistant…';
+var input=document.getElementById('pm-ai-input'),form=document.getElementById('pm-ai-form');
+if(window.__prometheusAIOpen&&input&&form){
+window.__prometheusAIOpen();
+input.value=q;
+form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+if(out)out.textContent='Question submitted to PROMETHEUS AI. Its answer, evidence labels and source references appear in the research assistant workspace.';
+return;
+}
+if(window.PROMETHEUS_AI&&typeof window.PROMETHEUS_AI.ask==='function'){
+try{window.PROMETHEUS_AI.ask(q);if(out)out.textContent='Question submitted to the local evidence assistant. Open PROMETHEUS AI to inspect the answer and source references.';return}catch(e){if(out)out.textContent='The local agent could not complete this request: '+e.message;return}
+}
+if(out)out.textContent='The local evidence assistant is not ready. You can still inspect the corpus in NASA Evidence Explorer. Cloud AI requires explicit consent and server configuration.';
+}
 function overview(){
 host.append(header('SCIENTIFIC OVERVIEW','A clearer view of combustion in microgravity','Explore NASA’s indexed combustion research, compare what records actually report, and ask a research question with traceable evidence.'));
 var g=el('div','ro-grid'),es=ds.experiments||[],ss=ds.sources||[],obs=es.filter(function(e){return(e.observations||[]).length}).length;
