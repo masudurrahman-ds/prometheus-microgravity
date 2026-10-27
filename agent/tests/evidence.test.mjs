@@ -40,9 +40,12 @@ test("source lookup is explicitly source metadata, not an observation", () => {
   assert.match(r.evidence_state_note, /not an experiment measurement/i);
 });
 
-test("comparison explicitly blocks causal inference", () => {
-  const r = compareExperiments("PSI98-S1", "PSI98-S2");
-  assert.match(r.causal_warning, /do not establish causality/i);
+test("comparison explicitly blocks causal inference and qualifies comparability", () => {
+  const sameInvestigation = compareExperiments("PSI98-S1", "PSI98-S2");
+  assert.match(sameInvestigation.causal_warning, /do not establish causality/i);
+  assert.match(sameInvestigation.comparability_warning, /same indexed source/i);
+  const crossInvestigation = compareExperiments("PSI98-S1", "PSI107-MET-low");
+  assert.match(crossInvestigation.comparability_warning, /different source sets/i);
 });
 
 test("unknown experiment cannot fabricate evidence", () => {
