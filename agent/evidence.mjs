@@ -32,10 +32,21 @@ export function hasReportedMeasurement(e) {
   });
 }
 
+function hasProvenancedMeasurement(e) {
+  return (e?.observations || []).some((o) => {
+    const measurement = o?.measurement;
+    if (!measurement || finiteNumericValue(measurement.canonical_value ?? measurement.value) === null) return false;
+    const sourceId = o.source_id;
+    const source = sourceId ? sourceMap.get(sourceId) : null;
+    return Boolean(source && !(source.metadata_only === true) && typeof o.locator === "string" && o.locator.trim());
+  });
+}
+
 function classifyExperiment(e) {
-  const hasMeasurement = hasReportedMeasurement(e);
+  const hasMeasurement = hasProvenancedMeasurement(e);
   const linkedSources = (e.source_ids || []).map((sourceId) => sourceMap.get(sourceId)).filter(Boolean);
   const metadataOnly = linkedSources.length > 0 && linkedSources.every((s) => s.metadata_only === true);
+  const hasNumericButUnprovenanced = hasReportedMeasurement(e) && !hasMeasurement;
   const recordClass = hasMeasurement
     ? "reported_measurements"
     : metadataOnly ? "metadata_only" : "documented_configuration";
@@ -43,8 +54,10 @@ function classifyExperiment(e) {
     evidence_state: hasMeasurement ? "NASA_REPORTED" : "UNKNOWN",
     record_class: recordClass,
     evidence_state_note: hasMeasurement
-      ? "The indexed record contains source-attributed reported measurements; this response does not assert raw instrument-level observation."
-      : "This record contains descriptive metadata or documented conditions but no indexed numeric outcome measurement. Do not treat it as a measured result."
+      ? "The indexed record contains numeric values attributed to a non-metadata source and locator; this does not assert raw instrument-level observation."
+      : hasNumericButUnprovenanced
+        ? "Numeric values exist, but source attribution or a locator is missing/invalid; they are not classified as NASA-reported measurements."
+        : "This record contains descriptive metadata or documented conditions but no provenance-qualified numeric outcome measurement. Do not treat it as a measured result."
   };
 }
 
