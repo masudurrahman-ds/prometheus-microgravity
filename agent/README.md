@@ -28,6 +28,8 @@ Optional hardening settings:
 - `REQUEST_TIMEOUT_MS=45000` (upstream inference timeout, bounded to 5–120 seconds)
 - `TRUST_PROXY=true` only when the service is behind a trusted proxy that overwrites `X-Forwarded-For`
 
+Integer settings are validated at startup: invalid values fall back to defaults, and out-of-range values are clamped. Tool rounds are limited to 1–8, request bodies to 1 KiB–1 MiB, rate limits to 1–120 requests per minute, and the port to 1–65535.
+
 ## API
 
 `POST /v1/agent`
