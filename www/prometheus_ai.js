@@ -178,14 +178,6 @@
       updateCloudButton();
     } finally { cloudButton.disabled = false; }
   };
-  updateCloudButton(); UI.toast("Cloud AI disabled · local mode remains available");
-      return;
-    }
-    const endpoint = window.prompt("Enter your PROMETHEUS AI server endpoint. Cloud AI sends your question and recent conversation to this trusted server only after you enable it.", cloudEndpoint() || "https://prometheus-scientific-agent.onrender.com/v1/agent");
-    if (!endpoint) return;
-    try { localStorage.setItem(CLOUD_ENDPOINT_KEY, endpoint.replace(/\/+$/, "")); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
-    updateCloudButton(); UI.toast("Cloud AI enabled with explicit consent");
-  };
   updateCloudButton();
 
   function visualShell(title, subtitle, inner, key) {
