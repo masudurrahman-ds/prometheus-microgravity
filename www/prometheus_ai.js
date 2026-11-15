@@ -1015,9 +1015,9 @@
     }
     panel.scrollIntoView({behavior:"smooth",block:"start"});
   }
-  function closeAI(){panel.classList.remove("open");}
+  function closeAI(){ /* Permanent chat workspace: closing is intentionally disabled. */ }
   // Native Android Back asks this handler first. Return true only when chat consumes Back.
-  window.__prometheusBack = function(){if(panel.classList.contains("open")){closeAI();return true;}return false;};
+  window.__prometheusBack = function(){return false;};
   document.getElementById("pm-ai-clear").onclick=()=>{conversationMemory=[];try{localStorage.removeItem(MEMORY_KEY);}catch(_){}body.replaceChildren();readyMessage();saveMemory();};
 
   panel.querySelector("#pm-ai-close").onclick=closeAI;
@@ -1028,6 +1028,8 @@
   saveMemory();
   window.__prometheusAIStatus = "ready";
   window.__prometheusAIOpen = openAI;
+  document.body.classList.add("pm-ai-fullscreen-open");
+  openAI();
 
   window.PROMETHEUS_AI = {
     version:"3.0.0",
