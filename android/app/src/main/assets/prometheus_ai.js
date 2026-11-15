@@ -90,7 +90,7 @@
     #pm-ai-form{display:flex;gap:7px;padding:12px 15px;border-top:1px solid rgba(255,255,255,.09)}
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
-    #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}\n    .pm-loading:after{content:"";display:inline-block;width:1.1em;text-align:left;animation:pmDots 1.2s steps(4,end) infinite}@keyframes pmDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+    #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}\n    .pm-pipeline{display:grid;gap:8px;color:#aab2c8;font-size:11px;letter-spacing:.02em}.pm-pipeline b{color:#e6cb93;letter-spacing:.08em}.pm-loading:after{content:"";display:inline-block;width:1.1em;text-align:left;animation:pmDots 1.2s steps(4,end) infinite}@keyframes pmDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
     /* Full-screen conversational workspace: no floating mini-window. */
     /* Keep the app-owned chat below Android status icons and above navigation controls. Android WebView often reports zero CSS safe-area insets, so use a conservative status-bar fallback. */
     #pm-ai-panel{position:fixed!important;inset:28px 0 0 0!important;right:0!important;bottom:0!important;left:0!important;top:max(28px,env(safe-area-inset-top,0px))!important;width:100vw!important;height:calc(100vh - 28px)!important;height:calc(100dvh - max(28px,env(safe-area-inset-top,0px)))!important;max-height:none!important;min-height:0!important;border-radius:0!important;border:0!important;z-index:100000!important;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0px);background:#050812;}
@@ -108,8 +108,15 @@
   `;
   style.textContent += "\n" + [
     "#pm-ai-fab{display:none!important}",
-    "#pm-ai-panel{position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:min(calc(100% - 28px),1100px)!important;height:min(72vh,760px)!important;min-height:420px!important;max-height:760px!important;margin:28px auto 42px!important;border-radius:22px!important;border:1px solid rgba(230,203,147,.35)!important;z-index:2!important}",
-    "#pm-ai-panel.open{display:flex!important;position:relative!important}"
+    "#pm-ai-panel{position:fixed!important;inset:max(28px,env(safe-area-inset-top,0px)) 0 0 0!important;width:100vw!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;border-radius:0!important;border:0!important;border-top:1px solid rgba(230,203,147,.28)!important;z-index:100000!important;background:#050812!important;box-shadow:none!important}",
+    "#pm-ai-panel.open{display:flex!important;position:fixed!important}",
+    "#pm-ai-close{display:none!important}",
+    "#pm-ai-head{cursor:default!important;touch-action:pan-y!important}",
+    "#pm-ai-body{width:100%;max-width:980px;margin:0 auto;}",
+    "#pm-ai-form,#pm-ai-suggest{width:100%;max-width:980px;margin-left:auto!important;margin-right:auto!important;}",
+    "#pm-ai-clear{margin-left:max(14px,calc((100vw - 980px)/2))!important}",
+    "body.pm-ai-fullscreen-open{overflow:hidden!important}",
+    "@media(min-width:760px){#pm-ai-panel{inset:0!important}#pm-ai-panel #pm-ai-head{padding-top:24px!important}}"
   ].join("\n");
   document.head.appendChild(style);
 
@@ -281,7 +288,7 @@
     if(asksForPie) {
       const field=/platform|spacecraft|iss/.test(low)?"platform":"fuel";
       const counts=new Map();
-      rs.forEach(record=>{const label=String(record[field]||"Not specified");counts.set(label,(counts.get(label)||0)+1);});
+      rs.forEach(record=>{const label=String(record[field]||record.source_id||"Source not recorded");counts.set(label,(counts.get(label)||0)+1);});
       const ranked=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y);
       const rows=ranked.length>6?[...ranked.slice(0,5),{label:"Other",y:ranked.slice(5).reduce((sum,row)=>sum+row.y,0)}]:ranked;
       if(rows.length) return visualShell("Retrieved record composition by "+field,"DERIVED · counts of retrieved records, not combustion outcomes",pieChartSVG(rows,"NASA indexed records by "+field),"pie");
@@ -326,11 +333,11 @@
     }
 
     if(asksForVisual && !metric && !asksForComparison) {
-      const field=/platform|spacecraft|iss/.test(low)?"platform":/source|investigation/.test(low)?"fuel_source":"fuel";
+      const field=/platform|spacecraft|iss/.test(low)?"platform":"source_id";
       const counts=new Map();
       rs.forEach(record=>{const label=String(record[field]||"Not specified");counts.set(label,(counts.get(label)||0)+1);});
       const rows=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y).slice(0,12);
-      if(rows.length) return visualShell("NASA indexed records by "+field,"DERIVED · record counts; not measured combustion outcomes",barChartSVG(rows,"Records","Distribution of indexed records"),"count");
+      if(rows.length) return visualShell("NASA indexed experiments by investigation source","DERIVED · count of retrieved records by NASA PSI source; not combustion outcomes",barChartSVG(rows,"Experiment records","NASA PSI investigation distribution"),"count");
     }
 
     if(asksForVisual && asksForComparison) {
@@ -932,9 +939,8 @@
     return el;
   }
 
-  function ask(q) {
-    q=q.trim(); if(!q)return;
-    // Do not answer from the seed subset while the expanded local PSI tables load.
+  async function ask(q) {
+    q=String(q||"").trim(); if(!q)return;
     if(window.__prometheusDatasetReady && !window.__prometheusDatasetReadyComplete) {
       input.disabled=true;
       window.__prometheusDatasetReady.then(()=>{input.disabled=false;ask(q);});
@@ -943,16 +949,33 @@
     rememberTurn({role:"user",text:q});
     add("user","YOU",esc(q),null,null,null,[]);
     input.disabled=true;
+    const send=panel.querySelector("#pm-ai-send");
+    if(send)send.disabled=true;
+    const stage=document.createElement("div");
+    stage.className="pm-msg ai";
+    stage.innerHTML='<div class="pm-meta">PROMETHEUS · RESEARCH PIPELINE</div><div class="pm-answer"><div class="pm-pipeline"><div>① <b>THINK</b> · classify the question and identify the required evidence</div><div class="pm-loading">② <b>FETCH NASA DATA</b> · querying the locally cached, provenance-linked NASA PSI corpus</div><div>③ <b>RESPONSE</b> · waiting for evidence synthesis and visualization</div></div></div>';
+    body.appendChild(stage);
+    body.scrollTop=body.scrollHeight;
     try {
+      await new Promise(resolve=>setTimeout(resolve,90));
+      const rs=records(), ss=sources();
+      stage.querySelector(".pm-pipeline").innerHTML=
+        '<div>✓ <b>THINK</b> · question classified; NASA combustion scope selected</div>'+
+        '<div class="pm-loading">② <b>FETCH NASA DATA</b> · searching '+rs.length+' indexed records across '+ss.length+' source entries</div>'+
+        '<div>③ <b>RESPONSE</b> · synthesizing evidence and rendering requested visuals</div>';
+      await new Promise(resolve=>setTimeout(resolve,90));
       const a=answer(q);
+      stage.remove();
       rememberTurn({role:"assistant",text:a.text,title:a.title,evidence:a.evidence,ids:a.ids||[]});
       add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[],a.visual||"",a.visual3d||"");
     } catch(e) {
+      stage.remove();
       const safe="The local reasoning engine encountered an internal error. No unsupported answer was generated. Please rephrase the question; your conversation memory is preserved locally.";
       rememberTurn({role:"assistant",text:safe,title:"AI · Safe failure",evidence:"UNKNOWN"});
       add("ai","AI · Safe failure",safe,"UNKNOWN",0,[],["Exception trapped","Local answer gate: BLOCKED"]);
     } finally {
       input.disabled=false;
+      if(send)send.disabled=false;
       input.focus();
       saveMemory();
     }
