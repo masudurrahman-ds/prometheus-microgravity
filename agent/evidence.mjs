@@ -5,8 +5,20 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const corpusPath = path.resolve(moduleDir, "../data/prometheus_nasa_psi.json");
 const corpus = JSON.parse(fs.readFileSync(corpusPath, "utf8"));
-const experiments = corpus.experiments || [];
-const sources = corpus.sources || [];
+const extraDir = path.resolve(moduleDir, "../www/data/psi_records");
+const extraFiles = fs.existsSync(extraDir)
+  ? fs.readdirSync(extraDir).filter((name) => /^PSI-\\d+\\.json$/.test(name)).sort()
+  : [];
+const extraRecords = extraFiles.flatMap((name) => {
+  const parsed = JSON.parse(fs.readFileSync(path.join(extraDir, name), "utf8"));
+  return Array.isArray(parsed) ? parsed : [];
+});
+const extraSourcesPath = path.join(extraDir, "sources.json");
+const extraSources = fs.existsSync(extraSourcesPath)
+  ? JSON.parse(fs.readFileSync(extraSourcesPath, "utf8"))
+  : [];
+const experiments = [...(corpus.experiments || []), ...extraRecords];
+const sources = [...(corpus.sources || []), ...extraSources];
 const sourceMap = new Map(sources.map((s) => [s.source_id, s]));
 
 const sourceView = (s) => s ? ({
