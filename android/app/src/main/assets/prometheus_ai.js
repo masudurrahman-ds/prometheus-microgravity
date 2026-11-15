@@ -145,7 +145,6 @@
   document.body.appendChild(panel);
 
   const body = panel.querySelector("#pm-ai-body");
-  const cloudButton = null;
   function visualShell(title, subtitle, inner, key) {
     const id="pmv-"+Math.random().toString(36).slice(2,9);
     return '<div class="pm-visual" id="'+id+'"><div class="pm-visual-head"><span>'+esc(title)+'</span><span>'+esc(subtitle||"NASA data")+'</span></div>'+inner+
@@ -393,6 +392,27 @@
   };
   const esc = s => String(s == null ? "" : s).replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
   const words = q => q.toLowerCase().replace(/[^a-z0-9_\-./% ]/g," ").split(/\s+/).filter(w=>w && !STOP.has(w));
+  const QUERY_ALIASES = [
+    [/\\b(?:o2|oxygen|oxidizer|oxidant)\\b/i, "oxygen o2 oxygen_fraction oxidizer"],
+    [/\\b(?:microgravity|low.?g|reduced gravity|freefall|weightless)\\b/i, "microgravity gravity_g freefall low-g"],
+    [/\\b(?:pressure|pressur|atm|atmosphere|kpa)\\b/i, "pressure pressure_kpa atmosphere atm"],
+    [/\\b(?:flow|velocity|co.?flow|airflow)\\b/i, "flow flow_velocity_mm_s velocity coflow"],
+    [/\\b(?:burn|burning|combustion|flame|ignition|extinction|extinguish)\\b/i, "burn combustion flame burn_duration ignition extinction"],
+    [/\\b(?:spread|propagation|flame front)\\b/i, "flame spread propagation flame_spread"],
+    [/\\b(?:smoke|soot|smoke point)\\b/i, "smoke soot smoke_point"],
+    [/\\b(?:pmma|polymethyl methacrylate|solid fuel)\\b/i, "pmma solid fuel polymethyl methacrylate"],
+    [/\\b(?:droplet|liquid fuel|fuel droplet)\\b/i, "droplet liquid fuel droplet burning"],
+    [/\\b(?:saffire|saffire.?i|spacecraft fire safety)\\b/i, "saffire spacecraft fire safety psi98"],
+    [/\\b(?:flex|flame extinguishment experiment)\\b/i, "flex flame extinguishment droplet extinction"],
+    [/\\b(?:bass.?ii|burning and suppression of solids)\\b/i, "bass bass-ii solid burning suppression"]
+  ];
+  function expandQuestionAliases(question) {
+    const text=String(question||"");
+    const extra=[];
+    QUERY_ALIASES.forEach(([pattern,terms])=>{if(pattern.test(text))extra.push(terms);});
+    return extra.length ? text+" "+extra.join(" ") : text;
+  }
+
   const srcFor = id => sources().find(s=>s.source_id===id) || null;
   const srcIds = e => Array.isArray(e.source_ids) ? e.source_ids : [];
   const condition = (e,k) => e && e.conditions && e.conditions[k] ? e.conditions[k] : null;
@@ -563,7 +583,7 @@
 
   // Offline-first intent layer. Phrase aliases compose into broad coverage without a brittle prompt dump.
   const LOCAL_INTENTS = [
-    {id:"greeting",test:q=>/^(hi|hello|hey|good morning|good afternoon|good evening|are you there|are you working|hello prometheus|hello gemini)[!.? ]*$/i.test(q.trim())},
+    {id:"greeting",test:q=>/^(hi|hello|hey|good morning|good afternoon|good evening|are you there|are you working|hello prometheus|hello gemini)([, ]+(are you (there|working)|can you hear me))?[!.? ]*$/i.test(q.trim())},
     {id:"capabilities",test:q=>/(what can you do|what questions can you answer|how can you help|your capabilities|help me use prometheus|how do i use you)/i.test(q)},
     {id:"overview",test:q=>/(what is prometheus|explain prometheus|introduce prometheus|project overview|what does this project do|tell me about this project)/i.test(q)},
     {id:"judge_pitch",test:q=>/(judge|judges|elevator pitch|project pitch|demo presentation|present this project|explain this project to)/i.test(q)},
@@ -598,7 +618,7 @@
 
   function answer(q) {
     const originalQuestion=q;
-    q=resolveFollowUp(q);
+    q=expandQuestionAliases(resolveFollowUp(q));
     const allRecords=records();
     const normalizedQuestion=q.toLowerCase().replace(/[^a-z0-9]/g,"");
     const namedRecords=allRecords.filter(e=>normalizedQuestion.includes(String(e.exp_id||"").toLowerCase().replace(/[^a-z0-9]/g,"")));
@@ -856,6 +876,7 @@
     audit:q=>answer(q),
     corpus:()=>({experiments:records().length,sources:sources().length,synthetic:!!(ds()&&ds().hasSynthetic)}),
     intents:()=>LOCAL_INTENTS.map(x=>x.id),
+    queryAliasGroups:()=>QUERY_ALIASES.length,
     evidence:EVIDENCE
   };
 })();
