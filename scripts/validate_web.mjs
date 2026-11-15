@@ -33,7 +33,7 @@ if(!html.includes("RETRIEVED EVIDENCE · '+numericFinding.level")) throw new Err
 if(!html.includes("not a physical combustion simulation")) throw new Error("virtual-lab scientific disclosure missing");
 if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
 if(!ai.includes("LOCAL ENGINE · NO CLOUD REQUIRED")) throw new Error("offline local engine status missing");
-if(!ai.includes('trace.map(t=>t?.result?.visualization)')) throw new Error("cloud AI tool charts are not rendered in the assistant response");
+if(!ai.includes("function scientificVisual(q, rs)")) throw new Error("local scientific visualization engine missing");
 if(!ai.includes("pending3DResult=rows")) throw new Error("3D evidence visualization ignores the requested scientific variable");
 if(!ai.includes("function finiteNumericValue(raw)")) throw new Error("strict chart numeric parser missing");
 if(ai.includes("chart.rows.filter(r=>r&&Number.isFinite(Number(r.y)))")) throw new Error("cloud chart renderer must reject null/blank values before numeric coercion");
