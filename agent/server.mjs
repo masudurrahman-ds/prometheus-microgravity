@@ -2,7 +2,9 @@ import http from "node:http";
 import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analyzeDataset } from "./evidence.mjs";
 
 const PORT = Number(process.env.PORT || 8787);
-const MODEL = process.env.PROMETHEUS_MODEL;
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const API_KEY = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || "";
+const PROVIDER = "google-gemini";
 const MAX_ROUNDS = Number(process.env.MAX_TOOL_ROUNDS || 8);
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 65536);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "";
@@ -83,15 +85,34 @@ async function callLLM(payload) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    return await fetch("https://api.openai.com/v1/responses", {
-      method:"POST",
-      headers:{"Content-Type":"application/json",Authorization:"Bearer "+process.env.OPENAI_API_KEY},
-      body:JSON.stringify(payload),
-      signal:controller.signal
+    return await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + API_KEY,
+        "x-goog-api-client": "crown-council-prometheus/0.2"
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
   } finally {
     clearTimeout(timer);
   }
+}
+
+async function readModelResponse(response) {
+  if (!response.ok) {
+    const body = await response.text();
+    let detail = "Provider HTTP " + response.status;
+    try {
+      const parsed = JSON.parse(body);
+      detail = String(parsed.error?.message || detail).slice(0, 250);
+    } catch (_) {}
+    const error = new Error(detail);
+    error.status = response.status;
+    throw error;
+  }
+  return response.json();
 }
 
 function validateHistory(history) {
@@ -110,35 +131,43 @@ function validateHistory(history) {
 }
 
 async function runAgent(body) {
-  if(body?.consent?.cloud_ai!==true) return {ok:false,code:"CONSENT_REQUIRED",message:"Cloud AI requires explicit user acknowledgement."};
-  if(!process.env.OPENAI_API_KEY || !MODEL) return {ok:false,code:"AI_NOT_CONFIGURED",message:"Cloud AI is not configured on this server."};
+  if (body?.consent?.cloud_ai !== true) return {ok:false,code:"CONSENT_REQUIRED",message:"Cloud AI requires explicit user acknowledgement."};
+  if (!API_KEY) return {ok:false,code:"AI_NOT_CONFIGURED",message:"Gemini API key is not configured on the server."};
 
   const historyCheck = validateHistory(body.history);
   if (!historyCheck.ok) return {ok:false,code:"INVALID_HISTORY",message:historyCheck.error};
-  let response=await callLLM({model:MODEL,instructions:SYSTEM,input:[...historyCheck.history,{role:"user",content:body.message}],tools,tool_choice:"auto"});
-  if(!response.ok) throw new Error("LLM request failed: "+response.status);
-  let data=await response.json();
-  const trace=[];
+  const messages = [
+    {role:"system",content:SYSTEM},
+    ...historyCheck.history,
+    {role:"user",content:body.message}
+  ];
+  const chatTools = tools.map(({type,name,description,parameters}) => ({
+    type, function:{name,description,parameters}
+  }));
+  const trace = [];
+  let data = await readModelResponse(await callLLM({model:MODEL,messages,tools:chatTools,tool_choice:"auto"}));
 
-  for(let round=0;round<MAX_ROUNDS;round++){
-    const calls=(data.output||[]).filter(x=>x.type==="function_call");
-    if(!calls.length) break;
-    const outputs=calls.map(call=>{
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    const msg = data.choices?.[0]?.message;
+    if (!msg) throw new Error("Gemini returned no assistant message.");
+    const calls = msg.tool_calls || [];
+    if (!calls.length) {
+      const answer = typeof msg.content === "string" ? msg.content.trim() :
+        Array.isArray(msg.content) ? msg.content.filter(p => p.type === "text").map(p => p.text).join("\n").trim() : "";
+      if (!answer) return {ok:false,code:"EMPTY_MODEL_RESPONSE",message:"Gemini produced no final answer.",trace,model:MODEL,evidence_policy:"NASA indexed corpus only"};
+      return {ok:true,answer,trace,model:MODEL,provider:PROVIDER,evidence_policy:"NASA indexed corpus only"};
+    }
+    messages.push(msg);
+    for (const call of calls) {
       let args;
-      try { args = JSON.parse(call.arguments || "{}"); }
-      catch { args = null; }
-      const result = runTool(call.name, args);
-      trace.push({tool:call.name, arguments:args, result_summary: result?.error ? result.error : "Tool completed", result});
-      return {type:"function_call_output",call_id:call.call_id,output:JSON.stringify(result)};
-    });
-    response=await callLLM({model:MODEL,instructions:SYSTEM,previous_response_id:data.id,input:outputs,tools,tool_choice:"auto"});
-    if(!response.ok) throw new Error("LLM continuation failed: "+response.status);
-    data=await response.json();
+      try { args = JSON.parse(call.function?.arguments || "{}"); } catch (_) { args = null; }
+      const result = runTool(call.function?.name, args);
+      trace.push({tool:call.function?.name,arguments:args,result_summary:result?.error || "Tool completed",result});
+      messages.push({role:"tool",tool_call_id:call.id,content:JSON.stringify(result)});
+    }
+    data = await readModelResponse(await callLLM({model:MODEL,messages,tools:chatTools,tool_choice:"auto"}));
   }
-
-  const answer=(data.output||[]).filter(x=>x.type==="message").flatMap(x=>x.content||[]).filter(x=>x.type==="output_text").map(x=>x.text).join("\n").trim();
-  if(!answer) return {ok:false,code:"EMPTY_MODEL_RESPONSE",message:"The scientific agent produced no final answer.",trace,model:MODEL,evidence_policy:"NASA indexed corpus only"};
-  return {ok:true,answer,trace,model:MODEL,evidence_policy:"NASA indexed corpus only"};
+  return {ok:false,code:"TOOL_LIMIT",message:"The scientific agent reached its tool-use limit.",trace,model:MODEL};
 }
 
 function send(res,status,payload){
@@ -164,7 +193,7 @@ http.createServer(async(req,res)=>{
   const count=(rate.get(key)||0)+1; rate.set(key,count);
   for(const k of rate.keys()) if(!k.endsWith(":"+bucket)) rate.delete(k);
   if(count>RATE_LIMIT) return send(res,429,{ok:false,error:"Rate limit exceeded. Please retry shortly."});
-  if(req.method==="GET"&&req.url==="/health") return send(res,200,{ok:true,service:"prometheus-scientific-agent",configured:!!(process.env.OPENAI_API_KEY&&MODEL),model:MODEL||null,evidence_policy:"NASA indexed corpus only"});
+  if(req.method==="GET"&&req.url==="/health") return send(res,200,{ok:true,service:"prometheus-scientific-agent",configured:!!API_KEY,model:MODEL,provider:PROVIDER,evidence_policy:"NASA indexed corpus only"});
   if(req.method!=="POST"||req.url!=="/v1/agent") return send(res,404,{ok:false,error:"Not found"});
   try{
     let raw="";for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>MAX_BODY_BYTES) return send(res,413,{ok:false,error:"Request body too large."});}
