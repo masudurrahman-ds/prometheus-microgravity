@@ -7,10 +7,10 @@ services:
     startCommand: cd agent && npm start
     healthCheckPath: /health
     envVars:
-      - key: OPENAI_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
-      - key: PROMETHEUS_MODEL
-        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
       - key: ALLOWED_ORIGIN
         value: "*"
       - key: MAX_TOOL_ROUNDS
