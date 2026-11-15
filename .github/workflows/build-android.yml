@@ -32,6 +32,8 @@ jobs:
           node scripts/validate_web.mjs
           node scripts/validate_nasa_corpus.mjs
           node --check android/app/src/main/assets/prometheus_ai.js
+          python -m py_compile ml/train.py
+          python ml/train.py --check-only --data data/prometheus_nasa_psi.json --output /tmp/prometheus-ml-check
           cd agent
           node --check server.mjs
           node --check evidence.mjs

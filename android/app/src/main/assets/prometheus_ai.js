@@ -105,11 +105,12 @@
     body.pm-ai-fullscreen-open{overflow:hidden!important;touch-action:pan-y;}
     body.pm-ai-fullscreen-open #pm-ai-fab{display:none!important;}
     @media(min-width:760px){#pm-ai-panel #pm-ai-body{padding-left:max(24px,calc((100vw - 900px)/2));padding-right:max(24px,calc((100vw - 900px)/2));}#pm-ai-panel #pm-ai-head{padding-left:max(24px,calc((100vw - 980px)/2));padding-right:max(24px,calc((100vw - 980px)/2));}#pm-ai-panel #pm-ai-form,#pm-ai-panel #pm-ai-suggest{padding-left:max(24px,calc((100vw - 900px)/2));padding-right:max(24px,calc((100vw - 900px)/2));}}
-    /* Inline assistant: no floating launcher, modal overlay, or viewport lock. */
-    #pm-ai-fab{display:none!important}
-    #pm-ai-panel{position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:min(calc(100% - 28px),1100px)!important;height:min(72vh,760px)!important;min-height:420px!important;max-height:760px!important;margin:28px auto 42px!important;border-radius:22px!important;border:1px solid rgba(230,203,147,.35)!important;z-index:2!important}
-    #pm-ai-panel.open{display:flex!important;position:relative!important}
   `;
+  style.textContent += "\n" + [
+    "#pm-ai-fab{display:none!important}",
+    "#pm-ai-panel{position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:min(calc(100% - 28px),1100px)!important;height:min(72vh,760px)!important;min-height:420px!important;max-height:760px!important;margin:28px auto 42px!important;border-radius:22px!important;border:1px solid rgba(230,203,147,.35)!important;z-index:2!important}",
+    "#pm-ai-panel.open{display:flex!important;position:relative!important}"
+  ].join("\n");
   document.head.appendChild(style);
 
   const fab = document.createElement("button");
@@ -161,6 +162,74 @@
     return valid.length ? barChartSVG(valid,yLabel,title) : "";
   }
 
+  function pieChartSVG(rows, title) {
+    const total=(rows||[]).reduce((sum,row)=>sum+Math.max(0,finiteNumericValue(row.y)||0),0);
+    if(!total) return "";
+    const colors=["#e6cb93","#83c7f2","#75d6a7","#c49be8","#f09a83","#9ba8c7"];
+    const cx=112,cy=120,r=78;
+    let angle=-Math.PI/2;
+    const slices=rows.map((row,index)=>{
+      const value=Math.max(0,finiteNumericValue(row.y)||0);
+      if(!value) return "";
+      const next=angle+value/total*Math.PI*2;
+      const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+      const x2=cx+r*Math.cos(next),y2=cy+r*Math.sin(next);
+      const large=next-angle>Math.PI?1:0;
+      const path=value===total
+        ? '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+colors[index%colors.length]+'"/>'
+        : '<path d="M '+cx+' '+cy+' L '+x1+' '+y1+' A '+r+' '+r+' 0 '+large+' 1 '+x2+' '+y2+' Z" fill="'+colors[index%colors.length]+'"><title>'+esc(row.label)+': '+value+' ('+(value/total*100).toFixed(1)+'%)</title></path>';
+      angle=next;
+      const y=34+index*30;
+      return path+'<rect x="225" y="'+(y-10)+'" width="10" height="10" rx="2" fill="'+colors[index%colors.length]+'"/><text x="242" y="'+y+'" fill="#eef0f7" font-size="11">'+esc(row.label)+'</text><text x="470" y="'+y+'" fill="#aab2c8" font-size="10" text-anchor="end">'+value+' · '+(value/total*100).toFixed(1)+'%</text>';
+    }).join("");
+    return '<svg viewBox="0 0 490 250" role="img" aria-label="'+esc(title)+'"><text x="16" y="18" fill="#aab2c8" font-size="10">'+esc(title)+'</text>'+slices+'<circle cx="'+cx+'" cy="'+cy+'" r="34" fill="#070b15"/><text x="'+cx+'" y="'+(cy-2)+'" text-anchor="middle" fill="#e6cb93" font-size="20">'+total+'</text><text x="'+cx+'" y="'+(cy+14)+'" text-anchor="middle" fill="#aab2c8" font-size="9">records</text></svg>';
+  }
+
+  function heatmapSVG(records) {
+    const columns=[
+      {key:"o2_fraction",label:"O₂ fraction"},
+      {key:"gravity_g",label:"Gravity proxy"},
+      {key:"flow_velocity_mm_s",label:"Flow (mm/s)"},
+      {key:"pressure_kpa",label:"Pressure (kPa)"},
+      {key:"burn_duration",label:"Burn (s)"}
+    ];
+    const rows=(records||[]).map(record=>{
+      const values=columns.map(column=>{
+        let item=null;
+        if(column.key==="burn_duration") {
+          item=(record.observations||[]).find(o=>/burn|duration/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement&&finiteNumericValue(o.measurement.canonical_value??o.measurement.value)!==null);
+          if(item) return {value:finiteNumericValue(item.measurement.canonical_value??item.measurement.value),raw:item.measurement.value,unit:item.measurement.canonical_unit||item.measurement.unit,note:"",source:item.source_id,locator:item.locator};
+        } else {
+          item=record.conditions&&record.conditions[column.key];
+          if(item&&finiteNumericValue(item.canonical_value??item.value)!==null) return {value:finiteNumericValue(item.canonical_value??item.value),raw:item.value,unit:item.canonical_unit||item.unit,note:item.canonical_note||"",source:item.source_id,locator:item.locator};
+        }
+        return null;
+      });
+      return {id:record.exp_id,values};
+    }).filter(row=>row.values.some(Boolean));
+    if(!rows.length) return "";
+    const left=152,top=58,cellW=91,rowH=25,width=left+columns.length*cellW+12,height=top+rows.length*rowH+34;
+    const ranges=columns.map((_,i)=>{
+      const values=rows.map(row=>row.values[i]?.value).filter(Number.isFinite);
+      return values.length?{min:Math.min(...values),max:Math.max(...values)}:null;
+    });
+    const cells=rows.map((row,ri)=>{
+      const y=top+ri*rowH;
+      const label='<text x="'+(left-9)+'" y="'+(y+16)+'" text-anchor="end" fill="#cbd2e3" font-size="9">'+esc(row.id)+'</text>';
+      const tiles=row.values.map((item,ci)=>{
+        const x=left+ci*cellW,range=ranges[ci];
+        if(!item) return '<rect x="'+x+'" y="'+y+'" width="'+(cellW-4)+'" height="21" rx="3" fill="#343b4b"><title>'+esc(row.id)+' · '+esc(columns[ci].label)+': missing in indexed record</title></rect><text x="'+(x+(cellW-4)/2)+'" y="'+(y+14)+'" text-anchor="middle" fill="#aab2c8" font-size="9">—</text>';
+        const span=range.max-range.min||1,normalized=(item.value-range.min)/span;
+        const red=Math.round(35+normalized*185),green=Math.round(72+normalized*95),blue=Math.round(112-normalized*65);
+        const color='rgb('+red+','+green+','+blue+')';
+        return '<rect x="'+x+'" y="'+y+'" width="'+(cellW-4)+'" height="21" rx="3" fill="'+color+'"><title>'+esc(row.id)+' · '+esc(columns[ci].label)+': '+esc(item.raw)+' '+esc(item.unit)+' · '+esc(item.source)+' · '+esc(item.locator)+(item.note?' · '+esc(item.note):'')+'</title></rect><text x="'+(x+(cellW-4)/2)+'" y="'+(y+14)+'" text-anchor="middle" fill="#07101a" font-size="9" font-weight="600">'+esc(formatNum(item.value))+'</text>';
+      }).join("");
+      return label+tiles;
+    }).join("");
+    const headers=columns.map((column,i)=>'<text x="'+(left+i*cellW+(cellW-4)/2)+'" y="43" text-anchor="middle" fill="#e6cb93" font-size="9">'+esc(column.label)+'</text>').join("");
+    return '<svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="NASA indexed experiment measurement coverage heatmap"><text x="12" y="18" fill="#aab2c8" font-size="10">COLOR IS NORMALIZED WITHIN EACH COLUMN · — = MISSING</text>'+headers+cells+'</svg>';
+  }
+
   function flameSVG(rows) {
     const w=390,h=235;
     rows=(rows||[]).map(r=>{const y=finiteNumericValue(r?.y);return y===null?null:{...r,y};}).filter(Boolean);
@@ -200,6 +269,22 @@
     const asksForVisual=/(graph|plot|chart|visuali[sz]e|visual|image|picture|render|show me a flame)/.test(low);
     const asksForComparison=/(compare|comparison|difference|versus|\bvs\b)/.test(low);
     const asksForTrend=/(trend|over time|time series|correlat|relationship|association)/.test(low);
+    const asksForPie=/\b(pie|donut)\b/.test(low);
+    const asksForHeatmap=/\b(heat ?map|heatmap)\b/.test(low);
+    if(asksForPie) {
+      const field=/platform|spacecraft|iss/.test(low)?"platform":"fuel";
+      const counts=new Map();
+      rs.forEach(record=>{const label=String(record[field]||"Not specified");counts.set(label,(counts.get(label)||0)+1);});
+      const ranked=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y);
+      const rows=ranked.length>6?[...ranked.slice(0,5),{label:"Other",y:ranked.slice(5).reduce((sum,row)=>sum+row.y,0)}]:ranked;
+      if(rows.length) return visualShell("Retrieved record composition by "+field,"DERIVED · counts of retrieved records, not combustion outcomes",pieChartSVG(rows,"NASA indexed records by "+field),"pie");
+      return "";
+    }
+    if(asksForHeatmap) {
+      const chart=heatmapSVG(rs);
+      if(chart) return visualShell("NASA indexed experiment feature heatmap","DERIVED · column-normalized values; gray cells are missing · proxy notes in cell tooltips",chart,"heatmap");
+      return "";
+    }
     // The corpus is experiment-level, not a temporal sequence. Never connect
     // unrelated experiments with a line and label it a trend.
     if(asksForTrend) return "";

@@ -21,6 +21,12 @@ if(!psi98 || !(psi98.observations||[]).some(o=>o.phenomenon==="burn_duration" &&
 const data=JSON.parse(fs.readFileSync("data/prometheus_nasa_psi.json","utf8"));
 if(data.update_version!=="2026.10.07.3") throw new Error("dataset update version mismatch");
 
+const mlPipeline=fs.readFileSync("ml/train.py","utf8");
+if(!mlPipeline.includes("MIN_RECORDS = 60") || !mlPipeline.includes("MIN_SOURCE_GROUPS = 5")) throw new Error("PyTorch pipeline must gate training on corpus size and independent source groups");
+if(!mlPipeline.includes("blocked_insufficient_data") || !mlPipeline.includes("source_group")) throw new Error("PyTorch pipeline must report insufficient data and use source-group holdout");
+if(!mlPipeline.includes("exploratory_feature_reconstruction_only")) throw new Error("PyTorch model purpose must remain reconstruction-only");
+const mlReadme=fs.readFileSync("ml/README.md","utf8");
+if(!mlReadme.includes("hazard score") || !mlReadme.includes("17-record seed corpus")) throw new Error("PyTorch research limitations must be documented");
 const webAi=fs.readFileSync("www/prometheus_ai.js","utf8");
 new vm.Script(webAi,{filename:"www/prometheus_ai.js"});
 const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
@@ -34,6 +40,11 @@ if(!html.includes("not a physical combustion simulation")) throw new Error("virt
 if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
 if(!ai.includes("LOCAL ENGINE · NO CLOUD REQUIRED")) throw new Error("offline local engine status missing");
 if(!ai.includes("function scientificVisual(q, rs)")) throw new Error("local scientific visualization engine missing");
+if(!ai.includes("function pieChartSVG(rows, title)")) throw new Error("pie chart renderer missing");
+if(!ai.includes("function heatmapSVG(records)")) throw new Error("heatmap renderer missing");
+if(!ai.includes("if(asksForPie)")) throw new Error("pie chart intent routing missing");
+if(!ai.includes("if(asksForHeatmap)")) throw new Error("heatmap intent routing missing");
+
 if(!ai.includes("pending3DResult=rows")) throw new Error("3D evidence visualization ignores the requested scientific variable");
 if(!ai.includes("function finiteNumericValue(raw)")) throw new Error("strict chart numeric parser missing");
 if(ai.includes("chart.rows.filter(r=>r&&Number.isFinite(Number(r.y)))")) throw new Error("cloud chart renderer must reject null/blank values before numeric coercion");
