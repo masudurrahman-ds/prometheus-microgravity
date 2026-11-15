@@ -188,9 +188,12 @@
   function heatmapSVG(records) {
     const columns=[
       {key:"o2_fraction",label:"O₂ fraction"},
-      {key:"gravity_g",label:"Gravity proxy"},
       {key:"flow_velocity_mm_s",label:"Flow (mm/s)"},
       {key:"pressure_kpa",label:"Pressure (kPa)"},
+      {key:"droplet_initial_diameter_mm",label:"Droplet (mm)"},
+      {key:"weight_loss_rate_mg_min",label:"Weight loss"},
+      {key:"fuel_rate_mg_s",label:"Fuel rate"},
+      {key:"nozzle_diameter_mm",label:"Nozzle (mm)"},
       {key:"burn_duration",label:"Burn (s)"}
     ];
     const rows=(records||[]).map(record=>{
@@ -202,6 +205,10 @@
         } else {
           item=record.conditions&&record.conditions[column.key];
           if(item&&finiteNumericValue(item.canonical_value??item.value)!==null) return {value:finiteNumericValue(item.canonical_value??item.value),raw:item.value,unit:item.canonical_unit||item.unit,note:item.canonical_note||"",source:item.source_id,locator:item.locator};
+          if(column.key==="burn_duration") {
+            const observation=(record.observations||[]).find(o=>/burn|duration/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement&&finiteNumericValue(o.measurement.canonical_value??o.measurement.value)!==null);
+            if(observation)return {value:finiteNumericValue(observation.measurement.canonical_value??observation.measurement.value),raw:observation.measurement.value,unit:observation.measurement.canonical_unit||observation.measurement.unit,note:"",source:observation.source_id,locator:observation.locator};
+          }
         }
         return null;
       });
@@ -266,7 +273,7 @@
     const normalizedQuestion=low.replace(/[^a-z0-9]/g,"");
     const namedRecords=rs.filter(e=>normalizedQuestion.includes(String(e.exp_id||"").toLowerCase().replace(/[^a-z0-9]/g,"")));
     if(namedRecords.length) rs=namedRecords;
-    const asksForVisual=/(graph|plot|chart|visuali[sz]e|visual|image|picture|render|show me a flame)/.test(low);
+    const asksForVisual=/(graph|plot|chart|visuali[sz](?:e|ation)|visual|image|picture|render|show me a flame|bar chart|pie chart|heat ?map|line graph)/.test(low);
     const asksForComparison=/(compare|comparison|difference|versus|\bvs\b)/.test(low);
     const asksForTrend=/(trend|over time|time series|correlat|relationship|association)/.test(low);
     const asksForPie=/\b(pie|donut)\b/.test(low);
@@ -293,7 +300,10 @@
     if(/burn|duration|burn time|time taken/.test(low)) { metric="burn"; label="Burn duration (s)"; }
     else if(/oxygen|o2_fraction|o2 concentration/.test(low)) { metric="o2_fraction"; label="Reported oxygen fraction"; }
     else if(/pressure|pressur/.test(low)) { metric="pressure_kpa"; label="Pressure (kPa)"; }
-    else if(/flow|velocity|co-flow/.test(low)) { metric="flow_velocity_mm_s"; label="Flow velocity (mm/s)"; }
+    else if(/flow|velocity|co-flow|airflow/.test(low)) { metric="flow_velocity_mm_s"; label="Flow velocity (mm/s)"; }
+    else if(/droplet.*diameter|initial diameter/.test(low)) { metric="droplet_initial_diameter_mm"; label="Initial droplet diameter (mm)"; }
+    else if(/weight loss/.test(low)) { metric="weight_loss_rate_mg_min"; label="Weight-loss rate (mg/min)"; }
+    else if(/fuel rate|fuel flow/.test(low)) { metric="fuel_rate_mg_s"; label="Fuel rate (mg/s)"; }
 
     // A comparison or causal question alone is not a request for a chart.
     // Only attach visual output when the user explicitly asks to plot/graph/chart.
@@ -313,6 +323,14 @@
         return visualShell(label+" · evidence-backed comparison",disclosure,chart,metric);
       }
       return "";
+    }
+
+    if(asksForVisual && !metric && !asksForComparison) {
+      const field=/platform|spacecraft|iss/.test(low)?"platform":/source|investigation/.test(low)?"fuel_source":"fuel";
+      const counts=new Map();
+      rs.forEach(record=>{const label=String(record[field]||"Not specified");counts.set(label,(counts.get(label)||0)+1);});
+      const rows=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y).slice(0,12);
+      if(rows.length) return visualShell("NASA indexed records by "+field,"DERIVED · record counts; not measured combustion outcomes",barChartSVG(rows,"Records","Distribution of indexed records"),"count");
     }
 
     if(asksForVisual && asksForComparison) {
@@ -729,7 +747,9 @@
     const visual = scientificVisual(q, rs);
     const visual3d = scientific3DVisual(q, rs);
     const localIntent=localIntentAnswer(q,rs);
-    if(localIntent) return localIntent;
+    // Preserve generated visual output when a short local intent also matches
+    // the same question (e.g. "show a pie chart of the dataset").
+    if(localIntent) return {...localIntent,visual:visual||localIntent.visual||"",visual3d:visual3d||localIntent.visual3d||""};
     const explicit=findSourcesInQuestion(q); explicit.forEach(x=>ids.add(x));
 
     if(OUTSIDE.test(low) && !NASA_TERMS.has(ws[0])) {
@@ -896,21 +916,30 @@
       (audit&&audit.length?'<div class="pm-audit">Audit trail · '+audit.map(esc).join(" → ")+"</div>":"");
     body.appendChild(el);
     bindVisuals(el);
-    return el;
-    // Rehydrate the interactive 3D component because HTML serialization cannot retain canvas state.
+    // Rehydrate canvas state after the 3D card HTML is inserted into the DOM.
     if(visual3d) {
       const holder=el.querySelector(".pm-3d");
       if(holder) {
-        const rows=pending3DResult || records().map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&finiteNumericValue(o.measurement?.canonical_value)!==null)?.measurement?.canonical_value})).map(r=>({...r,y:finiteNumericValue(r.y)})).filter(r=>r.y!==null);
-        const fresh=build3DResult(rows); holder.replaceWith(fresh);
-        pending3DResult=null;
+        const rows=pending3DResult||[];
+        if(rows.length) {
+          const fresh=build3DResult(rows);
+          holder.replaceWith(fresh);
+          pending3DResult=null;
+        }
       }
     }
     body.scrollTop=body.scrollHeight;
+    return el;
   }
 
   function ask(q) {
     q=q.trim(); if(!q)return;
+    // Do not answer from the seed subset while the expanded local PSI tables load.
+    if(window.__prometheusDatasetReady && !window.__prometheusDatasetReadyComplete) {
+      input.disabled=true;
+      window.__prometheusDatasetReady.then(()=>{input.disabled=false;ask(q);});
+      return;
+    }
     rememberTurn({role:"user",text:q});
     add("user","YOU",esc(q),null,null,null,[]);
     input.disabled=true;
@@ -947,7 +976,22 @@
   }
   // The AI orb and assistant card are both draggable so they can be moved away
   // from Research controls and content. Clamp the panel inside the visible viewport.
-  function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();}panel.scrollIntoView({behavior:"smooth",block:"start"});}
+  function openAI(){
+    panel.classList.add("open");
+    if(!body.childElementCount) {
+      const ready=window.__prometheusDatasetReady;
+      if(ready && !window.__prometheusDatasetReadyComplete) {
+        body.innerHTML='<div class="pm-meta">PROMETHEUS · Loading NASA PSI data</div><div class="pm-answer">Loading the expanded experimental tables locally. The assistant will be ready in a moment.</div>';
+        input.disabled=true;
+        const send=panel.querySelector("#pm-ai-send");if(send)send.disabled=true;
+        ready.then(()=>{
+          input.disabled=false;if(send)send.disabled=false;
+          body.replaceChildren();readyMessage();
+        });
+      } else readyMessage();
+    }
+    panel.scrollIntoView({behavior:"smooth",block:"start"});
+  }
   function closeAI(){panel.classList.remove("open");}
   // Native Android Back asks this handler first. Return true only when chat consumes Back.
   window.__prometheusBack = function(){if(panel.classList.contains("open")){closeAI();return true;}return false;};
