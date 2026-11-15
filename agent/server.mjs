@@ -111,19 +111,19 @@ function toGeminiContents(messages) {
         let args = {};
         try { args = JSON.parse(call.function?.arguments || "{}"); } catch (_) {}
         if (name) {
-          toolNames.set(call.id,name);
-          parts.push({functionCall:{name,args}});
+          toolNames.set(call.id,{name,id:call.id});
+          parts.push({functionCall:{id:call.id,name,args}});
         }
       }
       if (parts.length) contents.push({role:"model",parts});
       continue;
     }
     if (message.role === "tool") {
-      let name = toolNames.get(message.tool_call_id);
-      if (!name) continue;
+      const call = toolNames.get(message.tool_call_id);
+      if (!call) continue;
       let response = {};
       try { response = JSON.parse(message.content || "{}"); } catch (_) { response = {result:String(message.content || "")}; }
-      contents.push({role:"user",parts:[{functionResponse:{name,response}}]});
+      contents.push({role:"user",parts:[{functionResponse:{id:call.id,name:call.name,response}}]});
     }
   }
   return contents;
