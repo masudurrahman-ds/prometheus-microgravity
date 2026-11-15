@@ -14,8 +14,10 @@ from pathlib import Path
 from typing import Any
 
 FEATURES = (
+    "o2_fraction",
     "flow_velocity_mm_s",
     "pressure_kpa",
+    "droplet_initial_diameter_mm",
     "burn_duration",
 )
 MIN_RECORDS = 60
@@ -69,7 +71,7 @@ def extract_record(record: dict[str, Any], sources: dict[str, dict]) -> dict[str
             condition = (record.get("conditions") or {}).get(feature) or {}
             raw = condition.get("canonical_value", condition.get("value"))
             note = str(condition.get("canonical_note") or "")
-            is_proxy = "proxy" in note.lower() or "midpoint" in note.lower()
+            is_proxy = any(term in note.lower() for term in ("proxy", "midpoint", "approximate"))
             if finite_number(raw) is not None and not is_proxy and usable_measurement(condition, sources):
                 candidate = {
                     "value": finite_number(raw),
@@ -99,15 +101,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("data/prometheus_nasa_psi.json"))
     parser.add_argument("--output", type=Path, default=Path("ml/artifacts"))
+    parser.add_argument("--extra-dir", type=Path, default=Path("www/data/psi_records"))
     parser.add_argument("--check-only", action="store_true", help="Evaluate data sufficiency without importing PyTorch or training.")
     args = parser.parse_args()
 
     corpus = json.loads(args.data.read_text(encoding="utf-8"))
     sources = {str(item["source_id"]): item for item in corpus.get("sources", [])}
-    rows = [
-        extract_record(record, sources)
-        for record in corpus.get("experiments", [])
-    ]
+    records = list(corpus.get("experiments", []))
+    extra_sources_path = args.extra_dir / "sources.json"
+    if extra_sources_path.exists():
+        for item in json.loads(extra_sources_path.read_text(encoding="utf-8")):
+            sources[str(item["source_id"])] = item
+    if args.extra_dir.exists():
+        for extra_path in sorted(args.extra_dir.glob("PSI-*.json")):
+            records.extend(json.loads(extra_path.read_text(encoding="utf-8")))
+    rows = [extract_record(record, sources) for record in records]
     usable = [row for row in rows if any(value is not None for value in row["values"])]
 
     # Build connected source groups: records sharing even one source stay in

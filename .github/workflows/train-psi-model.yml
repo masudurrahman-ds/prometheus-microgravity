@@ -1,0 +1,53 @@
+name: Train PROMETHEUS PyTorch research baseline
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "www/data/psi_records/**"
+      - "data/prometheus_nasa_psi.json"
+      - "ml/**"
+  push:
+    branches: [main]
+    paths:
+      - "www/data/psi_records/**"
+      - "data/prometheus_nasa_psi.json"
+      - "ml/**"
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install NumPy
+        run: python -m pip install --upgrade pip numpy
+
+      - name: Install CPU-only PyTorch
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.3,<3"
+
+      - name: Check data sufficiency and provenance
+        run: python ml/train.py --check-only --data data/prometheus_nasa_psi.json --extra-dir www/data/psi_records --output /tmp/prometheus-ml-check
+
+      - name: Train and evaluate source-held-out baseline
+        run: python ml/train.py --data data/prometheus_nasa_psi.json --extra-dir www/data/psi_records --output ml/artifacts
+
+      - name: Upload model and evaluation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prometheus-pytorch-research-baseline
+          path: ml/artifacts/
+          if-no-files-found: error
+          retention-days: 90

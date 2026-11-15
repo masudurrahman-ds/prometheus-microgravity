@@ -1871,7 +1871,7 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   }
 
   // ------------------------------------------------------------------ boot
-  function boot() {
+  async function boot() {
     try {
       const initial = location.hash.replace(/^#/, '');
       const valid = ['landing','universe','lab','gaps','research','mission','data'];
@@ -1894,7 +1894,8 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
       fetch('https://raw.githubusercontent.com/masudurrahman-ds/prometheus-microgravity/main/data/prometheus_nasa_psi.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(remote=>{
         if(!remote)return;
         const rv=String(remote.update_version||''),lv=String((S.ds&&S.ds.raw&&S.ds.raw.update_version)||'');
-        if(rv&&rv!==lv&&remote.schema_version==='1'&&Array.isArray(remote.experiments)){setDataset(remote,'NASA PSI live source update',true);if(!silent)UI.toast('NASA source dataset updated');}
+        const currentCount=(S.ds&&Array.isArray(S.ds.experiments))?S.ds.experiments.length:0;
+        if(rv&&rv!==lv&&remote.schema_version==='1'&&Array.isArray(remote.experiments)&&remote.experiments.length>currentCount){setDataset(remote,'NASA PSI live source update',true);if(!silent)UI.toast('NASA source dataset updated');}
       }).catch(()=>{});
     }
     function showConsent(){
@@ -1906,14 +1907,35 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
     }
     UI.startStars($('#stars')); buildShell();
     if (ALLOW_FIXTURE && FIXTURE_EL && FIXTURE_EL.textContent.trim().startsWith('{')) { try { setDataset(JSON.parse(FIXTURE_EL.textContent), 'the embedded NASA PSI seed corpus', true); } catch (e) { render(); } } else render();
+    // Load the larger, provenance-tracked PSI tables as local app assets. This
+    // keeps the HTML shell small and the full corpus available offline in WebView.
+    try {
+      if (window.__prometheusDatasetExtrasReady) {
+        const extras = await window.__prometheusDatasetExtrasReady;
+        const base = JSON.parse(FIXTURE_EL.textContent);
+        const seen = new Set(base.experiments.map(e => e.exp_id));
+        const experiments = base.experiments.concat((extras.experiments || []).filter(e => e && e.exp_id && !seen.has(e.exp_id)));
+        const sourceMap = new Map(base.sources.map(s => [s.source_id, s]));
+        (extras.sources || []).forEach(s => sourceMap.set(s.source_id, {...(sourceMap.get(s.source_id) || {}), ...s}));
+        const expanded = {...base, dataset_id:'prometheus-nasa-psi-expanded-2026-11-15', title:'PROMETHEUS — NASA PSI Expanded Provenance-Tracked Combustion Corpus', description:'Expanded curated corpus with raw NASA PSI table row provenance. This is not the complete NASA PSI archive; missing values remain missing.', update_version:'2026.11.15.1', sources:[...sourceMap.values()], experiments};
+        setDataset(expanded, 'the expanded NASA PSI corpus', true);
+        window.__prometheusDatasetExpanded = true;
+      }
+    } catch (error) {
+      console.warn('PROMETHEUS extended NASA PSI corpus could not be loaded; retaining seed corpus.', error);
+    } finally {
+      window.__prometheusDatasetReadyComplete = true;
+    }
     window.__flare = {S, go, get galaxy() { return galaxy; }, get mini() { return miniGal; }, get carousel() { return carousel; }};
     showConsent(); setTimeout(()=>syncRemoteDataset(true),1800);
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { window.__prometheusDatasetReady = boot(); });
+  else window.__prometheusDatasetReady = boot();
 })();
 
 </script>
 <script>window.__PROMETHEUS_AI_ENDPOINT = "https://prometheus-scientific-agent.onrender.com/v1/agent";</script>
+<script src="./psi_extra.js"></script>
 <script src="./prometheus_ai.js" defer></script>
 <footer style="position:relative;z-index:2;text-align:center;padding:0 16px 18px;color:var(--faint);font:10px/1.5 var(--sans)">© 2026 The Crown Council · PROMETHEUS. NASA data remain attributed to their original public sources and licenses.</footer></body>
 </html>
