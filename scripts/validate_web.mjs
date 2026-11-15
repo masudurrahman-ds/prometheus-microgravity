@@ -89,6 +89,11 @@ if(!ai.includes("document.body.classList.add(\"pm-ai-fullscreen-open\")") || !ai
 if(!ai.includes("<b>THINK</b>") || !ai.includes("<b>FETCH NASA DATA</b>") || !ai.includes("<b>RESPONSE</b>")) throw new Error("visible THINK → FETCH NASA DATA → RESPONSE pipeline missing");
 if(!ai.includes("async function ask(q)")) throw new Error("AI request pipeline must await evidence retrieval before response");
 if(!ai.includes("#pm-ai-fab{display:none!important}")) throw new Error("floating AI launcher must be removed");
+if(!ai.includes(':root[data-theme="light"] #pm-ai-panel{background:#f5f0e5!important;color:#202235!important')) throw new Error("AI workspace must follow the app light theme");
+if(!ai.includes(':root[data-theme="light"] .pm-msg.ai{background:linear-gradient(180deg,#fffdf8,#f0eadc)!important')) throw new Error("AI assistant messages need a readable light-theme surface");
+if(!ai.includes(':root[data-theme="light"] #pm-ai-input{background:#fffdf8!important')) throw new Error("AI composer must follow the light theme");
+if(!ai.includes("@media(prefers-color-scheme:light)")) throw new Error("AI workspace must support system light theme when no explicit theme is selected");
+if(webAi!==ai) throw new Error("Web and Android AI assets must remain synchronized");
 if(!ai.includes("window.__prometheusAIOpen = openAI")) throw new Error("external dashboard action does not open the inline assistant");
 if(ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("obsolete floating AI drag handling remains");
 if(ai.includes('fab.addEventListener("pointerdown"')) throw new Error("obsolete floating AI launcher remains");
