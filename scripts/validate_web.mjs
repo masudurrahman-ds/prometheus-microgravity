@@ -112,3 +112,8 @@ if(html.includes("pm-ai-emergency")) throw new Error("floating emergency AI over
 if(!ai.includes("function expandQuestionAliases(question)")) throw new Error("scientific query alias expansion missing");
 if(!ai.includes("hello gemini)([, ]+(are you (there|working)")) throw new Error("Gemini greeting test phrase must be handled offline");
 if(!ai.includes("queryAliasGroups:()=>QUERY_ALIASES.length")) throw new Error("offline query alias coverage metric missing");
+
+if(!ai.includes('id:"why_microgravity"')) throw new Error("microgravity motivation intent missing");
+if(!ai.includes('id:"safety_boundary"')) throw new Error("safety prediction boundary intent missing");
+if(!ai.includes('id:"applications"')) throw new Error("applications intent missing");
+if(!ai.includes('id:"validation"')) throw new Error("validation intent missing");
