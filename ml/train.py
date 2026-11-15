@@ -89,7 +89,7 @@ def extract_record(record: dict[str, Any], sources: dict[str, dict]) -> dict[str
         )
     return {
         "exp_id": str(record.get("exp_id") or ""),
-        "source_group": "|".join(sorted(set(record.get("source_ids") or []))),
+        "source_ids": sorted(set(record.get("source_ids") or [])),
         "values": values,
         "provenance": provenance,
     }
@@ -108,6 +108,30 @@ def main() -> int:
         for record in corpus.get("experiments", [])
     ]
     usable = [row for row in rows if any(value is not None for value in row["values"])]
+
+    # Build connected source groups: records sharing even one source stay in
+    # the same split, preventing overlap leakage from multi-source records.
+    parents = list(range(len(usable)))
+
+    def find(index: int) -> int:
+        while parents[index] != index:
+            parents[index] = parents[parents[index]]
+            index = parents[index]
+        return index
+
+    first_for_source: dict[str, int] = {}
+    for index, row in enumerate(usable):
+        for source_id in row["source_ids"]:
+            if source_id in first_for_source:
+                left, right = find(index), find(first_for_source[source_id])
+                parents[right] = left
+            else:
+                first_for_source[source_id] = index
+    component_sources: dict[int, set[str]] = {}
+    for index, row in enumerate(usable):
+        component_sources.setdefault(find(index), set()).update(row["source_ids"])
+    for index, row in enumerate(usable):
+        row["source_group"] = "|".join(sorted(component_sources[find(index)]))
     groups = sorted({row["source_group"] for row in usable if row["source_group"]})
     complete_feature_count = sum(
         all(value is not None for value in row["values"]) for row in usable
