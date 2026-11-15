@@ -927,6 +927,12 @@
 
   function ask(q) {
     q=q.trim(); if(!q)return;
+    // Do not answer from the seed subset while the expanded local PSI tables load.
+    if(window.__prometheusDatasetReady && !window.__prometheusDatasetReadyComplete) {
+      input.disabled=true;
+      window.__prometheusDatasetReady.then(()=>{input.disabled=false;ask(q);});
+      return;
+    }
     rememberTurn({role:"user",text:q});
     add("user","YOU",esc(q),null,null,null,[]);
     input.disabled=true;
@@ -963,7 +969,22 @@
   }
   // The AI orb and assistant card are both draggable so they can be moved away
   // from Research controls and content. Clamp the panel inside the visible viewport.
-  function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();}panel.scrollIntoView({behavior:"smooth",block:"start"});}
+  function openAI(){
+    panel.classList.add("open");
+    if(!body.childElementCount) {
+      const ready=window.__prometheusDatasetReady;
+      if(ready && !window.__prometheusDatasetReadyComplete) {
+        body.innerHTML='<div class="pm-meta">PROMETHEUS · Loading NASA PSI data</div><div class="pm-answer">Loading the expanded experimental tables locally. The assistant will be ready in a moment.</div>';
+        input.disabled=true;
+        const send=panel.querySelector("#pm-ai-send");if(send)send.disabled=true;
+        ready.then(()=>{
+          input.disabled=false;if(send)send.disabled=false;
+          body.replaceChildren();readyMessage();
+        });
+      } else readyMessage();
+    }
+    panel.scrollIntoView({behavior:"smooth",block:"start"});
+  }
   function closeAI(){panel.classList.remove("open");}
   // Native Android Back asks this handler first. Return true only when chat consumes Back.
   window.__prometheusBack = function(){if(panel.classList.contains("open")){closeAI();return true;}return false;};
