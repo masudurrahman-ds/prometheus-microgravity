@@ -90,7 +90,7 @@
     #pm-ai-form{display:flex;gap:7px;padding:12px 15px;border-top:1px solid rgba(255,255,255,.09)}
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
-    #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}\n    .pm-loading:after{content:"";display:inline-block;width:1.1em;text-align:left;animation:pmDots 1.2s steps(4,end) infinite}@keyframes pmDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}
+    #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}\n    .pm-loading:after{content:"";display:inline-block;width:1.1em;text-align:left;animation:pmDots 1.2s steps(4,end) infinite}@keyframes pmDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
     /* Full-screen conversational workspace: no floating mini-window. */
     /* Keep the app-owned chat below Android status icons and above navigation controls. Android WebView often reports zero CSS safe-area insets, so use a conservative status-bar fallback. */
     #pm-ai-panel{position:fixed!important;inset:28px 0 0 0!important;right:0!important;bottom:0!important;left:0!important;top:max(28px,env(safe-area-inset-top,0px))!important;width:100vw!important;height:calc(100vh - 28px)!important;height:calc(100dvh - max(28px,env(safe-area-inset-top,0px)))!important;max-height:none!important;min-height:0!important;border-radius:0!important;border:0!important;z-index:100000!important;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0px);background:#050812;}
@@ -798,7 +798,7 @@
     if (!endpoint || !cloudEnabled()) return false;
     const pending = add("ai","AI · NASA evidence analysis","<span class=\"pm-loading\">Checking the indexed NASA corpus and consulting Gemini…</span>","UNKNOWN",0,[],["Cloud request in progress"]);
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 115000);
+    const timer = setTimeout(() => controller.abort(), 95000);
     try {
       const res = await fetch(endpoint, {
         method: "POST",
