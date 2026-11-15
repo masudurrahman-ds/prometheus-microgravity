@@ -105,11 +105,11 @@
     body.pm-ai-fullscreen-open{overflow:hidden!important;touch-action:pan-y;}
     body.pm-ai-fullscreen-open #pm-ai-fab{display:none!important;}
     @media(min-width:760px){#pm-ai-panel #pm-ai-body{padding-left:max(24px,calc((100vw - 900px)/2));padding-right:max(24px,calc((100vw - 900px)/2));}#pm-ai-panel #pm-ai-head{padding-left:max(24px,calc((100vw - 980px)/2));padding-right:max(24px,calc((100vw - 980px)/2));}#pm-ai-panel #pm-ai-form,#pm-ai-panel #pm-ai-suggest{padding-left:max(24px,calc((100vw - 900px)/2));padding-right:max(24px,calc((100vw - 900px)/2));}}
-  `;
     /* Inline assistant: no floating launcher, modal overlay, or viewport lock. */
     #pm-ai-fab{display:none!important}
     #pm-ai-panel{position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:min(calc(100% - 28px),1100px)!important;height:min(72vh,760px)!important;min-height:420px!important;max-height:760px!important;margin:28px auto 42px!important;border-radius:22px!important;border:1px solid rgba(230,203,147,.35)!important;z-index:2!important}
     #pm-ai-panel.open{display:flex!important;position:relative!important}
+  `;
   document.head.appendChild(style);
 
   const fab = document.createElement("button");
