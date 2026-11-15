@@ -1929,7 +1929,8 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
     window.__flare = {S, go, get galaxy() { return galaxy; }, get mini() { return miniGal; }, get carousel() { return carousel; }};
     showConsent(); setTimeout(()=>syncRemoteDataset(true),1800);
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { window.__prometheusDatasetReady = boot(); });
+  else window.__prometheusDatasetReady = boot();
 })();
 
 </script>
