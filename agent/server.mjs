@@ -82,40 +82,112 @@ function runTool(name,args) {
   return {error:"Unknown tool"};
 }
 
+function toGeminiSchema(schema) {
+  if (Array.isArray(schema)) return schema.map(toGeminiSchema);
+  if (!schema || typeof schema !== "object") return schema;
+  const out = {};
+  for (const [key, value] of Object.entries(schema)) {
+    if (key === "additionalProperties") continue;
+    if (key === "type" && typeof value === "string") out.type = value.toUpperCase();
+    else out[key] = toGeminiSchema(value);
+  }
+  return out;
+}
+
+function toGeminiContents(messages) {
+  const toolNames = new Map();
+  const contents = [];
+  for (const message of messages) {
+    if (message.role === "system") continue;
+    if (message.role === "user") {
+      contents.push({role:"user",parts:[{text:String(message.content || "")}]});
+      continue;
+    }
+    if (message.role === "assistant") {
+      const parts = [];
+      if (typeof message.content === "string" && message.content) parts.push({text:message.content});
+      for (const call of message.tool_calls || []) {
+        const name = call.function?.name;
+        let args = {};
+        try { args = JSON.parse(call.function?.arguments || "{}"); } catch (_) {}
+        if (name) {
+          toolNames.set(call.id,name);
+          parts.push({functionCall:{name,args}});
+        }
+      }
+      if (parts.length) contents.push({role:"model",parts});
+      continue;
+    }
+    if (message.role === "tool") {
+      let name = toolNames.get(message.tool_call_id);
+      if (!name) continue;
+      let response = {};
+      try { response = JSON.parse(message.content || "{}"); } catch (_) { response = {result:String(message.content || "")}; }
+      contents.push({role:"user",parts:[{functionResponse:{name,response}}]});
+    }
+  }
+  return contents;
+}
+
 async function callLLM(payload) {
-  const endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+  const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(MODEL) + ":generateContent";
   const maxAttempts = 2;
+  const system = (payload.messages || []).find(m => m.role === "system")?.content || SYSTEM;
+  const declarations = (payload.tools || []).map(t => ({
+    name:t.function.name,
+    description:t.function.description,
+    parameters:toGeminiSchema(t.function.parameters)
+  }));
+  const requestBody = {
+    systemInstruction:{parts:[{text:system}]},
+    contents:toGeminiContents(payload.messages || []),
+    tools:[{functionDeclarations:declarations}],
+    toolConfig:{functionCallingConfig:{mode:"AUTO"}},
+    generationConfig:{
+      thinkingConfig:{thinkingLevel:"LOW"},
+      maxOutputTokens:4096
+    }
+  };
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-    let response;
     try {
       const startedAt = Date.now();
-      console.info("Gemini request started", { model: MODEL, keySource: API_KEY_SOURCE, timeoutMs: REQUEST_TIMEOUT_MS, attempt: attempt + 1 });
-      response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + API_KEY,
-          "x-goog-api-client": "crown-council-prometheus/0.2"
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal
+      console.info("Gemini native request started", {model:MODEL,keySource:API_KEY_SOURCE,timeoutMs:REQUEST_TIMEOUT_MS,attempt:attempt+1});
+      const response = await fetch(endpoint,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","x-goog-api-key":API_KEY,"x-goog-api-client":"crown-council-prometheus/0.3"},
+        body:JSON.stringify(requestBody),
+        signal:controller.signal
       });
-      console.info("Gemini response received", { status: response.status, durationMs: Date.now() - startedAt, attempt: attempt + 1 });
+      const responseText = await response.text();
+      console.info("Gemini native response received",{status:response.status,durationMs:Date.now()-startedAt,attempt:attempt+1});
+      if (response.status === 503 && attempt < maxAttempts - 1) {
+        const retryAfter = Number(response.headers.get("retry-after"));
+        const delay = Number.isFinite(retryAfter) && retryAfter > 0 ? Math.min(10000,retryAfter*1000) : 1200*(2**attempt);
+        console.warn("Gemini temporarily unavailable (503); retrying in "+delay+"ms.");
+        await new Promise(resolve => setTimeout(resolve,delay));
+        continue;
+      }
+      if (!response.ok) return new Response(responseText,{status:response.status,headers:{"Content-Type":"application/json"}});
+      let google;
+      try { google = JSON.parse(responseText); } catch (_) { throw new Error("Gemini returned invalid JSON."); }
+      const parts = google.candidates?.[0]?.content?.parts || [];
+      const calls = parts.filter(p => p.functionCall?.name).map((p,index) => ({
+        id:p.functionCall.id || "gemini_call_"+attempt+"_"+index,
+        type:"function",
+        function:{name:p.functionCall.name,arguments:JSON.stringify(p.functionCall.args || {})}
+      }));
+      const content = parts.filter(p => typeof p.text === "string" && !p.thought).map(p => p.text).join("\\n");
+      return new Response(JSON.stringify({choices:[{message:{role:"assistant",content,tool_calls:calls}}]}),{
+        status:200,headers:{"Content-Type":"application/json"}
+      });
     } finally {
       clearTimeout(timer);
     }
-    if (response.status !== 503 || attempt === maxAttempts - 1) return response;
-    const retryAfter = Number(response.headers.get("retry-after"));
-    const delay = Number.isFinite(retryAfter) && retryAfter > 0
-      ? Math.min(10000, retryAfter * 1000)
-      : 1200 * (2 ** attempt);
-    console.warn("Gemini temporarily unavailable (503); retrying in " + delay + "ms.");
-    await new Promise(resolve => setTimeout(resolve, delay));
   }
+  throw new Error("Gemini request failed after bounded retries.");
 }
-
 async function readModelResponse(response) {
   if (!response.ok) {
     const body = await response.text();
