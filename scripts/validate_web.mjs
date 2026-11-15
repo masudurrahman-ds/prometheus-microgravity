@@ -76,6 +76,8 @@ const agentServer=fs.readFileSync("agent/server.mjs","utf8");
 const agentEvidence=fs.readFileSync("agent/evidence.mjs","utf8");
 if(!agentServer.includes('name:"analyze_dataset"') || !agentServer.includes("analyzeDataset(args.operation")) throw new Error("scientific analysis tool is not wired into the LLM agent");
 if(!agentEvidence.includes("export function analyzeDataset")) throw new Error("deterministic chart-ready evidence analysis is missing");
+if(!agentEvidence.includes("const extraRecords = extraFiles.flatMap")) throw new Error("cloud reasoning agent does not load expanded PSI experiment records");
+if(!agentEvidence.includes("const sources = [...(corpus.sources || []), ...extraSources]")) throw new Error("cloud reasoning agent does not resolve citations for expanded PSI sources");
 if(!fs.existsSync("render.yaml")) throw new Error("cloud agent deployment blueprint missing");
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
 if(!ai.includes("#pm-ai-panel{position:fixed!important;inset:max(28px,env(safe-area-inset-top,0px)) 0 0 0!important")) throw new Error("AI must use the permanent full-screen chat workspace");
