@@ -21,4 +21,4 @@ The output model is a compact autoencoder for exploratory representation/reconst
 - `model.pt`: only created after all sufficiency gates pass.
 - `evaluation.json`: held-out reconstruction metrics and exact feature definitions.
 
-All numeric features must retain a source ID and locator and must come from a non-metadata-only source. Canonical plotting proxies/midpoints remain explicitly marked in the feature metadata; they are not promoted to direct observations.
+Model inputs are limited to provenance-qualified flow velocity, pressure, and burn-duration values. Canonical oxygen midpoints and gravity visualization proxies are excluded from training, though the chart layer may display them with explicit caveats. Every included numeric feature must retain a source ID and locator and come from a non-metadata-only source.
