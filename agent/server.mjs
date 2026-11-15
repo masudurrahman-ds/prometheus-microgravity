@@ -8,7 +8,7 @@ const PROVIDER = "google-gemini";
 const MAX_ROUNDS = Number(process.env.MAX_TOOL_ROUNDS || 8);
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 65536);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "";
-const REQUEST_TIMEOUT_MS = Math.min(120000, Math.max(5000, Number(process.env.REQUEST_TIMEOUT_MS || 90000)));
+const REQUEST_TIMEOUT_MS = Math.min(120000, Math.max(5000, Number(process.env.REQUEST_TIMEOUT_MS || 40000)));
 const RATE_LIMIT = Math.min(120, Math.max(1, Number(process.env.RATE_LIMIT_PER_MINUTE || 20)));
 const TRUST_PROXY = process.env.TRUST_PROXY === "true";
 const rate = new Map();
@@ -83,7 +83,7 @@ function runTool(name,args) {
 
 async function callLLM(payload) {
   const endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-  const maxAttempts = 3;
+  const maxAttempts = 2;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
