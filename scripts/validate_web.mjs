@@ -32,7 +32,7 @@ if(!html.includes("Scenario reset to a recorded experiment baseline")) throw new
 if(!html.includes("RETRIEVED EVIDENCE · '+numericFinding.level")) throw new Error("virtual-lab evidence chart missing");
 if(!html.includes("not a physical combustion simulation")) throw new Error("virtual-lab scientific disclosure missing");
 if(!ai.includes("window.__prometheusDataset")) throw new Error("local AI does not consume stable dataset provider");
-if(!ai.includes("https://your-domain/v1/agent")) throw new Error("cloud AI endpoint guidance does not match the agent API route");
+if(!ai.includes("LOCAL ENGINE · NO CLOUD REQUIRED")) throw new Error("offline local engine status missing");
 if(!ai.includes('trace.map(t=>t?.result?.visualization)')) throw new Error("cloud AI tool charts are not rendered in the assistant response");
 if(!ai.includes("pending3DResult=rows")) throw new Error("3D evidence visualization ignores the requested scientific variable");
 if(!ai.includes("function finiteNumericValue(raw)")) throw new Error("strict chart numeric parser missing");
@@ -50,17 +50,17 @@ if(!agentServer.includes('name:"analyze_dataset"') || !agentServer.includes("ana
 if(!agentEvidence.includes("export function analyzeDataset")) throw new Error("deterministic chart-ready evidence analysis is missing");
 if(!fs.existsSync("render.yaml")) throw new Error("cloud agent deployment blueprint missing");
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
-if(!ai.includes("#pm-ai-panel{position:fixed!important;inset:28px 0 0 0!important")) throw new Error("AI chat must use a status-bar-safe full-screen viewport layout");
-if(!ai.includes("height:calc(100dvh - max(28px,env(safe-area-inset-top,0px)))!important")) throw new Error("AI chat must fill the status-bar-safe dynamic mobile viewport");
-if(!ai.includes("top:max(28px,env(safe-area-inset-top,0px))")) throw new Error("AI chat must stay clear of Android status-bar controls");
+if(!ai.includes("#pm-ai-panel{position:relative!important;inset:auto!important")) throw new Error("AI assistant must be mounted inline, not as a floating overlay");
+if(!ai.includes("width:min(calc(100% - 28px),1100px)!important")) throw new Error("inline AI panel responsive width missing");
+if(!ai.includes("LOCAL ENGINE · NO CLOUD REQUIRED")) throw new Error("AI local-only status missing");
 if(!ai.includes("min-width:48px;min-height:48px")) throw new Error("AI close control must have a reliable touch target");
 if(!ai.includes("window.__prometheusBack = function()")) throw new Error("Android Back must close the AI chat before navigating or exiting");
-if(!ai.includes("body.pm-ai-fullscreen-open #pm-ai-fab{display:none!important")) throw new Error("floating launcher must hide while full-screen chat is open");
-if(!ai.includes("window.__prometheusAIOpen = openAI")) throw new Error("external dashboard action does not open the full-screen chat");
-if(!ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("movable AI launcher pointer handling missing");
-if(!ai.includes('fab.addEventListener("pointerdown"')) throw new Error("AI launcher pointer handling missing");
+if(!ai.includes("#pm-ai-fab{display:none!important}")) throw new Error("floating AI launcher must be removed");
+if(!ai.includes("window.__prometheusAIOpen = openAI")) throw new Error("external dashboard action does not open the inline assistant");
+if(ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("obsolete floating AI drag handling remains");
+if(ai.includes('fab.addEventListener("pointerdown"')) throw new Error("obsolete floating AI launcher remains");
 if(ai.includes("DRAG TO MOVE")) throw new Error("full-screen chat must not show obsolete draggable-panel affordance");
-if(ai.includes('panel.querySelector("#pm-ai-head").addEventListener("pointerdown"')) throw new Error("full-screen chat header must not be draggable");
+if(ai.includes("DRAG TO MOVE")) throw new Error("obsolete floating chat drag label remains");
 if(html.includes("top:calc(env(safe-area-inset-top,0px) + 8px)!important;bottom:calc(132px")) throw new Error("old full-height mobile AI override still present");
 
 const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,index)=>({attrs:m[1],source:m[2],index}));
@@ -98,3 +98,13 @@ if(!ai.includes('if(namedRecords.length) rs=namedRecords;')) throw new Error("ch
 if(!ai.includes("const hasNamedExperimentScope=namedRecords.length>0;")) throw new Error("named experiment IDs must scope the complete scientific answer");
 if(!ai.includes("const rs=hasNamedExperimentScope ? namedRecords : allRecords;")) throw new Error("answer retrieval must not mix unrelated experiments into a named-record question");
 if(!ai.includes("if(hasNamedExperimentScope) rs.forEach(e=>srcIds(e).forEach(x=>ids.add(x)));")) throw new Error("named-record evidence gaps must cite the named experiment's source, not unrelated pressure context");
+
+if(!ai.includes("function localIntentAnswer(question, rs)")) throw new Error("offline intent engine missing");
+if(!ai.includes("OFFLINE-FIRST-NASA-RULE-ENGINE")) throw new Error("AI is not configured for offline-first operation");
+if(!ai.includes("const a=answer(q);")) throw new Error("user questions must route to the local rule engine");
+if(ai.includes("if(await askCloud(q))")) throw new Error("automatic cloud AI request must be disabled");
+if(!ai.includes('id:"judge_pitch"')) throw new Error("judge-presentation intent missing");
+if(!ai.includes('id:"methodology"')) throw new Error("methodology intent missing");
+if(!ai.includes('id:"limitations"')) throw new Error("limitations intent missing");
+if(!html.includes('UI.toast("PROMETHEUS local engine is loading. Please try again in a moment.")')) throw new Error("inline assistant fallback message missing");
+if(html.includes("pm-ai-emergency")) throw new Error("floating emergency AI overlay must be removed");
