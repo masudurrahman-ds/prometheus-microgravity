@@ -266,7 +266,7 @@
     const normalizedQuestion=low.replace(/[^a-z0-9]/g,"");
     const namedRecords=rs.filter(e=>normalizedQuestion.includes(String(e.exp_id||"").toLowerCase().replace(/[^a-z0-9]/g,"")));
     if(namedRecords.length) rs=namedRecords;
-    const asksForVisual=/(graph|plot|chart|visuali[sz]e|visual|image|picture|render|show me a flame)/.test(low);
+    const asksForVisual=/(graph|plot|chart|visuali[sz](?:e|ation)|visual|image|picture|render|show me a flame|bar chart|pie chart|heat ?map|line graph)/.test(low);
     const asksForComparison=/(compare|comparison|difference|versus|\bvs\b)/.test(low);
     const asksForTrend=/(trend|over time|time series|correlat|relationship|association)/.test(low);
     const asksForPie=/\b(pie|donut)\b/.test(low);
@@ -293,7 +293,10 @@
     if(/burn|duration|burn time|time taken/.test(low)) { metric="burn"; label="Burn duration (s)"; }
     else if(/oxygen|o2_fraction|o2 concentration/.test(low)) { metric="o2_fraction"; label="Reported oxygen fraction"; }
     else if(/pressure|pressur/.test(low)) { metric="pressure_kpa"; label="Pressure (kPa)"; }
-    else if(/flow|velocity|co-flow/.test(low)) { metric="flow_velocity_mm_s"; label="Flow velocity (mm/s)"; }
+    else if(/flow|velocity|co-flow|airflow/.test(low)) { metric="flow_velocity_mm_s"; label="Flow velocity (mm/s)"; }
+    else if(/droplet.*diameter|initial diameter/.test(low)) { metric="droplet_initial_diameter_mm"; label="Initial droplet diameter (mm)"; }
+    else if(/weight loss/.test(low)) { metric="weight_loss_rate_mg_min"; label="Weight-loss rate (mg/min)"; }
+    else if(/fuel rate|fuel flow/.test(low)) { metric="fuel_rate_mg_s"; label="Fuel rate (mg/s)"; }
 
     // A comparison or causal question alone is not a request for a chart.
     // Only attach visual output when the user explicitly asks to plot/graph/chart.
@@ -313,6 +316,14 @@
         return visualShell(label+" · evidence-backed comparison",disclosure,chart,metric);
       }
       return "";
+    }
+
+    if(asksForVisual && !metric && !asksForComparison) {
+      const field=/platform|spacecraft|iss/.test(low)?"platform":/source|investigation/.test(low)?"fuel_source":"fuel";
+      const counts=new Map();
+      rs.forEach(record=>{const label=String(record[field]||"Not specified");counts.set(label,(counts.get(label)||0)+1);});
+      const rows=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y).slice(0,12);
+      if(rows.length) return visualShell("NASA indexed records by "+field,"DERIVED · record counts; not measured combustion outcomes",barChartSVG(rows,"Records","Distribution of indexed records"),"count");
     }
 
     if(asksForVisual && asksForComparison) {
@@ -729,7 +740,9 @@
     const visual = scientificVisual(q, rs);
     const visual3d = scientific3DVisual(q, rs);
     const localIntent=localIntentAnswer(q,rs);
-    if(localIntent) return localIntent;
+    // Preserve generated visual output when a short local intent also matches
+    // the same question (e.g. "show a pie chart of the dataset").
+    if(localIntent) return {...localIntent,visual:visual||localIntent.visual||"",visual3d:visual3d||localIntent.visual3d||""};
     const explicit=findSourcesInQuestion(q); explicit.forEach(x=>ids.add(x));
 
     if(OUTSIDE.test(low) && !NASA_TERMS.has(ws[0])) {
@@ -896,17 +909,20 @@
       (audit&&audit.length?'<div class="pm-audit">Audit trail · '+audit.map(esc).join(" → ")+"</div>":"");
     body.appendChild(el);
     bindVisuals(el);
-    return el;
-    // Rehydrate the interactive 3D component because HTML serialization cannot retain canvas state.
+    // Rehydrate canvas state after the 3D card HTML is inserted into the DOM.
     if(visual3d) {
       const holder=el.querySelector(".pm-3d");
       if(holder) {
-        const rows=pending3DResult || records().map(e=>({label:e.exp_id,y:(e.observations||[]).find(o=>/burn/i.test((o.phenomenon||"")+" "+(o.description||""))&&finiteNumericValue(o.measurement?.canonical_value)!==null)?.measurement?.canonical_value})).map(r=>({...r,y:finiteNumericValue(r.y)})).filter(r=>r.y!==null);
-        const fresh=build3DResult(rows); holder.replaceWith(fresh);
-        pending3DResult=null;
+        const rows=pending3DResult||[];
+        if(rows.length) {
+          const fresh=build3DResult(rows);
+          holder.replaceWith(fresh);
+          pending3DResult=null;
+        }
       }
     }
     body.scrollTop=body.scrollHeight;
+    return el;
   }
 
   function ask(q) {
