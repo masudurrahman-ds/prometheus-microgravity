@@ -193,7 +193,8 @@ http.createServer(async(req,res)=>{
   const count=(rate.get(key)||0)+1; rate.set(key,count);
   for(const k of rate.keys()) if(!k.endsWith(":"+bucket)) rate.delete(k);
   if(count>RATE_LIMIT) return send(res,429,{ok:false,error:"Rate limit exceeded. Please retry shortly."});
-  const pathname = new URL(req.url, "http://localhost").pathname.replace(/\\/+$/, "") || "/";
+  let pathname = new URL(req.url, "http://localhost").pathname;
+  while (pathname.length > 1 && pathname.endsWith("/")) pathname = pathname.slice(0, -1);
   if(req.method==="GET") return send(res,200,{ok:true,service:"prometheus-scientific-agent",configured:!!API_KEY,model:MODEL,provider:PROVIDER,keyEnvironment:API_KEY?(process.env.GEMINI_API_KEY?"GEMINI_API_KEY":process.env.GOOGLE_API_KEY?"GOOGLE_API_KEY":process.env.GOOGLE_GEMINI_API_KEY?"GOOGLE_GEMINI_API_KEY":"OPENAI_API_KEY"):null,path:pathname,evidence_policy:"NASA indexed corpus only"});
   if(req.method!=="POST"||pathname!=="/v1/agent") return send(res,404,{ok:false,error:"Not found"});
   try{
