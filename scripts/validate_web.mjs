@@ -108,3 +108,7 @@ if(!ai.includes('id:"methodology"')) throw new Error("methodology intent missing
 if(!ai.includes('id:"limitations"')) throw new Error("limitations intent missing");
 if(!html.includes('UI.toast("PROMETHEUS local engine is loading. Please try again in a moment.")')) throw new Error("inline assistant fallback message missing");
 if(html.includes("pm-ai-emergency")) throw new Error("floating emergency AI overlay must be removed");
+
+if(!ai.includes("function expandQuestionAliases(question)")) throw new Error("scientific query alias expansion missing");
+if(!ai.includes("hello gemini)([, ]+(are you (there|working)")) throw new Error("Gemini greeting test phrase must be handled offline");
+if(!ai.includes("queryAliasGroups:()=>QUERY_ALIASES.length")) throw new Error("offline query alias coverage metric missing");
