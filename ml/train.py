@@ -99,6 +99,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("data/prometheus_nasa_psi.json"))
     parser.add_argument("--output", type=Path, default=Path("ml/artifacts"))
+    parser.add_argument("--check-only", action="store_true", help="Evaluate data sufficiency without importing PyTorch or training.")
     args = parser.parse_args()
 
     corpus = json.loads(args.data.read_text(encoding="utf-8"))
@@ -160,6 +161,15 @@ def main() -> int:
             "Training withheld: the indexed corpus does not meet the minimum "
             "record-count and independent-source-group requirements."
         )
+        (args.output / "training_status.json").write_text(
+            json.dumps(status, indent=2), encoding="utf-8"
+        )
+        print(json.dumps(status, indent=2))
+        return 0
+
+    if args.check_only:
+        status["status"] = "ready_for_training"
+        status["reason"] = "Sufficiency gate passed; check-only mode does not train a model."
         (args.output / "training_status.json").write_text(
             json.dumps(status, indent=2), encoding="utf-8"
         )
