@@ -275,7 +275,8 @@
       const field=/platform|spacecraft|iss/.test(low)?"platform":"fuel";
       const counts=new Map();
       rs.forEach(record=>{const label=String(record[field]||"Not specified");counts.set(label,(counts.get(label)||0)+1);});
-      const rows=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y).slice(0,6);
+      const ranked=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y);
+      const rows=ranked.length>6?[...ranked.slice(0,5),{label:"Other",y:ranked.slice(5).reduce((sum,row)=>sum+row.y,0)}]:ranked;
       if(rows.length) return visualShell("Retrieved record composition by "+field,"DERIVED · counts of retrieved records, not combustion outcomes",pieChartSVG(rows,"NASA indexed records by "+field),"pie");
       return "";
     }
