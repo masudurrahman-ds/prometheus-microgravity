@@ -108,8 +108,15 @@
   `;
   style.textContent += "\n" + [
     "#pm-ai-fab{display:none!important}",
-    "#pm-ai-panel{position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:min(calc(100% - 28px),1100px)!important;height:min(72vh,760px)!important;min-height:420px!important;max-height:760px!important;margin:28px auto 42px!important;border-radius:22px!important;border:1px solid rgba(230,203,147,.35)!important;z-index:2!important}",
-    "#pm-ai-panel.open{display:flex!important;position:relative!important}"
+    "#pm-ai-panel{position:fixed!important;inset:max(28px,env(safe-area-inset-top,0px)) 0 0 0!important;width:100vw!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;border-radius:0!important;border:0!important;border-top:1px solid rgba(230,203,147,.28)!important;z-index:100000!important;background:#050812!important;box-shadow:none!important}",
+    "#pm-ai-panel.open{display:flex!important;position:fixed!important}",
+    "#pm-ai-close{display:none!important}",
+    "#pm-ai-head{cursor:default!important;touch-action:pan-y!important}",
+    "#pm-ai-body{width:100%;max-width:980px;margin:0 auto;}",
+    "#pm-ai-form,#pm-ai-suggest{width:100%;max-width:980px;margin-left:auto!important;margin-right:auto!important;}",
+    "#pm-ai-clear{margin-left:max(14px,calc((100vw - 980px)/2))!important}",
+    "body.pm-ai-fullscreen-open{overflow:hidden!important}",
+    "@media(min-width:760px){#pm-ai-panel{inset:0!important}#pm-ai-panel #pm-ai-head{padding-top:24px!important}}"
   ].join("\n");
   document.head.appendChild(style);
 
@@ -281,7 +288,7 @@
     if(asksForPie) {
       const field=/platform|spacecraft|iss/.test(low)?"platform":"fuel";
       const counts=new Map();
-      rs.forEach(record=>{const label=String(record[field]||"Not specified");counts.set(label,(counts.get(label)||0)+1);});
+      rs.forEach(record=>{const label=String(record[field]||record.source_id||"Source not recorded");counts.set(label,(counts.get(label)||0)+1);});
       const ranked=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y);
       const rows=ranked.length>6?[...ranked.slice(0,5),{label:"Other",y:ranked.slice(5).reduce((sum,row)=>sum+row.y,0)}]:ranked;
       if(rows.length) return visualShell("Retrieved record composition by "+field,"DERIVED · counts of retrieved records, not combustion outcomes",pieChartSVG(rows,"NASA indexed records by "+field),"pie");
@@ -326,11 +333,11 @@
     }
 
     if(asksForVisual && !metric && !asksForComparison) {
-      const field=/platform|spacecraft|iss/.test(low)?"platform":/source|investigation/.test(low)?"fuel_source":"fuel";
+      const field=/platform|spacecraft|iss/.test(low)?"platform":"source_id";
       const counts=new Map();
       rs.forEach(record=>{const label=String(record[field]||"Not specified");counts.set(label,(counts.get(label)||0)+1);});
       const rows=[...counts.entries()].map(([label,y])=>({label,y})).sort((a,b)=>b.y-a.y).slice(0,12);
-      if(rows.length) return visualShell("NASA indexed records by "+field,"DERIVED · record counts; not measured combustion outcomes",barChartSVG(rows,"Records","Distribution of indexed records"),"count");
+      if(rows.length) return visualShell("NASA indexed experiments by investigation source","DERIVED · count of retrieved records by NASA PSI source; not combustion outcomes",barChartSVG(rows,"Experiment records","NASA PSI investigation distribution"),"count");
     }
 
     if(asksForVisual && asksForComparison) {
