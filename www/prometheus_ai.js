@@ -171,7 +171,7 @@
         updateCloudButton();
         return;
       }
-      try { localStorage.setItem(CLOUD_ENDPOINT_KEY, normalized.toString().replace(/\\/+$/, "")); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
+      try { localStorage.setItem(CLOUD_ENDPOINT_KEY, normalized.toString()); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
       updateCloudButton(); UI.toast("Cloud AI connected · explicit consent enabled");
     } catch (_) {
       UI.toast("Cannot reach the scientific agent. Check its deployment and CORS settings.");
