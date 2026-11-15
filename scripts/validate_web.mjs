@@ -21,7 +21,10 @@ if(!psi98 || !(psi98.observations||[]).some(o=>o.phenomenon==="burn_duration" &&
 const data=JSON.parse(fs.readFileSync("data/prometheus_nasa_psi.json","utf8"));
 if(data.update_version!=="2026.10.07.3") throw new Error("dataset update version mismatch");
 
+const webAi=fs.readFileSync("www/prometheus_ai.js","utf8");
+new vm.Script(webAi,{filename:"www/prometheus_ai.js"});
 const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
+new vm.Script(ai,{filename:"android/app/src/main/assets/prometheus_ai.js"});
 if(!html.includes("window, '__prometheusDataset'")) throw new Error("stable local-AI dataset provider missing");
 if(!html.includes("function resetLabFormToBaseline(ds = S.ds)")) throw new Error("virtual-lab recorded-baseline reset helper missing");
 if(!html.includes("form: {fuel: '', on: {o2: false, p: false, g: false, t: false, f: false}")) throw new Error("virtual-lab initial constraints should not be stale defaults");
