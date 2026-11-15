@@ -148,10 +148,37 @@
   const cloudEndpoint = () => { try { return localStorage.getItem(CLOUD_ENDPOINT_KEY) || window.__PROMETHEUS_AI_ENDPOINT || ""; } catch (_) { return window.__PROMETHEUS_AI_ENDPOINT || ""; } };
   const cloudEnabled = () => { try { return localStorage.getItem(CLOUD_CONSENT_KEY) === "yes" && !!cloudEndpoint(); } catch (_) { return !!cloudEndpoint(); } };
   function updateCloudButton(){ cloudButton.textContent = cloudEnabled() ? "Cloud AI enabled · tap to disable" : "Enable Cloud AI"; }
-  cloudButton.onclick = () => {
+  cloudButton.onclick = async () => {
     if (cloudEnabled()) {
       try { localStorage.removeItem(CLOUD_CONSENT_KEY); } catch (_) {}
-      updateCloudButton(); UI.toast("Cloud AI disabled · local mode remains available");
+      updateCloudButton(); UI.toast("Cloud AI disabled · local evidence mode remains available");
+      return;
+    }
+    const endpoint = window.prompt("PROMETHEUS Cloud AI endpoint. Your questions and recent conversation are sent only after you explicitly enable cloud processing.", cloudEndpoint() || "https://prometheus-scientific-agent.onrender.com/v1/agent");
+    if (!endpoint) return;
+    let normalized;
+    try {
+      normalized = new URL(endpoint.trim());
+      if (normalized.protocol !== "https:" || !normalized.pathname.endsWith("/v1/agent")) throw new Error("Use the HTTPS endpoint ending in /v1/agent.");
+    } catch (error) { UI.toast(error.message || "Invalid cloud endpoint."); return; }
+    cloudButton.disabled = true;
+    cloudButton.textContent = "Checking scientific agent…";
+    try {
+      const response = await fetch(normalized.origin + "/health", {cache:"no-store"});
+      const health = await response.json();
+      if (!response.ok || health.configured !== true) {
+        UI.toast(health.configured === false ? "Render agent is online, but its OpenAI API key is not configured yet." : "Scientific agent health check failed.");
+        updateCloudButton();
+        return;
+      }
+      try { localStorage.setItem(CLOUD_ENDPOINT_KEY, normalized.toString().replace(/\\/+$/, "")); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
+      updateCloudButton(); UI.toast("Cloud AI connected · explicit consent enabled");
+    } catch (_) {
+      UI.toast("Cannot reach the scientific agent. Check its deployment and CORS settings.");
+      updateCloudButton();
+    } finally { cloudButton.disabled = false; }
+  };
+  updateCloudButton(); UI.toast("Cloud AI disabled · local mode remains available");
       return;
     }
     const endpoint = window.prompt("Enter your PROMETHEUS AI server endpoint. Cloud AI sends your question and recent conversation to this trusted server only after you enable it.", cloudEndpoint() || "https://prometheus-scientific-agent.onrender.com/v1/agent");
@@ -811,8 +838,10 @@
       add("ai","AI · Cloud evidence synthesis",text,evidenceState,.98,ids,["Explicit cloud-AI consent","NASA evidence retrieval on server","Deterministic analysis tool available","Evidence/citation trace attached"],visualHtml);
       return true;
     } catch (error) {
-      UI.toast("Cloud AI unavailable · using local evidence engine");
-      return false;
+      const message = "Cloud reasoning failed (" + (error?.message || "network error") + "). This answer was not silently replaced with the rule-based local answer. Check Render configuration and retry.";
+      rememberTurn({role:"assistant",text:message,title:"AI · Cloud connection error",evidence:"UNKNOWN"});
+      add("ai","AI · Cloud connection error",esc(message),"UNKNOWN",0,[],["Cloud mode was enabled","Cloud response failed","No local rule-based substitution"]);
+      return true;
     }
   }
 
