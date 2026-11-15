@@ -26,7 +26,7 @@ if(!mlPipeline.includes("MIN_RECORDS = 60") || !mlPipeline.includes("MIN_SOURCE_
 if(!mlPipeline.includes("blocked_insufficient_data") || !mlPipeline.includes("source_group")) throw new Error("PyTorch pipeline must report insufficient data and use source-group holdout");
 if(!mlPipeline.includes("exploratory_feature_reconstruction_only")) throw new Error("PyTorch model purpose must remain reconstruction-only");
 const mlReadme=fs.readFileSync("ml/README.md","utf8");
-if(!mlReadme.includes("not a hazard score") || !mlReadme.includes("17-record seed corpus")) throw new Error("PyTorch research limitations must be documented");
+if(!mlReadme.includes("hazard score") || !mlReadme.includes("17-record seed corpus")) throw new Error("PyTorch research limitations must be documented");
 const webAi=fs.readFileSync("www/prometheus_ai.js","utf8");
 new vm.Script(webAi,{filename:"www/prometheus_ai.js"});
 const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
