@@ -90,7 +90,7 @@
     #pm-ai-form{display:flex;gap:7px;padding:12px 15px;border-top:1px solid rgba(255,255,255,.09)}
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
-    #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
+    #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}\n    .pm-loading:after{content:"";display:inline-block;width:1.1em;text-align:left;animation:pmDots 1.2s steps(4,end) infinite}@keyframes pmDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
     /* Full-screen conversational workspace: no floating mini-window. */
     /* Keep the app-owned chat below Android status icons and above navigation controls. Android WebView often reports zero CSS safe-area insets, so use a conservative status-bar fallback. */
     #pm-ai-panel{position:fixed!important;inset:28px 0 0 0!important;right:0!important;bottom:0!important;left:0!important;top:max(28px,env(safe-area-inset-top,0px))!important;width:100vw!important;height:calc(100vh - 28px)!important;height:calc(100dvh - max(28px,env(safe-area-inset-top,0px)))!important;max-height:none!important;min-height:0!important;border-radius:0!important;border:0!important;z-index:100000!important;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0px);background:#050812;}
@@ -106,6 +106,10 @@
     body.pm-ai-fullscreen-open #pm-ai-fab{display:none!important;}
     @media(min-width:760px){#pm-ai-panel #pm-ai-body{padding-left:max(24px,calc((100vw - 900px)/2));padding-right:max(24px,calc((100vw - 900px)/2));}#pm-ai-panel #pm-ai-head{padding-left:max(24px,calc((100vw - 980px)/2));padding-right:max(24px,calc((100vw - 980px)/2));}#pm-ai-panel #pm-ai-form,#pm-ai-panel #pm-ai-suggest{padding-left:max(24px,calc((100vw - 900px)/2));padding-right:max(24px,calc((100vw - 900px)/2));}}
   `;
+    /* Inline assistant: no floating launcher, modal overlay, or viewport lock. */
+    #pm-ai-fab{display:none!important}
+    #pm-ai-panel{position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:min(calc(100% - 28px),1100px)!important;height:min(72vh,760px)!important;min-height:420px!important;max-height:760px!important;margin:28px auto 42px!important;border-radius:22px!important;border:1px solid rgba(230,203,147,.35)!important;z-index:2!important}
+    #pm-ai-panel.open{display:flex!important;position:relative!important}
   document.head.appendChild(style);
 
   const fab = document.createElement("button");
@@ -121,7 +125,7 @@
       <div>
         <strong>PROMETHEUS AI</strong>
         <small>NASA-evidence-grounded combustion intelligence</small>
-        <div id="pm-ai-status"><i></i> NASA source firewall · local evidence ready</div><button id="pm-ai-cloud" type="button" style="margin-top:8px;background:transparent;border:1px solid rgba(230,203,147,.3);border-radius:9px;color:#e6cb93;padding:6px 9px;font:10px IBM Plex Sans,system-ui">Enable Cloud AI</button><div id="pm-ai-memory-count" style="margin-top:5px;color:#737c96;font:9px IBM Plex Sans,system-ui;letter-spacing:.06em"></div>
+        <div id="pm-ai-status"><i></i> NASA source firewall · local evidence ready</div><div id="pm-ai-cloud-status" style="margin-top:8px;color:#4fe3a0;font:10px IBM Plex Sans,system-ui;letter-spacing:.08em">LOCAL ENGINE · NO CLOUD REQUIRED</div><div id="pm-ai-memory-count" style="margin-top:5px;color:#737c96;font:9px IBM Plex Sans,system-ui;letter-spacing:.06em"></div>
       </div>
       <button id="pm-ai-close" aria-label="Close">×</button>
     </div>
@@ -139,28 +143,9 @@
     </form>
   `;
   document.body.appendChild(panel);
-  document.body.appendChild(fab);
 
   const body = panel.querySelector("#pm-ai-body");
-  const CLOUD_ENDPOINT_KEY = "prometheus_cloud_ai_endpoint";
-  const CLOUD_CONSENT_KEY = "prometheus_cloud_ai_consent";
-  const cloudButton = panel.querySelector("#pm-ai-cloud");
-  const cloudEndpoint = () => { try { return localStorage.getItem(CLOUD_ENDPOINT_KEY) || window.__PROMETHEUS_AI_ENDPOINT || ""; } catch (_) { return window.__PROMETHEUS_AI_ENDPOINT || ""; } };
-  const cloudEnabled = () => { try { return localStorage.getItem(CLOUD_CONSENT_KEY) === "yes" && !!cloudEndpoint(); } catch (_) { return !!cloudEndpoint(); } };
-  function updateCloudButton(){ cloudButton.textContent = cloudEnabled() ? "Cloud AI enabled · tap to disable" : "Enable Cloud AI"; }
-  cloudButton.onclick = () => {
-    if (cloudEnabled()) {
-      try { localStorage.removeItem(CLOUD_CONSENT_KEY); } catch (_) {}
-      updateCloudButton(); UI.toast("Cloud AI disabled · local mode remains available");
-      return;
-    }
-    const endpoint = window.prompt("Enter your PROMETHEUS AI server endpoint (use the full URL ending in /v1/agent, for example https://your-domain/v1/agent). Your question and recent conversation will leave this device only after you enable Cloud AI.");
-    if (!endpoint) return;
-    try { localStorage.setItem(CLOUD_ENDPOINT_KEY, endpoint.replace(/\/+$/, "")); localStorage.setItem(CLOUD_CONSENT_KEY, "yes"); } catch (_) {}
-    updateCloudButton(); UI.toast("Cloud AI enabled with explicit consent");
-  };
-  updateCloudButton();
-
+  const cloudButton = null;
   function visualShell(title, subtitle, inner, key) {
     const id="pmv-"+Math.random().toString(36).slice(2,9);
     return '<div class="pm-visual" id="'+id+'"><div class="pm-visual-head"><span>'+esc(title)+'</span><span>'+esc(subtitle||"NASA data")+'</span></div>'+inner+
@@ -576,6 +561,41 @@
     return {title:"AI · Evidence synthesis",text:"I ranked the loaded NASA records against your question and built the answer from the strongest matching evidence:<br><br>"+evidence+continuity+"<br><br><b>Scientific judgment:</b> the records support descriptive interpretation. I will not turn association into causation or extrapolation into an observed NASA result.",evidence:"REPORTED",score:Math.min(.96,.72+hits.length*.06),ids:[...ids],audit:["Intent + entity resolution","Conversation memory consulted","NASA retrieval","Evidence hierarchy applied","Causal/extrapolation gate applied"]};
   }
 
+  // Offline-first intent layer. Phrase aliases compose into broad coverage without a brittle prompt dump.
+  const LOCAL_INTENTS = [
+    {id:"greeting",test:q=>/^(hi|hello|hey|good morning|good afternoon|good evening|are you there|are you working|hello prometheus|hello gemini)[!.? ]*$/i.test(q.trim())},
+    {id:"capabilities",test:q=>/(what can you do|what questions can you answer|how can you help|your capabilities|help me use prometheus|how do i use you)/i.test(q)},
+    {id:"overview",test:q=>/(what is prometheus|explain prometheus|introduce prometheus|project overview|what does this project do|tell me about this project)/i.test(q)},
+    {id:"judge_pitch",test:q=>/(judge|judges|elevator pitch|project pitch|demo presentation|present this project|explain this project to)/i.test(q)},
+    {id:"novelty",test:q=>/(novelty|what is new|what makes.*different|unique contribution|innovation|original contribution)/i.test(q)},
+    {id:"methodology",test:q=>/(methodology|how does.*work|working principle|workflow|pipeline|how is.*analysed|how do you analyse)/i.test(q)},
+    {id:"sources",test:q=>/(why nasa|why use nasa|data source|which sources|source provenance|where.*data.*come from|dataset source)/i.test(q)},
+    {id:"dataset",test:q=>/(dataset|corpus|how many experiments|how many records|how much data|what data.*loaded|data coverage)/i.test(q)},
+    {id:"limitations",test:q=>/(limitation|weakness|what.*cannot|known gaps|research gap|what is missing|future work|next steps)/i.test(q)},
+    {id:"evidence_policy",test:q=>/(evidence hierarchy|evidence level|observed versus reported|how.*avoid.*hallucination|hallucination|causal claim|prove causation)/i.test(q)},
+    {id:"offline",test:q=>/(offline|without internet|without cloud|without gemini|cloud ai|local engine|rule.?based)/i.test(q)}
+  ];
+
+  function localIntentAnswer(question, rs) {
+    const q=String(question||"").trim();
+    const intent=LOCAL_INTENTS.find(rule=>rule.test(q));
+    if(!intent) return null;
+    const count=rs.length, sourceCount=sources().length;
+    const ids=[...new Set(rs.flatMap(srcIds))];
+    const sourceList=sources().slice(0,8).map(s=>"<b>"+esc(s.source_id)+"</b> — "+esc(s.title||"NASA PSI source")).join("<br>");
+    const base={evidence:"NASA PSI corpus · local deterministic response",score:.98,ids,audit:["Offline intent engine: "+intent.id,"No cloud request issued","NASA indexed corpus consulted","Unsupported claims gated"]};
+    if(intent.id==="greeting") return {...base,title:"PROMETHEUS · Local engine ready",text:"Yes — PROMETHEUS is responding locally. The offline scientific engine is active with <b>"+count+"</b> indexed experiment records and <b>"+sourceCount+"</b> NASA PSI source records. No Gemini request is needed."};
+    if(intent.id==="capabilities") return {...base,title:"PROMETHEUS · Offline capabilities",text:"I can search indexed NASA experiments; compare named records such as S1/S2; retrieve oxygen, pressure, gravity and flow conditions; summarize observations; calculate coverage and descriptive statistics; identify missing evidence; trace source citations; and explain the project's methodology and limitations.<br><br>I do not invent measurements or infer causation from descriptive comparisons."};
+    if(intent.id==="overview"||intent.id==="judge_pitch") return {...base,title:"PROMETHEUS · Project briefing",text:"<b>PROMETHEUS</b> is an evidence-grounded scientific exploration system for NASA microgravity-combustion research. It organizes provenance-tracked NASA Physical Sciences Informatics (PSI) records, lets users search and compare experiments, summarizes reported conditions and observations, and computes reproducible statistics from indexed data.<br><br><b>Core value:</b> every scientific claim is traceable to its source, with NASA-reported facts separated from derived statistics, interpretation and unknowns.<br><br><b>Current corpus:</b> "+count+" indexed experiment records across "+sourceCount+" registered sources. This is a curated seed corpus, not the complete NASA PSI archive."};
+    if(intent.id==="novelty") return {...base,title:"PROMETHEUS · Research contribution",text:"The contribution is a transparent research workflow combining provenance-preserving NASA PSI evidence, experiment-level comparison, deterministic analysis, evidence-state labels and explicit abstention when indexed data cannot support a conclusion. It does not claim to discover a new combustion law. Its distinction is traceability: users can inspect which record supports a statement, what was reported versus derived, and which variables remain missing."};
+    if(intent.id==="methodology") return {...base,title:"PROMETHEUS · Methodology",text:"<b>1. Ingest:</b> load a curated NASA PSI seed corpus while retaining experiment IDs, source IDs and reported wording.<br><b>2. Retrieve:</b> match questions to experiment metadata, conditions, observations and source records.<br><b>3. Validate:</b> distinguish observed measurements, source-reported context, derived values and unknown fields.<br><b>4. Analyze:</b> compute reproducible summaries, coverage and comparisons from usable numeric records.<br><b>5. Explain:</b> return a synthesis with source trace, caveats and an audit trail.<br><br>The current assistant uses deterministic rules and calculations; supported answers do not require a remote language model."};
+    if(intent.id==="sources") return {...base,title:"PROMETHEUS · NASA source provenance",text:"PROMETHEUS uses NASA Physical Sciences Informatics investigation records. Each indexed record retains source identifiers and citation metadata for traceability. Registered sources include:<br><br>"+sourceList+"<br><br>Only sources loaded into this build are represented; the seed corpus is not the complete NASA archive."};
+    if(intent.id==="dataset") return {...base,title:"PROMETHEUS · Dataset status",text:"The loaded corpus contains <b>"+count+"</b> experiment records and <b>"+sourceCount+"</b> registered NASA PSI sources. It is a provenance-tracked seed corpus assembled from investigation metadata and experimental-table entries. Missing values remain missing; canonical midpoints or proxies are disclosed as derived plotting aids, not direct measurements."};
+    if(intent.id==="limitations") return {...base,title:"PROMETHEUS · Limitations and next steps",text:"<b>Current limitations:</b><br>• The indexed NASA PSI seed corpus is small and is not the complete archive.<br>• Some investigations expose metadata or reported ranges rather than raw instrument-level observations.<br>• Missing fields reduce valid comparisons and paired statistical observations.<br>• Descriptive association does not establish causation.<br>• The local rule engine is specialized for PROMETHEUS combustion research, not a general-purpose chatbot.<br><br><b>Next steps:</b> expand the provenance-checked corpus, add source-level validation, broaden tested question patterns, and evaluate answers against a judge-style question set."};
+    if(intent.id==="evidence_policy") return {...base,title:"PROMETHEUS · Evidence policy",text:"<b>NASA OBSERVED:</b> a measurement explicitly present in an indexed observation.<br><b>NASA REPORTED:</b> a condition or value stated by source metadata or tables.<br><b>DERIVED:</b> a reproducible calculation from indexed values, with method disclosed.<br><b>MODEL-INFERRED:</b> an interpretation that is not itself a NASA observation.<br><b>UNKNOWN:</b> the corpus does not support the requested claim.<br><br>A missing value is never treated as zero. A difference between two experiments is not automatically causal."};
+    return {...base,title:"PROMETHEUS · Offline mode",text:"PROMETHEUS answers locally first. Questions are matched against compositional intent rules and the indexed NASA corpus; comparisons and statistics are computed on-device. This local path sends no question to Gemini. Unsupported questions receive an honest limitation instead of a fabricated answer."};
+  }
+
   function answer(q) {
     const originalQuestion=q;
     q=resolveFollowUp(q);
@@ -595,11 +615,13 @@
     const low=q.toLowerCase(), ws=words(q), ids=new Set(), audit=["NASA-only corpus selected","External-knowledge fallback disabled"];
     const visual = scientificVisual(q, rs);
     const visual3d = scientific3DVisual(q, rs);
+    const localIntent=localIntentAnswer(q,rs);
+    if(localIntent) return localIntent;
     const explicit=findSourcesInQuestion(q); explicit.forEach(x=>ids.add(x));
 
     if(OUTSIDE.test(low) && !NASA_TERMS.has(ws[0])) {
       audit.push("Topic gate: outside NASA combustion scope","Offline general-knowledge model: not configured","Abstention gate: PASS");
-      return {title:"AI · General question",text:"This build's offline brain is specialized for NASA microgravity-combustion evidence, so it cannot reliably answer an unrelated question by itself. <b>To ask general questions:</b> open the AI controls and choose <b>Enable Cloud AI</b>, then enter a trusted PROMETHEUS-compatible agent endpoint. Your question and recent conversation will leave this device only after you explicitly enable it. If you want to stay fully offline, I can still help with experiment comparisons, source tracing, definitions grounded in the loaded corpus, evidence gaps, and research planning. I won't present unrelated or guessed information as verified fact.",evidence:"UNKNOWN · general answer unavailable offline",score:.99,ids:[...ids],audit,visual};
+      return {title:"AI · General question",text:"This build's offline brain is specialized for NASA microgravity-combustion evidence, so it cannot reliably answer an unrelated question by itself. <b>I can help connect an unrelated question to this project when a scientific link exists, but I will not invent general facts or present unsupported claims as verified evidence. Try asking about an experiment, fuel, flame behaviour, oxygen, pressure, microgravity, evidence quality, research methodology or mission-safety implications. If you want to stay fully offline, I can still help with experiment comparisons, source tracing, definitions grounded in the loaded corpus, evidence gaps, and research planning. I won't present unrelated or guessed information as verified fact.",evidence:"UNKNOWN · general answer unavailable offline",score:.99,ids:[...ids],audit,visual};
     }
 
     if(/logic|logically|illogical|nonsense|impossible|contradiction|paradox/.test(low)) {
@@ -761,6 +783,7 @@
       (audit&&audit.length?'<div class="pm-audit">Audit trail · '+audit.map(esc).join(" → ")+"</div>":"");
     body.appendChild(el);
     bindVisuals(el);
+    return el;
     // Rehydrate the interactive 3D component because HTML serialization cannot retain canvas state.
     if(visual3d) {
       const holder=el.querySelector(".pm-3d");
@@ -773,66 +796,24 @@
     body.scrollTop=body.scrollHeight;
   }
 
-  async function askCloud(q) {
-    const endpoint = cloudEndpoint();
-    if (!endpoint || !cloudEnabled()) return false;
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {"content-type":"application/json"},
-        body: JSON.stringify({
-          message:q,
-          history: recentMemory(12).map(x => ({role:x.role === "assistant" ? "assistant" : "user", content:String(x.text || "")})),
-          consent:{cloud_ai:true}
-        })
-      });
-      if (!res.ok) throw new Error("Cloud AI HTTP "+res.status);
-      const payload = await res.json();
-      const answerText = typeof payload.answer === "string" ? payload.answer : (payload.answer?.answer || "");
-      const trace = Array.isArray(payload.trace) ? payload.trace : [];
-      const ids = [...new Set(trace.flatMap(t => {
-        const result=t?.result||{};
-        const direct=Array.isArray(result.sources)?result.sources:[];
-        const nested=Array.isArray(result.matches)?result.matches.flatMap(m=>Array.isArray(m.sources)?m.sources:[]):[];
-        const pair=[result.experiment_a,result.experiment_b].filter(Boolean).flatMap(e=>Array.isArray(e.sources)?e.sources:[]);
-        return [...direct,...nested,...pair].map(s=>s?.source_id).filter(Boolean);
-      }))];
-      const evidenceState = payload.evidence_state || (ids.length ? "REPORTED" : "UNKNOWN");
-      const sourceText = ids.length ? "<br><br><b>Cloud evidence trace:</b> " + ids.map(id => esc(id)).join(" · ") : "";
-      const text = esc(answerText || "The cloud agent returned no answer.").replace(/\\n/g,"<br>") + sourceText;
-      const charts = trace.map(t=>t?.result?.visualization).filter(v=>v&&v.type==="bar"&&Array.isArray(v.rows));
-      let visualHtml = "";
-      if(charts.length) {
-        const chart=charts[charts.length-1];
-        const rows=chart.rows.map(r=>{const y=finiteNumericValue(r?.y);return y===null?null:{...r,y};}).filter(Boolean).slice(0,12);
-        if(rows.length) visualHtml=visualShell(chart.title||"Deterministic scientific analysis","DERIVED · indexed NASA seed corpus",barChartSVG(rows,chart.yLabel||"Value",chart.title||"Scientific analysis"),"cloud-analysis");
-      }
-      rememberTurn({role:"assistant",text,title:"AI · Cloud evidence synthesis",evidence:evidenceState,ids});
-      add("ai","AI · Cloud evidence synthesis",text,evidenceState,.98,ids,["Explicit cloud-AI consent","NASA evidence retrieval on server","Deterministic analysis tool available","Evidence/citation trace attached"],visualHtml);
-      return true;
-    } catch (error) {
-      UI.toast("Cloud AI unavailable · using local evidence engine");
-      return false;
-    }
-  }
-
   function ask(q) {
     q=q.trim(); if(!q)return;
     rememberTurn({role:"user",text:q});
     add("user","YOU",esc(q),null,null,null,[]);
     input.disabled=true;
-    (async()=>{
-      try {
-        if(await askCloud(q)){ input.disabled=false; input.focus(); saveMemory(); return; }
-        const a=answer(q);
-        rememberTurn({role:"assistant",text:a.text,title:a.title,evidence:a.evidence,ids:a.ids||[]});
-        add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[],a.visual||"",a.visual3d||"");
-      } catch(e) {
-        const safe="The reasoning engine hit an internal error. I will not guess. Please retry; your conversation memory is preserved locally.";
-        rememberTurn({role:"assistant",text:safe,title:"AI · Safe failure",evidence:"UNKNOWN"});
-        add("ai","AI · Safe failure",safe,"UNKNOWN",0,[],["Exception trapped","Answer gate: BLOCKED"]);
-      } finally { input.disabled=false; input.focus(); saveMemory(); }
-    })();
+    try {
+      const a=answer(q);
+      rememberTurn({role:"assistant",text:a.text,title:a.title,evidence:a.evidence,ids:a.ids||[]});
+      add("ai",a.title,a.text,a.evidence,a.score,a.ids||[],a.audit||[],a.visual||"",a.visual3d||"");
+    } catch(e) {
+      const safe="The local reasoning engine encountered an internal error. No unsupported answer was generated. Please rephrase the question; your conversation memory is preserved locally.";
+      rememberTurn({role:"assistant",text:safe,title:"AI · Safe failure",evidence:"UNKNOWN"});
+      add("ai","AI · Safe failure",safe,"UNKNOWN",0,[],["Exception trapped","Local answer gate: BLOCKED"]);
+    } finally {
+      input.disabled=false;
+      input.focus();
+      saveMemory();
+    }
   }
 
   function readyMessage() {
@@ -853,64 +834,10 @@
   }
   // The AI orb and assistant card are both draggable so they can be moved away
   // from Research controls and content. Clamp the panel inside the visible viewport.
-  let fabMoved=false, panelMoved=false, dragState=null;
-  const POSITION_KEY="prometheus_ai_floating_positions_v1";
-  function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
-  function savePositions(){
-    try{localStorage.setItem(POSITION_KEY,JSON.stringify({fab:fab.style.left?{left:fab.style.left,top:fab.style.top}:null}));}catch(_){}
-  }
-  function restorePositions(){
-    try{
-      const saved=JSON.parse(localStorage.getItem(POSITION_KEY)||"null");
-      for(const [kind,el] of [["fab",fab]]){
-        const p=saved&&saved[kind];if(!p||!Number.isFinite(parseFloat(p.left))||!Number.isFinite(parseFloat(p.top)))continue;
-        const w=el.getBoundingClientRect().width|| (kind==="fab"?54:Math.min(window.innerWidth-20,420));
-        const h=el.getBoundingClientRect().height|| (kind==="fab"?54:460);
-        el.style.left=clamp(parseFloat(p.left),8,Math.max(8,window.innerWidth-w-8))+"px";
-        el.style.top=clamp(parseFloat(p.top),8,Math.max(8,window.innerHeight-h-8))+"px";
-        el.style.right="auto";el.style.bottom="auto";
-      }
-    }catch(_){}
-  }
-  function startDrag(el,e,kind){
-    if(e.button!==undefined&&e.button!==0)return;
-    if(kind==="panel"&&e.target.closest("button"))return;
-    dragState={el,kind,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,
-      rect:el.getBoundingClientRect(),moved:false};
-    if(kind==="fab")fabMoved=false;else panelMoved=false;
-    try{el.setPointerCapture(e.pointerId);}catch(_){}
-    e.preventDefault();
-  }
-  function moveDrag(e){
-    if(!dragState||e.pointerId!==dragState.pointerId)return;
-    const d=dragState,dx=e.clientX-d.startX,dy=e.clientY-d.startY;
-    if(Math.abs(dx)+Math.abs(dy)>5)d.moved=true;
-    if(!d.moved)return;
-    const w=d.rect.width,h=d.rect.height;
-    const left=clamp(d.rect.left+dx,8,Math.max(8,window.innerWidth-w-8));
-    const top=clamp(d.rect.top+dy,8,Math.max(8,window.innerHeight-h-8));
-    d.el.style.left=left+"px";d.el.style.top=top+"px";d.el.style.right="auto";d.el.style.bottom="auto";
-    if(d.kind==="fab")fabMoved=true;else panelMoved=true;
-  }
-  function endDrag(e){
-    if(!dragState||e.pointerId!==dragState.pointerId)return;
-    const d=dragState;
-    if(d.kind==="fab")fabMoved=d.moved;else panelMoved=d.moved;
-    dragState=null;if(d.moved)savePositions();
-  }
-  fab.addEventListener("pointerdown",e=>startDrag(fab,e,"fab"));
-  // The chat is a full-screen workspace; its header is not draggable.
-  // Listen on window as Android WebView can retarget touch/pointer events after capture.
-  window.addEventListener("pointermove",moveDrag,{passive:false});
-  window.addEventListener("pointerup",endDrag);
-  window.addEventListener("pointercancel",endDrag);
-  window.addEventListener("resize",()=>{restorePositions();});
-  restorePositions();
-  function openAI(){panel.classList.add("open");document.body.classList.add("pm-ai-fullscreen-open");if(!body.childElementCount){readyMessage();}input.focus();}
-  function closeAI(){panel.classList.remove("open");document.body.classList.remove("pm-ai-fullscreen-open");}
+  function openAI(){panel.classList.add("open");if(!body.childElementCount){readyMessage();}panel.scrollIntoView({behavior:"smooth",block:"start"});}
+  function closeAI(){panel.classList.remove("open");}
   // Native Android Back asks this handler first. Return true only when chat consumes Back.
   window.__prometheusBack = function(){if(panel.classList.contains("open")){closeAI();return true;}return false;};
-  fab.addEventListener("click",()=>{if(fabMoved){fabMoved=false;return;}panel.classList.contains("open")?closeAI():openAI();});
   document.getElementById("pm-ai-clear").onclick=()=>{conversationMemory=[];try{localStorage.removeItem(MEMORY_KEY);}catch(_){}body.replaceChildren();readyMessage();saveMemory();};
 
   panel.querySelector("#pm-ai-close").onclick=closeAI;
@@ -923,11 +850,12 @@
   window.__prometheusAIOpen = openAI;
 
   window.PROMETHEUS_AI = {
-    version:"2.0.0",
-    mode:"NASA-ONLY-EVIDENCE",
+    version:"3.0.0",
+    mode:"OFFLINE-FIRST-NASA-RULE-ENGINE",
     ask,
     audit:q=>answer(q),
     corpus:()=>({experiments:records().length,sources:sources().length,synthetic:!!(ds()&&ds().hasSynthetic)}),
+    intents:()=>LOCAL_INTENTS.map(x=>x.id),
     evidence:EVIDENCE
   };
 })();
