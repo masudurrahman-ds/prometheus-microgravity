@@ -28,7 +28,7 @@ if(!mlPipeline.includes("exploratory_feature_reconstruction_only")) throw new Er
 const mlReadme=fs.readFileSync("ml/README.md","utf8");
 if(!mlReadme.includes("hazard score") || !mlReadme.includes("875 rows") || !mlReadme.includes("five independent source groups")) throw new Error("Expanded PyTorch research limitations must be documented");
 const psiRecordDir="www/data/psi_records";
-const psiFiles=fs.readdirSync(psiRecordDir).filter(name=>/^PSI-\\d+\\.json$/.test(name));
+const psiFiles=fs.readdirSync(psiRecordDir).filter(name=>/^PSI-\d+\.json$/.test(name));
 const psiRecords=psiFiles.flatMap(name=>JSON.parse(fs.readFileSync(psiRecordDir+"/"+name,"utf8")));
 const psiSources=JSON.parse(fs.readFileSync(psiRecordDir+"/sources.json","utf8"));
 if(psiRecords.length<800 || psiSources.length!==6) throw new Error("Expanded NASA PSI corpus is incomplete");
