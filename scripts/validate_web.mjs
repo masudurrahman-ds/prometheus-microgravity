@@ -78,11 +78,14 @@ if(!agentServer.includes('name:"analyze_dataset"') || !agentServer.includes("ana
 if(!agentEvidence.includes("export function analyzeDataset")) throw new Error("deterministic chart-ready evidence analysis is missing");
 if(!fs.existsSync("render.yaml")) throw new Error("cloud agent deployment blueprint missing");
 if(!ai.includes("if (loaded && Array.isArray(loaded.experiments)) return loaded;")) throw new Error("local AI dataset bridge validation missing");
-if(!ai.includes("#pm-ai-panel{position:relative!important;inset:auto!important")) throw new Error("AI assistant must be mounted inline, not as a floating overlay");
-if(!ai.includes("width:min(calc(100% - 28px),1100px)!important")) throw new Error("inline AI panel responsive width missing");
+if(!ai.includes("#pm-ai-panel{position:fixed!important;inset:max(28px,env(safe-area-inset-top,0px)) 0 0 0!important")) throw new Error("AI must use the permanent full-screen chat workspace");
+if(!ai.includes("#pm-ai-body{width:100%;max-width:980px;margin:0 auto;}")) throw new Error("full-screen AI conversation column missing");
 if(!ai.includes("LOCAL ENGINE · NO CLOUD REQUIRED")) throw new Error("AI local-only status missing");
-if(!ai.includes("min-width:48px;min-height:48px")) throw new Error("AI close control must have a reliable touch target");
-if(!ai.includes("window.__prometheusBack = function()")) throw new Error("Android Back must close the AI chat before navigating or exiting");
+if(!ai.includes("#pm-ai-close{display:none!important}")) throw new Error("permanent chat workspace must not expose a close control");
+if(!ai.includes("window.__prometheusBack = function(){return false;}")) throw new Error("permanent chat workspace must not be dismissed by Android Back");
+if(!ai.includes("document.body.classList.add(\"pm-ai-fullscreen-open\")") || !ai.includes("openAI();")) throw new Error("permanent chat workspace must mount and open automatically");
+if(!ai.includes("<b>THINK</b>") || !ai.includes("<b>FETCH NASA DATA</b>") || !ai.includes("<b>RESPONSE</b>")) throw new Error("visible THINK → FETCH NASA DATA → RESPONSE pipeline missing");
+if(!ai.includes("async function ask(q)")) throw new Error("AI request pipeline must await evidence retrieval before response");
 if(!ai.includes("#pm-ai-fab{display:none!important}")) throw new Error("floating AI launcher must be removed");
 if(!ai.includes("window.__prometheusAIOpen = openAI")) throw new Error("external dashboard action does not open the inline assistant");
 if(ai.includes('window.addEventListener("pointermove",moveDrag')) throw new Error("obsolete floating AI drag handling remains");
