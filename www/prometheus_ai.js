@@ -798,7 +798,7 @@
     if (!endpoint || !cloudEnabled()) return false;
     const pending = add("ai","AI · NASA evidence analysis","<span class=\"pm-loading\">Checking the indexed NASA corpus and consulting Gemini…</span>","UNKNOWN",0,[],["Cloud request in progress"]);
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 95000);
+    const timer = setTimeout(() => controller.abort(), 115000);
     try {
       const res = await fetch(endpoint, {
         method: "POST",

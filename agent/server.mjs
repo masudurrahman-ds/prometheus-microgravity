@@ -3,12 +3,13 @@ import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analy
 
 const PORT = Number(process.env.PORT || 8787);
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const API_KEY_SOURCE = process.env.GEMINI_API_KEY ? "GEMINI_API_KEY" : process.env.GOOGLE_API_KEY ? "GOOGLE_API_KEY" : process.env.GOOGLE_GEMINI_API_KEY ? "GOOGLE_GEMINI_API_KEY" : process.env.OPENAI_API_KEY ? "OPENAI_API_KEY" : "MISSING";
 const API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || process.env.OPENAI_API_KEY || "";
 const PROVIDER = "google-gemini";
 const MAX_ROUNDS = Number(process.env.MAX_TOOL_ROUNDS || 8);
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 65536);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "";
-const REQUEST_TIMEOUT_MS = Math.min(120000, Math.max(5000, Number(process.env.REQUEST_TIMEOUT_MS || 40000)));
+const REQUEST_TIMEOUT_MS = Math.min(120000, Math.max(5000, Number(process.env.REQUEST_TIMEOUT_MS || 90000)));
 const RATE_LIMIT = Math.min(120, Math.max(1, Number(process.env.RATE_LIMIT_PER_MINUTE || 20)));
 const TRUST_PROXY = process.env.TRUST_PROXY === "true";
 const rate = new Map();
@@ -89,6 +90,8 @@ async function callLLM(payload) {
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     let response;
     try {
+      const startedAt = Date.now();
+      console.info("Gemini request started", { model: MODEL, keySource: API_KEY_SOURCE, timeoutMs: REQUEST_TIMEOUT_MS, attempt: attempt + 1 });
       response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -99,6 +102,7 @@ async function callLLM(payload) {
         body: JSON.stringify(payload),
         signal: controller.signal
       });
+      console.info("Gemini response received", { status: response.status, durationMs: Date.now() - startedAt, attempt: attempt + 1 });
     } finally {
       clearTimeout(timer);
     }
@@ -219,4 +223,4 @@ http.createServer(async(req,res)=>{
     const result=await runAgent({...body, history:historyCheck.history});
     return send(res,result.ok?200:(result.code==="AI_NOT_CONFIGURED"?503:(result.code==="INVALID_HISTORY"?400:403)),result);
   }catch(error){const timedOut=error?.name==="AbortError";console.error("PROMETHEUS agent error:",timedOut?"Gemini request timed out":error);return send(res,timedOut?504:500,{ok:false,error:timedOut?"Gemini request timed out. Please retry.":"Agent execution failed"});}
-}).listen(PORT,()=>console.log("PROMETHEUS agent listening on "+PORT));
+}).listen(PORT,()=>console.log("PROMETHEUS agent listening on "+PORT, JSON.stringify({model:MODEL,provider:PROVIDER,keySource:API_KEY_SOURCE,requestTimeoutMs:REQUEST_TIMEOUT_MS})));
