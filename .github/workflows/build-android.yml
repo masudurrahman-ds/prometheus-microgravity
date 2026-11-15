@@ -32,6 +32,7 @@ jobs:
           node scripts/validate_web.mjs
           node scripts/validate_nasa_corpus.mjs
           node --check android/app/src/main/assets/prometheus_ai.js
+          python -m py_compile ml/train.py
           cd agent
           node --check server.mjs
           node --check evidence.mjs
