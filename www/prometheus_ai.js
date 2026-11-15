@@ -269,8 +269,8 @@
     const asksForVisual=/(graph|plot|chart|visuali[sz]e|visual|image|picture|render|show me a flame)/.test(low);
     const asksForComparison=/(compare|comparison|difference|versus|\bvs\b)/.test(low);
     const asksForTrend=/(trend|over time|time series|correlat|relationship|association)/.test(low);
-    const asksForPie=/\\b(pie|donut)\\b/.test(low);
-    const asksForHeatmap=/\\b(heat ?map|heatmap)\\b/.test(low);
+    const asksForPie=/\b(pie|donut)\b/.test(low);
+    const asksForHeatmap=/\b(heat ?map|heatmap)\b/.test(low);
     if(asksForPie) {
       const field=/platform|spacecraft|iss/.test(low)?"platform":"fuel";
       const counts=new Map();
