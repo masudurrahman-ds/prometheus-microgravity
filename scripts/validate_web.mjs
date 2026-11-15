@@ -26,7 +26,21 @@ if(!mlPipeline.includes("MIN_RECORDS = 60") || !mlPipeline.includes("MIN_SOURCE_
 if(!mlPipeline.includes("blocked_insufficient_data") || !mlPipeline.includes("source_group")) throw new Error("PyTorch pipeline must report insufficient data and use source-group holdout");
 if(!mlPipeline.includes("exploratory_feature_reconstruction_only")) throw new Error("PyTorch model purpose must remain reconstruction-only");
 const mlReadme=fs.readFileSync("ml/README.md","utf8");
-if(!mlReadme.includes("hazard score") || !mlReadme.includes("17-record seed corpus")) throw new Error("PyTorch research limitations must be documented");
+if(!mlReadme.includes("hazard score") || !mlReadme.includes("875 rows") || !mlReadme.includes("five independent source groups")) throw new Error("Expanded PyTorch research limitations must be documented");
+const psiRecordDir="www/data/psi_records";
+const psiFiles=fs.readdirSync(psiRecordDir).filter(name=>/^PSI-\\d+\\.json$/.test(name));
+const psiRecords=psiFiles.flatMap(name=>JSON.parse(fs.readFileSync(psiRecordDir+"/"+name,"utf8")));
+const psiSources=JSON.parse(fs.readFileSync(psiRecordDir+"/sources.json","utf8"));
+if(psiRecords.length<800 || psiSources.length!==6) throw new Error("Expanded NASA PSI corpus is incomplete");
+const psiIds=new Set();
+for(const record of psiRecords){
+  if(!record.exp_id || !Array.isArray(record.source_ids) || !record.source_ids.length || !record.table_locator) throw new Error("Expanded PSI row is missing identity or provenance");
+  if(psiIds.has(record.exp_id)) throw new Error("Duplicate expanded PSI experiment ID: "+record.exp_id);
+  psiIds.add(record.exp_id);
+  for(const value of Object.values(record.conditions||{})) if(value && (!value.source_id || !value.locator)) throw new Error("Expanded PSI condition is missing provenance");
+}
+const extraLoader=fs.readFileSync("www/psi_extra.js","utf8");
+if(!extraLoader.includes("__prometheusDatasetExtrasReady") || !html.includes("./psi_extra.js")) throw new Error("Expanded PSI local asset loader is not connected");
 const webAi=fs.readFileSync("www/prometheus_ai.js","utf8");
 new vm.Script(webAi,{filename:"www/prometheus_ai.js"});
 const ai=fs.readFileSync("android/app/src/main/assets/prometheus_ai.js","utf8");
@@ -44,6 +58,9 @@ if(!ai.includes("function pieChartSVG(rows, title)")) throw new Error("pie chart
 if(!ai.includes("function heatmapSVG(records)")) throw new Error("heatmap renderer missing");
 if(!ai.includes("if(asksForPie)")) throw new Error("pie chart intent routing missing");
 if(!ai.includes("if(asksForHeatmap)")) throw new Error("heatmap intent routing missing");
+if(!ai.includes("if(localIntent) return {...localIntent,visual:visual||localIntent.visual||\"\",visual3d:visual3d||localIntent.visual3d||\"\"};")) throw new Error("local intent response discards generated visualizations");
+if(!ai.includes("const ready=window.__prometheusDatasetReady")) throw new Error("AI does not wait for expanded local NASA PSI data");
+if(!ai.includes("holder.replaceWith(fresh)")) throw new Error("3D canvas rehydration missing");
 
 if(!ai.includes("pending3DResult=rows")) throw new Error("3D evidence visualization ignores the requested scientific variable");
 if(!ai.includes("function finiteNumericValue(raw)")) throw new Error("strict chart numeric parser missing");
