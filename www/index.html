@@ -1462,10 +1462,24 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   function viewIntelligenceHome(root) {
     const ds=S.ds, n=ds?.experiments?.length||0;
     const launchAI=()=>{
-      if(window.__prometheusAIOpen){ window.__prometheusAIOpen(); return; }
-      const ai=document.getElementById('pm-ai-fab');
-      if(ai) ai.click();
-      else setTimeout(()=>{ if(window.__prometheusAIOpen) window.__prometheusAIOpen(); },1000);
+      let attempts=0;
+      const open=()=>{
+        if(typeof window.__prometheusAIOpen==="function"){
+          window.__prometheusAIOpen();
+          return;
+        }
+        const ai=document.getElementById("pm-ai-fab");
+        if(ai){ ai.click(); return; }
+        attempts+=1;
+        if(attempts<40){ setTimeout(open,250); return; }
+        const fallback=document.createElement("div");
+        fallback.textContent="PROMETHEUS AI is still loading. Please wait a moment and tap Ask PROMETHEUS again.";
+        fallback.setAttribute("role","status");
+        fallback.style.cssText="position:fixed;z-index:100000;left:16px;right:16px;bottom:100px;padding:14px 16px;border:1px solid rgba(230,203,147,.55);border-radius:14px;background:#080d19;color:#f3e7c7;font:14px system-ui;box-shadow:0 8px 30px #0009";
+        document.body.appendChild(fallback);
+        setTimeout(()=>fallback.remove(),4500);
+      };
+      open();
     };
     const action=(title,desc,tab,mark)=>h('button',{class:'int-action',type:'button',on:{click:()=>go(tab)}},
       h('span',{class:'int-mark'},mark),h('span',{class:'int-action-copy'},h('strong',null,title),h('small',null,desc)),h('span',{class:'int-chevron'},'›'));
