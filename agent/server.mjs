@@ -3,7 +3,7 @@ import { searchNasaEvidence, getExperiment, compareExperiments, getSource, analy
 
 const PORT = Number(process.env.PORT || 8787);
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-const API_KEY = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || "";
+const API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || process.env.OPENAI_API_KEY || "";
 const PROVIDER = "google-gemini";
 const MAX_ROUNDS = Number(process.env.MAX_TOOL_ROUNDS || 8);
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 65536);
@@ -193,7 +193,7 @@ http.createServer(async(req,res)=>{
   const count=(rate.get(key)||0)+1; rate.set(key,count);
   for(const k of rate.keys()) if(!k.endsWith(":"+bucket)) rate.delete(k);
   if(count>RATE_LIMIT) return send(res,429,{ok:false,error:"Rate limit exceeded. Please retry shortly."});
-  if(req.method==="GET"&&req.url==="/health") return send(res,200,{ok:true,service:"prometheus-scientific-agent",configured:!!API_KEY,model:MODEL,provider:PROVIDER,evidence_policy:"NASA indexed corpus only"});
+  if(req.method==="GET"&&(req.url==="/"||req.url==="/health"||req.url==="/health/")) return send(res,200,{ok:true,service:"prometheus-scientific-agent",configured:!!API_KEY,model:MODEL,provider:PROVIDER,keyEnvironment:API_KEY?(process.env.GEMINI_API_KEY?"GEMINI_API_KEY":process.env.GOOGLE_API_KEY?"GOOGLE_API_KEY":process.env.GOOGLE_GEMINI_API_KEY?"GOOGLE_GEMINI_API_KEY":"OPENAI_API_KEY"):null,evidence_policy:"NASA indexed corpus only"});
   if(req.method!=="POST"||req.url!=="/v1/agent") return send(res,404,{ok:false,error:"Not found"});
   try{
     let raw="";for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>MAX_BODY_BYTES) return send(res,413,{ok:false,error:"Request body too large."});}
