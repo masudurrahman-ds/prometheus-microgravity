@@ -90,7 +90,7 @@
     #pm-ai-form{display:flex;gap:7px;padding:12px 15px;border-top:1px solid rgba(255,255,255,.09)}
     #pm-ai-input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:10px 12px;color:#eef0f7;outline:none}
     #pm-ai-input:focus{border-color:rgba(230,203,147,.55)}
-    #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}
+    #pm-ai-send{border:1px solid #e6cb93;background:#e6cb93;color:#171106;border-radius:13px;padding:0 14px;font-weight:700;cursor:pointer}\n    .pm-loading:after{content:"";display:inline-block;width:1.1em;text-align:left;animation:pmDots 1.2s steps(4,end) infinite}@keyframes pmDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}
     /* Full-screen conversational workspace: no floating mini-window. */
     /* Keep the app-owned chat below Android status icons and above navigation controls. Android WebView often reports zero CSS safe-area insets, so use a conservative status-bar fallback. */
     #pm-ai-panel{position:fixed!important;inset:28px 0 0 0!important;right:0!important;bottom:0!important;left:0!important;top:max(28px,env(safe-area-inset-top,0px))!important;width:100vw!important;height:calc(100vh - 28px)!important;height:calc(100dvh - max(28px,env(safe-area-inset-top,0px)))!important;max-height:none!important;min-height:0!important;border-radius:0!important;border:0!important;z-index:100000!important;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0px);background:#050812;}
@@ -780,6 +780,7 @@
       (audit&&audit.length?'<div class="pm-audit">Audit trail · '+audit.map(esc).join(" → ")+"</div>":"");
     body.appendChild(el);
     bindVisuals(el);
+    return el;
     // Rehydrate the interactive 3D component because HTML serialization cannot retain canvas state.
     if(visual3d) {
       const holder=el.querySelector(".pm-3d");
@@ -795,18 +796,22 @@
   async function askCloud(q) {
     const endpoint = cloudEndpoint();
     if (!endpoint || !cloudEnabled()) return false;
+    const pending = add("ai","AI · NASA evidence analysis","<span class=\"pm-loading\">Checking the indexed NASA corpus and consulting Gemini…</span>","UNKNOWN",0,[],["Cloud request in progress"]);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 115000);
     try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {"content-type":"application/json"},
+        signal: controller.signal,
         body: JSON.stringify({
           message:q,
           history: recentMemory(12).map(x => ({role:x.role === "assistant" ? "assistant" : "user", content:String(x.text || "")})),
           consent:{cloud_ai:true}
         })
       });
-      if (!res.ok) throw new Error("Cloud AI HTTP "+res.status);
-      const payload = await res.json();
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.error || payload.message || ("Cloud AI HTTP "+res.status));
       const answerText = typeof payload.answer === "string" ? payload.answer : (payload.answer?.answer || "");
       const trace = Array.isArray(payload.trace) ? payload.trace : [];
       const ids = [...new Set(trace.flatMap(t => {
@@ -830,10 +835,14 @@
       add("ai","AI · Cloud evidence synthesis",text,evidenceState,.98,ids,["Explicit cloud-AI consent","NASA evidence retrieval on server","Deterministic analysis tool available","Evidence/citation trace attached"],visualHtml);
       return true;
     } catch (error) {
-      const message = "Cloud reasoning failed (" + (error?.message || "network error") + "). This answer was not silently replaced with the rule-based local answer. Check Render configuration and retry.";
+      const reason = error?.name === "AbortError" ? "The request exceeded the 115-second response limit" : (error?.message || "network error");
+      const message = "Cloud reasoning failed (" + reason + "). No unsupported local answer was substituted. Please retry.";
       rememberTurn({role:"assistant",text:message,title:"AI · Cloud connection error",evidence:"UNKNOWN"});
       add("ai","AI · Cloud connection error",esc(message),"UNKNOWN",0,[],["Cloud mode was enabled","Cloud response failed","No local rule-based substitution"]);
       return true;
+    } finally {
+      clearTimeout(timer);
+      pending?.remove();
     }
   }
 
