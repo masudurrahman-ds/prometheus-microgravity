@@ -188,9 +188,12 @@
   function heatmapSVG(records) {
     const columns=[
       {key:"o2_fraction",label:"O₂ fraction"},
-      {key:"gravity_g",label:"Gravity proxy"},
       {key:"flow_velocity_mm_s",label:"Flow (mm/s)"},
       {key:"pressure_kpa",label:"Pressure (kPa)"},
+      {key:"droplet_initial_diameter_mm",label:"Droplet (mm)"},
+      {key:"weight_loss_rate_mg_min",label:"Weight loss"},
+      {key:"fuel_rate_mg_s",label:"Fuel rate"},
+      {key:"nozzle_diameter_mm",label:"Nozzle (mm)"},
       {key:"burn_duration",label:"Burn (s)"}
     ];
     const rows=(records||[]).map(record=>{
@@ -202,6 +205,10 @@
         } else {
           item=record.conditions&&record.conditions[column.key];
           if(item&&finiteNumericValue(item.canonical_value??item.value)!==null) return {value:finiteNumericValue(item.canonical_value??item.value),raw:item.value,unit:item.canonical_unit||item.unit,note:item.canonical_note||"",source:item.source_id,locator:item.locator};
+          if(column.key==="burn_duration") {
+            const observation=(record.observations||[]).find(o=>/burn|duration/i.test((o.phenomenon||"")+" "+(o.description||""))&&o.measurement&&finiteNumericValue(o.measurement.canonical_value??o.measurement.value)!==null);
+            if(observation)return {value:finiteNumericValue(observation.measurement.canonical_value??observation.measurement.value),raw:observation.measurement.value,unit:observation.measurement.canonical_unit||observation.measurement.unit,note:"",source:observation.source_id,locator:observation.locator};
+          }
         }
         return null;
       });
