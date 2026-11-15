@@ -82,21 +82,33 @@ function runTool(name,args) {
 }
 
 async function callLLM(payload) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    return await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + API_KEY,
-        "x-goog-api-client": "crown-council-prometheus/0.2"
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
-  } finally {
-    clearTimeout(timer);
+  const endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+  const maxAttempts = 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let response;
+    try {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + API_KEY,
+          "x-goog-api-client": "crown-council-prometheus/0.2"
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (response.status !== 503 || attempt === maxAttempts - 1) return response;
+    const retryAfter = Number(response.headers.get("retry-after"));
+    const delay = Number.isFinite(retryAfter) && retryAfter > 0
+      ? Math.min(10000, retryAfter * 1000)
+      : 1200 * (2 ** attempt);
+    console.warn("Gemini temporarily unavailable (503); retrying in " + delay + "ms.");
+    await new Promise(resolve => setTimeout(resolve, delay));
   }
 }
 
