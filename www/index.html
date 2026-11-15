@@ -1462,58 +1462,11 @@ body{min-height:100%;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-
   function viewIntelligenceHome(root) {
     const ds=S.ds, n=ds?.experiments?.length||0;
     const launchAI=()=>{
-      let attempts=0;
-      const open=()=>{
-        if(typeof window.__prometheusAIOpen==="function"){
-          window.__prometheusAIOpen();
-          return;
-        }
-        const ai=document.getElementById("pm-ai-fab");
-        if(ai){ ai.click(); return; }
-        attempts+=1;
-        if(attempts<40){ setTimeout(open,250); return; }
-        // Standalone emergency chat: works even if the injected assistant bundle fails to initialize.
-        let fallback=document.getElementById("pm-ai-emergency");
-        if(fallback){fallback.classList.add("open");return;}
-        fallback=document.createElement("section");
-        fallback.id="pm-ai-emergency";
-        fallback.style.cssText="position:fixed;z-index:100001;inset:12px 10px 92px;background:#070b16;color:#f3f0e8;border:1px solid #8f805f;border-radius:20px;box-shadow:0 20px 70px #000d;display:flex;flex-direction:column;overflow:hidden;font:14px system-ui";
-        fallback.innerHTML='<header style="padding:15px;border-bottom:1px solid #34313a;display:flex;justify-content:space-between;align-items:center"><div><b style="font:22px Georgia;letter-spacing:.08em">PROMETHEUS AI</b><div style="color:#aab2c8;font-size:11px">NASA evidence · Gemini cloud agent</div></div><button id="pm-em-close" type="button" style="background:none;color:#fff;border:0;font-size:28px;padding:4px 12px">×</button></header><div id="pm-em-log" style="padding:14px;overflow:auto;flex:1;white-space:pre-wrap;line-height:1.5">The full assistant interface did not initialize. This recovery chat connects directly to the scientific agent.</div><div style="padding:12px;border-top:1px solid #34313a"><button id="pm-em-enable" type="button" style="padding:9px 12px;border:1px solid #b69b64;border-radius:9px;background:#171725;color:#e8d3a2">Enable Cloud AI (send questions to Gemini)</button><form id="pm-em-form" style="display:flex;gap:8px;margin-top:10px"><input id="pm-em-input" required placeholder="Ask about NASA combustion evidence…" style="min-width:0;flex:1;padding:13px;border-radius:10px;background:#111521;color:white;border:1px solid #555"><button type="submit" style="padding:0 16px;border-radius:10px;background:#e6cb93;color:#17120a;border:0;font-weight:700">Ask</button></form><div id="pm-em-status" style="font-size:11px;color:#aab2c8;margin-top:7px">Cloud AI is off until you explicitly enable it.</div></div>';
-        document.body.appendChild(fallback);
-        const emLog=fallback.querySelector("#pm-em-log"), emStatus=fallback.querySelector("#pm-em-status");
-        const emHistory=[];
-        fallback.querySelector("#pm-em-close").onclick=()=>fallback.remove();
-        fallback.querySelector("#pm-em-enable").onclick=async()=>{
-          emStatus.textContent="Checking Gemini agent…";
-          try{
-            const endpoint=window.__PROMETHEUS_AI_ENDPOINT||"https://prometheus-scientific-agent.onrender.com/v1/agent";
-            const health=await fetch(new URL("/health",endpoint),{cache:"no-store"});
-            const data=await health.json();
-            if(!health.ok||data.configured!==true)throw new Error(data.error||"Gemini API key is not configured.");
-            localStorage.setItem("prometheus_cloud_ai_endpoint",endpoint);
-            localStorage.setItem("prometheus_cloud_ai_consent","yes");
-            emStatus.textContent="Cloud AI enabled · Gemini "+(data.model||"ready");
-          }catch(err){emStatus.textContent="Connection failed: "+err.message;}
-        };
-        fallback.querySelector("#pm-em-form").onsubmit=async e=>{
-          e.preventDefault();
-          const field=fallback.querySelector("#pm-em-input"), question=field.value.trim();
-          if(!question)return;
-          if(localStorage.getItem("prometheus_cloud_ai_consent")!=="yes"){emStatus.textContent="Tap Enable Cloud AI first to give consent.";return;}
-          field.value="";
-          const userLine=document.createElement("p");userLine.textContent="You: "+question;emLog.appendChild(userLine);
-          const wait=document.createElement("p");wait.textContent="PROMETHEUS is searching indexed NASA evidence and consulting Gemini…";emLog.appendChild(wait);emLog.scrollTop=emLog.scrollHeight;
-          try{
-            const endpoint=localStorage.getItem("prometheus_cloud_ai_endpoint")||window.__PROMETHEUS_AI_ENDPOINT||"https://prometheus-scientific-agent.onrender.com/v1/agent";
-            const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:question,history:emHistory,consent:{cloud_ai:true}})});
-            const result=await response.json();
-            wait.textContent=result.ok?result.answer:(result.message||result.error||"The scientific agent returned an error.");
-            if(result.ok){emHistory.push({role:"user",content:question},{role:"assistant",content:result.answer});while(emHistory.length>12)emHistory.shift();}
-          }catch(err){wait.textContent="Request failed: "+err.message;}
-          emLog.scrollTop=emLog.scrollHeight;
-        };
-      };
-      open();
+      if(typeof window.__prometheusAIOpen==="function"){
+        window.__prometheusAIOpen();
+        return;
+      }
+      UI.toast("PROMETHEUS local engine is loading. Please try again in a moment.");
     };
     const action=(title,desc,tab,mark)=>h('button',{class:'int-action',type:'button',on:{click:()=>go(tab)}},
       h('span',{class:'int-mark'},mark),h('span',{class:'int-action-copy'},h('strong',null,title),h('small',null,desc)),h('span',{class:'int-chevron'},'›'));
