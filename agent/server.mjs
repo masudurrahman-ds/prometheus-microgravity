@@ -128,7 +128,7 @@ async function runAgent(body) {
       try { args = JSON.parse(call.arguments || "{}"); }
       catch { args = null; }
       const result = runTool(call.name, args);
-      trace.push({tool:call.name, result_summary: result?.error ? result.error : "Tool completed"});
+      trace.push({tool:call.name, arguments:args, result_summary: result?.error ? result.error : "Tool completed", result});
       return {type:"function_call_output",call_id:call.call_id,output:JSON.stringify(result)};
     });
     response=await callLLM({model:MODEL,instructions:SYSTEM,previous_response_id:data.id,input:outputs,tools,tool_choice:"auto"});
