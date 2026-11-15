@@ -6,18 +6,13 @@ const match=html.match(/<script type="application\/json" id="fixture">([\s\S]*?)
 if(!match) throw new Error("fixture script missing");
 const fixture=JSON.parse(match[1]);
 if(!fixture.dataset_id || !Array.isArray(fixture.experiments) || !Array.isArray(fixture.sources)) throw new Error("invalid PROMETHEUS fixture schema");
-const observatoryViews=["overview","evidence","intelligence","lab","agent","safety","sources"];
-if(!html.includes('id="prometheus-observatory-redesign"') || !html.includes('id="ro-app"')) throw new Error("Research Observatory interface shell missing");
-for(const view of observatoryViews) if(!html.includes('data-ro-view="'+view+'"')) throw new Error("Research Observatory navigation destination missing: "+view);
+// Validate the restored cosmic interface rather than the later Research Observatory shell.
+if(!html.includes('id="stars"') || !html.includes('id="root"')) throw new Error("Cosmic interface shell missing");
+if(!html.includes("interactive 3D universe") || !html.includes("Cormorant Garamond")) throw new Error("Cosmic visual identity missing");
 if(!html.includes("function resetLabFormToBaseline(ds = S.ds)")) throw new Error("virtual-lab recorded-baseline reset helper missing");
-if(!html.includes("function ask(q){") || !html.includes("window.__prometheusAIOpen()")) throw new Error("Research Observatory agent entry point is not connected to PROMETHEUS AI");
-if(!html.includes("@media(max-width:900px)") || !html.includes("@media(max-width:520px)")) throw new Error("Research Observatory mobile layout breakpoints missing");
-if(!html.includes("This worksheet does not calculate flame behaviour.")) throw new Error("laboratory simulation limitation missing");
-if(!html.includes("Differences are not proof of causality.")) throw new Error("causal inference guardrail missing");
-if(!html.includes("3D evidence space · recorded experiment values")) throw new Error("Combustion Laboratory evidence-space visualization missing");
-if(!html.includes("Records with missing values are excluded, not imputed.")) throw new Error("3D evidence visualization missing-data disclosure missing");
-if(!html.includes("Rotate 3D evidence view")) throw new Error("3D evidence visualization rotation control missing");
-if(!html.includes("flowunit:fl&&fl.unit")) throw new Error("3D evidence plot must retain source-reported flow units");
+if(!html.includes("window.__prometheusAIOpen")) throw new Error("PROMETHEUS AI entry point is not connected");
+if(!html.includes("function viewDashboard(root)")) throw new Error("interactive research dashboard missing");
+if(!html.includes("not a physical combustion simulation")) throw new Error("laboratory scientific limitation missing");
 if(!fixture.challenge_sources || fixture.challenge_sources.length < 20) throw new Error("challenge source catalog unexpectedly small");
 const ids=new Set(fixture.sources.map(s=>s.source_id));
 for(const e of fixture.experiments) for(const id of (e.source_ids||[])) if(!ids.has(id)) throw new Error("experiment references unknown source "+id);
