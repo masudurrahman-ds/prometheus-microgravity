@@ -14,8 +14,6 @@ from pathlib import Path
 from typing import Any
 
 FEATURES = (
-    "o2_fraction",
-    "gravity_g",
     "flow_velocity_mm_s",
     "pressure_kpa",
     "burn_duration",
@@ -70,12 +68,14 @@ def extract_record(record: dict[str, Any], sources: dict[str, dict]) -> dict[str
         else:
             condition = (record.get("conditions") or {}).get(feature) or {}
             raw = condition.get("canonical_value", condition.get("value"))
-            if finite_number(raw) is not None and usable_measurement(condition, sources):
+            note = str(condition.get("canonical_note") or "")
+            is_proxy = "proxy" in note.lower() or "midpoint" in note.lower()
+            if finite_number(raw) is not None and not is_proxy and usable_measurement(condition, sources):
                 candidate = {
                     "value": finite_number(raw),
                     "source_id": str(condition["source_id"]),
                     "locator": str(condition["locator"]),
-                    "note": str(condition.get("canonical_note") or ""),
+                    "note": note,
                 }
         values.append(candidate["value"] if candidate else None)
         provenance.append(
@@ -151,7 +151,7 @@ def main() -> int:
         "limitations": [
             "No supervised target labels exist for operational combustion or fire-risk prediction.",
             "The exploratory model reconstructs a feature representation only; its error is not a hazard score.",
-            "Canonical midpoints and gravity proxies remain marked as derived values in the source corpus.",
+            "Canonical midpoints and visualization proxies are excluded from model inputs; they remain available only in clearly disclosed charts.",
             "A source-group holdout is required to reduce leakage between records from the same investigation.",
         ],
     }
