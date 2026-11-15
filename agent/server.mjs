@@ -8,7 +8,7 @@ const PROVIDER = "google-gemini";
 const MAX_ROUNDS = Number(process.env.MAX_TOOL_ROUNDS || 8);
 const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 65536);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "";
-const REQUEST_TIMEOUT_MS = Math.min(120000, Math.max(5000, Number(process.env.REQUEST_TIMEOUT_MS || 45000)));
+const REQUEST_TIMEOUT_MS = Math.min(120000, Math.max(5000, Number(process.env.REQUEST_TIMEOUT_MS || 40000)));
 const RATE_LIMIT = Math.min(120, Math.max(1, Number(process.env.RATE_LIMIT_PER_MINUTE || 20)));
 const TRUST_PROXY = process.env.TRUST_PROXY === "true";
 const rate = new Map();
@@ -83,7 +83,7 @@ function runTool(name,args) {
 
 async function callLLM(payload) {
   const endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-  const maxAttempts = 3;
+  const maxAttempts = 2;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -157,7 +157,7 @@ async function runAgent(body) {
     type, function:{name,description,parameters}
   }));
   const trace = [];
-  let data = await readModelResponse(await callLLM({model:MODEL,messages,tools:chatTools,tool_choice:"auto"}));
+  let data = await readModelResponse(await callLLM({model:MODEL,messages,tools:chatTools,tool_choice:"auto",reasoning_effort:"low",max_tokens:2048}));
 
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const msg = data.choices?.[0]?.message;
@@ -177,7 +177,7 @@ async function runAgent(body) {
       trace.push({tool:call.function?.name,arguments:args,result_summary:result?.error || "Tool completed",result});
       messages.push({role:"tool",tool_call_id:call.id,content:JSON.stringify(result)});
     }
-    data = await readModelResponse(await callLLM({model:MODEL,messages,tools:chatTools,tool_choice:"auto"}));
+    data = await readModelResponse(await callLLM({model:MODEL,messages,tools:chatTools,tool_choice:"auto",reasoning_effort:"low",max_tokens:2048}));
   }
   return {ok:false,code:"TOOL_LIMIT",message:"The scientific agent reached its tool-use limit.",trace,model:MODEL};
 }
@@ -218,5 +218,5 @@ http.createServer(async(req,res)=>{
     if (!historyCheck.ok) return send(res,400,{ok:false,error:historyCheck.error});
     const result=await runAgent({...body, history:historyCheck.history});
     return send(res,result.ok?200:(result.code==="AI_NOT_CONFIGURED"?503:(result.code==="INVALID_HISTORY"?400:403)),result);
-  }catch(error){console.error("PROMETHEUS agent error:",error);return send(res,500,{ok:false,error:"Agent execution failed"});}
+  }catch(error){const timedOut=error?.name==="AbortError";console.error("PROMETHEUS agent error:",timedOut?"Gemini request timed out":error);return send(res,timedOut?504:500,{ok:false,error:timedOut?"Gemini request timed out. Please retry.":"Agent execution failed"});}
 }).listen(PORT,()=>console.log("PROMETHEUS agent listening on "+PORT));
